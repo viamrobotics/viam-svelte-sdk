@@ -1,10 +1,10 @@
 /** Assertion functions for runtime and type safety. */
 
 export class AssertionError extends Error {
-	constructor(message: string) {
-		super(message);
-		this.name = 'AssertionError';
-	}
+  constructor(message: string) {
+    super(message);
+    this.name = 'AssertionError';
+  }
 }
 
 /**
@@ -17,10 +17,10 @@ export class AssertionError extends Error {
  * }
  */
 export const assertExists: <T>(value: T, message: string) => asserts value is NonNullable<T> = (
-	value,
-	message
+  value,
+  message
 ) => {
-	if (value === null || value === undefined) {
-		throw new AssertionError(message);
-	}
+  if (value === null || value === undefined) {
+    throw new AssertionError(message);
+  }
 };
