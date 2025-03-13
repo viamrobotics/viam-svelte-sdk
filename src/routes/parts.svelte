@@ -4,8 +4,6 @@
 
   let partID = $state(partID1);
 
-  $inspect(partID);
-
   const status = useConnectionStatus(() => partID);
   const client = useRobotClient(() => partID);
   const resources = useResourceNames(() => partID);
