@@ -13,13 +13,9 @@ import { comparePartIds } from './compare';
 const key = Symbol('clients-context');
 const dialKey = Symbol('dial-configs-context');
 
-type ClientCallback = (partID: PartID, client: Client) => void;
-
 interface Context {
   current: Record<PartID, Client | undefined>;
   connectionStatus: Record<PartID, MachineConnectionEvent>;
-  on: (name: 'add' | 'remove', callback: ClientCallback) => void;
-  off: (name: 'add' | 'remove', callback: ClientCallback) => void;
 }
 
 interface DialConfigsContext {
@@ -30,8 +26,6 @@ export const provideRobotClientsContext = (dialConfigs: () => Record<PartID, Dia
   const queryClient = useQueryClient();
   const clients = $state<Record<PartID, Client | undefined>>({});
   const connectionStatus = $state<Record<PartID, MachineConnectionEvent>>({});
-  const addCallbacks = new Set<ClientCallback>();
-  const removeCallbacks = new Set<ClientCallback>();
 
   let lastConfigs: Record<PartID, DialConf | undefined> = {};
 
@@ -62,8 +56,6 @@ export const provideRobotClientsContext = (dialConfigs: () => Record<PartID, Dia
         queryClient.cancelQueries({ queryKey: ['part', partID] }),
       ]);
 
-      removeCallbacks.forEach((callback) => callback(partID, client));
-
       clients[partID] = undefined;
       connectionStatus[partID] = MachineConnectionEvent.DISCONNECTED;
     };
@@ -87,7 +79,6 @@ export const provideRobotClientsContext = (dialConfigs: () => Record<PartID, Dia
         client.on('connectionstatechange', (event) => onConnectionStateChange(partID, event));
 
         clients[partID] = client;
-        addCallbacks.forEach((callback) => callback(partID, client));
         connectionStatus[partID] = MachineConnectionEvent.CONNECTED;
       } catch (error) {
         console.error(error);
@@ -129,20 +120,6 @@ export const provideRobotClientsContext = (dialConfigs: () => Record<PartID, Dia
     },
     get connectionStatus() {
       return connectionStatus;
-    },
-    on(name, callback) {
-      if (name === 'add') {
-        addCallbacks.add(callback);
-      } else if (name === 'remove') {
-        removeCallbacks.add(callback);
-      }
-    },
-    off(name, callback) {
-      if (name === 'add') {
-        addCallbacks.delete(callback);
-      } else if (name === 'remove') {
-        removeCallbacks.delete(callback);
-      }
     },
   });
 
