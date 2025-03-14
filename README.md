@@ -6,7 +6,7 @@
 
 The Viam Svelte SDK provides a reactive layer over `@viamrobotics/sdk`.
 
-To get started, Include the ViamProvider component as a child of the Tanstack QueryClientProvider. Any child component will have access to the SDK hooks.
+To get started, Include the `ViamProvider` component as a child of the Tanstack `QueryClientProvider`. Any child component will have access to the SDK hooks.
 
 A map of `PartID`s to `DialConf`s must also be provided to connect to your machine(s).
 
@@ -20,7 +20,7 @@ A map of `PartID`s to `DialConf`s must also be provided to connect to your machi
 
   const queryClient = new QueryClient();
 
-  const dialConfigs = {
+  const dialConfigs: Record<string, DialConf> = {
     'my-part-id': {
       host: 'my-host',
       credentials: {
@@ -29,7 +29,7 @@ A map of `PartID`s to `DialConf`s must also be provided to connect to your machi
         payload: 'my-api-key-value',
       },
       signalingAddress: 'https://app.viam.dev:443',
-      disableSessions: true,
+      disableSessions: false,
     },
   };
 </script>
