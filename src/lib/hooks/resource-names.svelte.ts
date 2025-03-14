@@ -1,7 +1,7 @@
-import { createQuery, type QueryObserverResult } from '@tanstack/svelte-query';
+import { createQueries, type QueryObserverResult } from '@tanstack/svelte-query';
 import type { ResourceName } from '@viamrobotics/sdk';
 import { getContext, setContext } from 'svelte';
-import { fromStore } from 'svelte/store';
+import { fromStore, toStore } from 'svelte/store';
 import { useRobotClients } from '$lib/robot-clients.svelte';
 import type { PartID } from '../part';
 
@@ -17,31 +17,37 @@ interface QueryContext {
 }
 
 interface Context {
-  current: Record<PartID, { current: Query } | undefined>;
+  current: Record<PartID, Query | undefined>;
 }
 
 export const provideResourceNamesContext = () => {
   const clients = useRobotClients();
-  const queries = $state<Record<PartID, { current: Query }>>({});
 
-  $effect.pre(() => {
-    for (const [partID, client] of Object.entries(clients.current)) {
-      const query = fromStore(
-        createQuery({
-          queryKey: [partID, 'resources'],
-          queryFn: async () => {
-            return (await client?.resourceNames()) ?? [];
-          },
-        })
-      );
+  const options = $derived(
+    Object.entries(clients.current).map(([partID, client]) => {
+      return {
+        queryKey: [partID, 'resources'],
+        queryFn: async () => {
+          if (!client) return [];
+          return client.resourceNames();
+        },
+      };
+    })
+  );
 
-      queries[partID] = query;
-    }
-  });
+  const current = fromStore(
+    createQueries({
+      queries: toStore(() => options),
+      combine: (results) => {
+        const partIDs = Object.keys(clients.current);
+        return Object.fromEntries(results.map((result, index) => [partIDs[index], result]));
+      },
+    })
+  );
 
   setContext<Context>(key, {
     get current() {
-      return queries;
+      return current.current;
     },
   });
 };
@@ -49,10 +55,10 @@ export const provideResourceNamesContext = () => {
 export const useResourceNames = (partID: () => PartID, subtype?: () => string): QueryContext => {
   const context = getContext<Context>(key);
   const query = $derived(context.current[partID()]);
-  const data = $derived(query?.current.data ?? []);
+  const data = $derived(query?.data ?? []);
   const filtered = $derived(subtype ? data.filter((value) => value.subtype === subtype()) : data);
-  const error = $derived(query?.current.error ?? undefined);
-  const fetching = $derived(query?.current.isFetching ?? true);
+  const error = $derived(query?.error ?? undefined);
+  const fetching = $derived(query?.isFetching ?? true);
 
   return {
     get current() {
@@ -65,7 +71,7 @@ export const useResourceNames = (partID: () => PartID, subtype?: () => string): 
       return fetching;
     },
     refetch() {
-      return query?.current.refetch() ?? Promise.resolve();
+      return query?.refetch() ?? Promise.resolve();
     },
   };
 };

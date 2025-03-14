@@ -1,8 +1,10 @@
 <script lang="ts">
   import { useConnectionStatus, useResourceNames, useRobotClient } from '$lib';
-  import { partID1, partID2 } from './configs';
+  import { dialConfigs } from './configs';
 
-  let partID = $state(partID1);
+  const partIDs = Object.keys(dialConfigs);
+
+  let partID = $state(partIDs[0]);
 
   const status = useConnectionStatus(() => partID);
   const client = useRobotClient(() => partID);
@@ -19,22 +21,19 @@
 </script>
 
 <section class="p-4">
-  <button
-    class="border p-2"
-    class:bg-blue-100={partID === partID1}
-    onclick={() => (partID = partID1)}
-  >
-    fleet 1
-  </button>
-  <button
-    class="border p-2"
-    class:bg-blue-100={partID === partID2}
-    onclick={() => (partID = partID2)}
-  >
-    fleet 2
-  </button>
+  <div class="flex items-center gap-2">
+    {#each partIDs as id, index}
+      <button
+        class="border p-2"
+        class:bg-blue-100={partID === id}
+        onclick={() => (partID = id)}
+      >
+        part {index + 1}
+      </button>
+    {/each}
 
-  {status.current}
+    {status.current}
+  </div>
 
   <h2 class="py-2">Resources</h2>
   {#if resources.error}
