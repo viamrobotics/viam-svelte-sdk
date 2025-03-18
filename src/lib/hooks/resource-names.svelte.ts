@@ -35,7 +35,7 @@ export const provideResourceNamesContext = () => {
     })
   );
 
-  const current = fromStore(
+  const queries = fromStore(
     createQueries({
       queries: toStore(() => options),
       combine: (results) => {
@@ -47,7 +47,7 @@ export const provideResourceNamesContext = () => {
 
   setContext<Context>(key, {
     get current() {
-      return current.current;
+      return queries.current;
     },
   });
 };
