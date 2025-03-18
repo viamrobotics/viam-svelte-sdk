@@ -4,7 +4,9 @@ const parseConfigs = () => {
   const rawRobots = import.meta.env.VITE_CONFIGS;
 
   if (!rawRobots) {
-    throw new Error('Cannot find configs. Please read the README.md for more info');
+    throw new Error(
+      'Cannot find configs. Please read the README.md for more info'
+    );
   }
 
   return JSON.parse(rawRobots);

@@ -22,7 +22,9 @@ interface DialConfigsContext {
   current: Record<PartID, DialConf>;
 }
 
-export const provideRobotClientsContext = (dialConfigs: () => Record<PartID, DialConf>) => {
+export const provideRobotClientsContext = (
+  dialConfigs: () => Record<PartID, DialConf>
+) => {
   const queryClient = useQueryClient();
   const clients = $state<Record<PartID, Client | undefined>>({});
   const connectionStatus = $state<Record<PartID, MachineConnectionEvent>>({});
@@ -30,7 +32,9 @@ export const provideRobotClientsContext = (dialConfigs: () => Record<PartID, Dia
   let lastConfigs: Record<PartID, DialConf | undefined> = {};
 
   const onConnectionStateChange = (partID: PartID, event: unknown) => {
-    connectionStatus[partID] = (event as { eventType: MachineConnectionEvent }).eventType;
+    connectionStatus[partID] = (
+      event as { eventType: MachineConnectionEvent }
+    ).eventType;
   };
 
   $effect.pre(() => {
@@ -76,7 +80,9 @@ export const provideRobotClientsContext = (dialConfigs: () => Record<PartID, Dia
         }
 
         const client = await createRobotClient(config);
-        client.on('connectionstatechange', (event) => onConnectionStateChange(partID, event));
+        client.on('connectionstatechange', (event) =>
+          onConnectionStateChange(partID, event)
+        );
 
         clients[partID] = client;
         connectionStatus[partID] = MachineConnectionEvent.CONNECTED;
@@ -92,7 +98,10 @@ export const provideRobotClientsContext = (dialConfigs: () => Record<PartID, Dia
     );
 
     for (const partID of added) {
-      connect(partID, configs[partID]);
+      const config = configs[partID];
+      if (config) {
+        connect(partID, config);
+      }
     }
 
     for (const partID of removed) {
@@ -100,8 +109,9 @@ export const provideRobotClientsContext = (dialConfigs: () => Record<PartID, Dia
     }
 
     for (const partID of unchanged) {
-      if (!isEqual(lastConfigs[partID], configs[partID])) {
-        connect(partID, configs[partID]);
+      const config = configs[partID];
+      if (config && !isEqual(lastConfigs[partID], config)) {
+        connect(partID, config);
       }
     }
 

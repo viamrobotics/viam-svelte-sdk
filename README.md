@@ -12,26 +12,26 @@ A map of `PartID`s to `DialConf`s must also be provided to connect to your machi
 
 ```svelte
 <script lang="ts">
-  import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query';
-  import { ViamProvider } from '@viamrobotics/svelte-sdk';
-  import type { DialConf } from '@viamrobotics/sdk';
+import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query';
+import { ViamProvider } from '@viamrobotics/svelte-sdk';
+import type { DialConf } from '@viamrobotics/sdk';
 
-  let { children } = $props();
+let { children } = $props();
 
-  const queryClient = new QueryClient();
+const queryClient = new QueryClient();
 
-  const dialConfigs: Record<string, DialConf> = {
-    'my-part-id': {
-      host: 'my-host',
-      credentials: {
-        type: 'api-key',
-        authEntity: 'my-api-key-id',
-        payload: 'my-api-key-value',
-      },
-      signalingAddress: 'https://app.viam.dev:443',
-      disableSessions: false,
+const dialConfigs: Record<string, DialConf> = {
+  'my-part-id': {
+    host: 'my-host',
+    credentials: {
+      type: 'api-key',
+      authEntity: 'my-api-key-id',
+      payload: 'my-api-key-value',
     },
-  };
+    signalingAddress: 'https://app.viam.dev:443',
+    disableSessions: false,
+  },
+};
 </script>
 
 <QueryClientProvider client={queryClient}>
@@ -47,19 +47,19 @@ In any child component, you can access the `RobotClient` and `MachineConnectionS
 
 ```svelte
 <script lang="ts">
-  import { useConnectionStatus, useRobotClient } from '@viamrobotics/svelte-sdk';
+import { useConnectionStatus, useRobotClient } from '@viamrobotics/svelte-sdk';
 
-  interface Props {
-    partID: string;
-  }
+interface Props {
+  partID: string;
+}
 
-  let { partID }: Props = $props();
+let { partID }: Props = $props();
 
-  const status = useConnectionStatus(() => partID);
-  const client = useRobotClient(() => partID);
+const status = useConnectionStatus(() => partID);
+const client = useRobotClient(() => partID);
 
-  $inspect(status.current);
-  $inspect(client.current);
+$inspect(status.current);
+$inspect(client.current);
 </script>
 ```
 
@@ -69,23 +69,23 @@ Wraps `client.resourceNames()` in a reactive query.
 
 ```svelte
 <script lang="ts">
-  import { useResourceNames } from '@viamrobotics/svelte-sdk';
+import { useResourceNames } from '@viamrobotics/svelte-sdk';
 
-  interface Props {
-    partID: string;
-  }
+interface Props {
+  partID: string;
+}
 
-  let { partID }: Props = $props();
+let { partID }: Props = $props();
 
-  const resources = useResourceNames(() => partID);
-  const arms = useResourceNames(
-    () => partID,
-    () => 'arm'
-  );
+const resources = useResourceNames(() => partID);
+const arms = useResourceNames(
+  () => partID,
+  () => 'arm'
+);
 
-  $inspect(resources.current);
-  $inspect(resources.error);
-  $inspect(resources.fetching);
+$inspect(resources.current);
+$inspect(resources.error);
+$inspect(resources.fetching);
 </script>
 ```
 

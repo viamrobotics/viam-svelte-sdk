@@ -1,23 +1,23 @@
 <script lang="ts">
-  import { useConnectionStatus, useResourceNames, useRobotClient } from '$lib';
-  import { dialConfigs } from './configs';
+import { useConnectionStatus, useResourceNames, useRobotClient } from '$lib';
+import { dialConfigs } from './configs';
 
-  const partIDs = Object.keys(dialConfigs);
+const partIDs = Object.keys(dialConfigs);
 
-  let partID = $state(partIDs[0]);
+let partID = $state(partIDs[0] ?? '');
 
-  const status = useConnectionStatus(() => partID);
-  const client = useRobotClient(() => partID);
-  const resources = useResourceNames(() => partID);
+const status = useConnectionStatus(() => partID);
+const client = useRobotClient(() => partID);
+const resources = useResourceNames(() => partID);
 
-  $effect(() => {
-    client.current?.robotService.frameSystemConfig({}).then((response) => {
-      console.log(response);
-    });
-    client.current?.getMachineStatus().then((response) => {
-      console.log(response);
-    });
+$effect(() => {
+  client.current?.robotService.frameSystemConfig({}).then((response) => {
+    console.log(response);
   });
+  client.current?.getMachineStatus().then((response) => {
+    console.log(response);
+  });
+});
 </script>
 
 <section class="p-4">
