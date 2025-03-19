@@ -16,7 +16,9 @@ const client = createResourceClient(
   () => name
 );
 
-const isMoving = createResourceQuery(client, 'isMoving');
+const isMoving = createResourceQuery(client, 'isMoving', {
+  refetchInterval: 1000,
+});
 const moveStraight = createResourceMutation(client, 'moveStraight');
 </script>
 

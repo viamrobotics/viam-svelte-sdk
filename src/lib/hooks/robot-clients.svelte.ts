@@ -36,12 +36,6 @@ export const provideRobotClientsContext = (
 
   let lastConfigs: Record<PartID, DialConf | undefined> = {};
 
-  const onConnectionStateChange = (partID: PartID, event: unknown) => {
-    connectionStatus[partID] = (
-      event as { eventType: MachineConnectionEvent }
-    ).eventType;
-  };
-
   const disconnect = async (partID: PartID, config?: DialConf) => {
     // If currently making the initial connection, abort it.
     if (config?.reconnectAbortSignal !== undefined) {
@@ -56,12 +50,13 @@ export const provideRobotClientsContext = (
 
     connectionStatus[partID] = MachineConnectionEvent.DISCONNECTING;
 
-    // client.off('connectionstatechange', onConnectionStateChange);
+    console.log(client.listeners);
     await Promise.all([
       client?.disconnect(),
-      queryClient.cancelQueries({ queryKey: ['part', partID] }),
+      queryClient.cancelQueries({ queryKey: ['partID', partID] }),
     ]);
 
+    client.listeners['connectionstatechange']?.clear();
     clients[partID] = undefined;
     connectionStatus[partID] = MachineConnectionEvent.DISCONNECTED;
   };
@@ -83,9 +78,11 @@ export const provideRobotClientsContext = (
 
       const client = await createRobotClient(config);
       (client as RobotClient & { partID: string }).partID = partID;
-      client.on('connectionstatechange', (event) =>
-        onConnectionStateChange(partID, event)
-      );
+      client.on('connectionstatechange', (event) => {
+        connectionStatus[partID] = (
+          event as { eventType: MachineConnectionEvent }
+        ).eventType;
+      });
 
       clients[partID] = client;
       connectionStatus[partID] = MachineConnectionEvent.CONNECTED;

@@ -16,41 +16,35 @@ export type ResolvedReturnType<T> = T extends (
   ? R
   : never;
 
-export interface ResourceQueryOptions {
+interface QueryOptions {
   // enabled defaults to true if unspecified
   enabled?: boolean;
   refetchInterval: number | false;
   refetchIntervalInBackground?: boolean;
 }
 
-export const createResourceQuery: {
-  // Overload when args and options are provided separately
-  <T extends Resource, K extends keyof T>(
-    client: { current: T | undefined },
-    method: K,
-    args: () => ArgumentsType<T[K]>,
-    options?: () => ResourceQueryOptions
-  ): { current: QueryObserverResult<ResolvedReturnType<T[K]>> };
-
-  // Overload when only three parameters are provided, treating the third param as options
-  <T extends Resource, K extends keyof T>(
-    client: { current: T | undefined },
-    method: K,
-    options?: () => ResourceQueryOptions
-  ): { current: QueryObserverResult<ResolvedReturnType<T[K]>> };
-} = <T extends Resource, K extends keyof T>(
+export const createResourceQuery = <T extends Resource, K extends keyof T>(
   client: { current: T | undefined },
   method: K,
-  third?: (() => ArgumentsType<T[K]>) | (() => ResourceQueryOptions),
-  fourth?: () => ResourceQueryOptions
+  ...additional:
+    | [
+        args?: (() => ArgumentsType<T[K]>) | ArgumentsType<T[K]>,
+        options?: (() => QueryOptions) | QueryOptions,
+      ]
+    | [options?: (() => QueryOptions) | QueryOptions]
 ): { current: QueryObserverResult<ResolvedReturnType<T[K]>> } => {
-  // Determine if the third parameter is args or options
-  const args = fourth ? (third as () => ArgumentsType<T[K]>) : undefined;
-  const options = fourth
-    ? fourth
-    : (third as () => ResourceQueryOptions | undefined);
+  let [args, options] = additional;
 
-  const opts = $derived(options?.());
+  if (options === undefined) {
+    options = args as QueryOptions;
+    args = undefined;
+  }
+
+  const _options = $derived(
+    typeof options === 'function' ? options() : options
+  );
+  const _args = $derived(typeof args === 'function' ? args() : args);
+
   const queryOptions = $derived(
     createQueryOptions({
       queryKey: [
@@ -59,9 +53,9 @@ export const createResourceQuery: {
         'resource',
         client.current?.name,
         String(method),
-        ...[args?.() ? args() : []],
+        ...(_args ? [_args] : []),
       ],
-      enabled: client.current !== undefined && opts?.enabled !== false,
+      enabled: client.current !== undefined && _options?.enabled !== false,
       retry: false,
       queryFn: async () => {
         const clientFunc = client.current?.[method];
@@ -72,11 +66,11 @@ export const createResourceQuery: {
           );
         }
 
-        return clientFunc?.apply(client.current, args?.()) as Promise<
+        return clientFunc?.apply(client.current, _args) as Promise<
           ResolvedReturnType<T[K]>
         >;
       },
-      ...opts,
+      ..._options,
     })
   );
 
