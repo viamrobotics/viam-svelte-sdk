@@ -1,18 +1,20 @@
 <script lang="ts">
 import type { Snippet } from 'svelte';
+import { QueryClientProvider, QueryClient } from '@tanstack/svelte-query';
 import type { DialConf } from '@viamrobotics/sdk';
-import { provideRobotClientsContext } from '$lib/robot-clients.svelte';
-import { provideResourceNamesContext } from '$lib/hooks/resource-names.svelte';
+import InternalProvider from './internal-provider.svelte';
 
 interface Props {
   dialConfigs: Record<string, DialConf>;
+  client?: QueryClient;
   children: Snippet;
 }
 
-let { dialConfigs, children }: Props = $props();
-
-provideRobotClientsContext(() => dialConfigs);
-provideResourceNamesContext();
+let { dialConfigs, client = new QueryClient(), children }: Props = $props();
 </script>
 
-{@render children()}
+<QueryClientProvider {client}>
+  <InternalProvider {dialConfigs}>
+    {@render children()}
+  </InternalProvider>
+</QueryClientProvider>

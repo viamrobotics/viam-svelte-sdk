@@ -5,7 +5,7 @@ import {
 import type { ResourceName } from '@viamrobotics/sdk';
 import { getContext, setContext } from 'svelte';
 import { fromStore, toStore } from 'svelte/store';
-import { useRobotClients } from '$lib/robot-clients.svelte';
+import { useRobotClients } from './robot-clients.svelte';
 import type { PartID } from '../part';
 
 const key = Symbol('resources-context');
@@ -29,7 +29,7 @@ export const provideResourceNamesContext = () => {
   const options = $derived(
     Object.entries(clients.current).map(([partID, client]) => {
       return {
-        queryKey: [partID, 'resources'],
+        queryKey: ['partID', partID, 'resources'],
         queryFn: async () => {
           if (!client) return [];
           return client.resourceNames();
@@ -59,13 +59,16 @@ export const provideResourceNamesContext = () => {
 
 export const useResourceNames = (
   partID: () => PartID,
-  subtype?: () => string
+  subtype?: string | (() => string)
 ): QueryContext => {
   const context = getContext<Context>(key);
   const query = $derived(context.current[partID()]);
   const data = $derived(query?.data ?? []);
+  const resourceSubtype = $derived(
+    typeof subtype === 'function' ? subtype() : subtype
+  );
   const filtered = $derived(
-    subtype ? data.filter((value) => value.subtype === subtype()) : data
+    subtype ? data.filter((value) => value.subtype === resourceSubtype) : data
   );
   const error = $derived(query?.error ?? undefined);
   const fetching = $derived(query?.isFetching ?? true);

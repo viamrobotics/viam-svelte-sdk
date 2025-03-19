@@ -1,23 +1,17 @@
 <script lang="ts">
-import { useConnectionStatus, useResourceNames, useRobotClient } from '$lib';
-import { dialConfigs } from './configs';
+import { useConnectionStatus, useResourceNames } from '$lib';
+import { dialConfigs } from '../configs';
+import Camera from './camera.svelte';
+import Version from './version.svelte';
 
 const partIDs = Object.keys(dialConfigs);
 
 let partID = $state(partIDs[0] ?? '');
 
 const status = useConnectionStatus(() => partID);
-const client = useRobotClient(() => partID);
-const resources = useResourceNames(() => partID);
 
-$effect(() => {
-  client.current?.robotService.frameSystemConfig({}).then((response) => {
-    console.log(response);
-  });
-  client.current?.getMachineStatus().then((response) => {
-    console.log(response);
-  });
-});
+const resources = useResourceNames(() => partID);
+const cameras = useResourceNames(() => partID, 'camera');
 </script>
 
 <section class="p-4">
@@ -35,6 +29,8 @@ $effect(() => {
     {status.current}
   </div>
 
+  <Version {partID} />
+
   <h2 class="py-2">Resources</h2>
   {#if resources.error}
     Error fetching: {resources.error.message}
@@ -47,4 +43,11 @@ $effect(() => {
       {/each}
     </ul>
   {/if}
+
+  {#each cameras.current as { name } (name)}
+    <Camera
+      {name}
+      {partID}
+    />
+  {/each}
 </section>

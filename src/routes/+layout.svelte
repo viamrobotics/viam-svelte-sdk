@@ -1,13 +1,10 @@
 <script lang="ts">
 import '../app.css';
-
-import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query';
 import { SvelteQueryDevtools } from '@tanstack/svelte-query-devtools';
 import { ViamProvider } from '$lib';
 import type { Snippet } from 'svelte';
-
 import { dialConfigs } from './configs';
-import Parts from './parts.svelte';
+import Parts from './components/parts.svelte';
 
 interface Props {
   children: Snippet;
@@ -16,10 +13,8 @@ interface Props {
 let { children }: Props = $props();
 </script>
 
-<QueryClientProvider client={new QueryClient()}>
-  <ViamProvider {dialConfigs}>
-    <Parts />
-    {@render children()}
-  </ViamProvider>
+<ViamProvider {dialConfigs}>
+  <Parts />
+  {@render children()}
   <SvelteQueryDevtools />
-</QueryClientProvider>
+</ViamProvider>

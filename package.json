@@ -32,6 +32,9 @@
 			"svelte": "./dist/index.js"
 		}
 	},
+	"dependencies": {
+		"@tanstack/svelte-query": "^5"
+	},
 	"peerDependencies": {
 		"svelte": "^5.0.0"
 	},
@@ -44,7 +47,6 @@
 		"@sveltejs/package": "^2.3.10",
 		"@sveltejs/vite-plugin-svelte": "^5.0.3",
 		"@tailwindcss/vite": "^4.0.14",
-		"@tanstack/svelte-query": "^5.69.0",
 		"@tanstack/svelte-query-devtools": "^5.69.0",
 		"@testing-library/jest-dom": "^6.6.3",
 		"@testing-library/svelte": "^5.2.7",

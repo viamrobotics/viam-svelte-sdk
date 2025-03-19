@@ -6,19 +6,16 @@
 
 The Viam Svelte SDK provides a reactive layer over `@viamrobotics/sdk`.
 
-To get started, Include the `ViamProvider` component as a child of the Tanstack `QueryClientProvider`. Any child component will have access to the SDK hooks.
+To get started, Include the `ViamProvider` component. Any child component will have access to the SDK hooks.
 
 A map of `PartID`s to `DialConf`s must also be provided to connect to your machine(s).
 
 ```svelte
 <script lang="ts">
-import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query';
 import { ViamProvider } from '@viamrobotics/svelte-sdk';
 import type { DialConf } from '@viamrobotics/sdk';
 
 let { children } = $props();
-
-const queryClient = new QueryClient();
 
 const dialConfigs: Record<string, DialConf> = {
   'my-part-id': {
@@ -34,11 +31,9 @@ const dialConfigs: Record<string, DialConf> = {
 };
 </script>
 
-<QueryClientProvider client={queryClient}>
-  <ViamProvider {dialConfigs}>
-    {@render children()}
-  </ViamProvider>
-</QueryClientProvider>
+<ViamProvider {dialConfigs}>
+  {@render children()}
+</ViamProvider>
 ```
 
 ### useRobotClient / useConnectionStatus
@@ -61,6 +56,43 @@ const client = useRobotClient(() => partID);
 $inspect(status.current);
 $inspect(client.current);
 </script>
+```
+
+### createRobotQuery / createRobotMutation
+
+### createResourceClient / createResourceQuery / createResourceMutation
+
+To create and execute queries / mutations on resource (component / service) clients, use the following convenience hooks.
+
+```svelte
+<script lang="ts">
+import { BaseClient } from '@viamrobotics/sdk';
+import {
+  createResourceClient,
+  createResourceQuery,
+  createResourceMutation,
+} from '@viamrobotics/svelte-sdk';
+
+interface Props {
+  partID: string;
+  name: string;
+}
+
+let { partID, name }: Props = $props();
+
+const client = createResourceClient(
+  BaseClient,
+  () => partID,
+  () => name
+);
+
+const isMoving = createResourceQuery(client, 'isMoving');
+const moveStraight = createResourceMutation(client, 'moveStraight');
+</script>
+
+Is moving: {isMoving.current.data ?? false}
+
+<button onclick={() => moveStraight.current.mutate([100, 10])}> Move </button>
 ```
 
 ### useResourceNames
