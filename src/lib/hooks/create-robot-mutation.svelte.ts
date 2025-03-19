@@ -16,8 +16,9 @@ export const createRobotMutation = <T extends RobotClient, K extends keyof T>(
 
   const mutationOptions = $derived({
     mutationKey: [
-      'RobotClient',
-      (client.current as T & { uuid: string })?.uuid,
+      'partID',
+      (client.current as T & { partID: string })?.partID,
+      'robotClient',
       String(method),
     ],
     mutationFn: async (request) => {

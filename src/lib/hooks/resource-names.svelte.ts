@@ -29,7 +29,7 @@ export const provideResourceNamesContext = () => {
   const options = $derived(
     Object.entries(clients.current).map(([partID, client]) => {
       return {
-        queryKey: ['partID', partID, 'resources'],
+        queryKey: ['partID', partID, 'robotClient', 'resourceNames'],
         queryFn: async () => {
           if (!client) return [];
           return client.resourceNames();

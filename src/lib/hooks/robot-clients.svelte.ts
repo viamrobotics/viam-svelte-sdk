@@ -82,7 +82,7 @@ export const provideRobotClientsContext = (
       }
 
       const client = await createRobotClient(config);
-      (client as RobotClient & { uuid: string }).uuid = crypto.randomUUID();
+      (client as RobotClient & { partID: string }).partID = partID;
       client.on('connectionstatechange', (event) =>
         onConnectionStateChange(partID, event)
       );

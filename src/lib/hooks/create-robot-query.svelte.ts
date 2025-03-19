@@ -55,10 +55,11 @@ export const createRobotQuery: {
   const queryOptions = $derived(
     createQueryOptions({
       queryKey: [
-        'RobotClient',
-        (client.current as T & { uuid: string })?.uuid,
+        'partID',
+        (client.current as T & { partID: string })?.partID,
+        'robotClient',
         String(method),
-        args?.(),
+        ...[args?.() ? args() : []],
       ],
       enabled: client.current !== undefined && opts?.enabled !== false,
       retry: false,

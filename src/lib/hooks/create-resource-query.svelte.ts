@@ -59,7 +59,7 @@ export const createResourceQuery: {
         'resource',
         client.current?.name,
         String(method),
-        args?.(),
+        ...[args?.() ? args() : []],
       ],
       enabled: client.current !== undefined && opts?.enabled !== false,
       retry: false,
