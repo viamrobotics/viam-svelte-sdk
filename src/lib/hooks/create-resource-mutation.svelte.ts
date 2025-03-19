@@ -16,8 +16,10 @@ export const createResourceMutation = <T extends Resource, K extends keyof T>(
 
   const mutationOptions = $derived({
     mutationKey: [
+      'partID',
+      (client.current as T & { partID: string })?.partID,
       'resource',
-      (client.current as T & { uuid: string })?.uuid,
+      client.current?.name,
       String(method),
     ],
     mutationFn: async (request) => {

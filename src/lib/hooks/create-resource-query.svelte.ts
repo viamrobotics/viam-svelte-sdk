@@ -54,8 +54,10 @@ export const createResourceQuery: {
   const queryOptions = $derived(
     createQueryOptions({
       queryKey: [
+        'partID',
+        (client.current as T & { partID: string })?.partID,
         'resource',
-        (client.current as T & { uuid: string })?.uuid,
+        client.current?.name,
         String(method),
         args?.(),
       ],

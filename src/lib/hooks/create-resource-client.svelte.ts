@@ -4,8 +4,6 @@ import { useRobotClient } from './robot-clients.svelte';
 
 export type Client<T> = new (part: RobotClient, name: string) => T;
 
-export const provideResourceClients = () => {};
-
 export const createResourceClient = <T extends Resource>(
   client: Client<T>,
   partID: () => string,
@@ -18,7 +16,9 @@ export const createResourceClient = <T extends Resource>(
       return;
     }
     const nextClient = new client(robotClient.current, resourceName());
-    (nextClient as T & { uuid: string }).uuid = `${partID()}-${resourceName()}`;
+
+    // PartIDs are used to invalidate queries for this client
+    (nextClient as T & { partID: string }).partID = partID();
 
     return nextClient;
   });
