@@ -4,6 +4,8 @@ import { useRobotClient } from './robot-clients.svelte';
 
 export type Client<T> = new (part: RobotClient, name: string) => T;
 
+export const provideResourceClients = () => {};
+
 export const createResourceClient = <T extends Resource>(
   client: Client<T>,
   partID: () => string,
@@ -16,7 +18,7 @@ export const createResourceClient = <T extends Resource>(
       return;
     }
     const nextClient = new client(robotClient.current, resourceName());
-    (nextClient as T & { uuid: string }).uuid = crypto.randomUUID();
+    (nextClient as T & { uuid: string }).uuid = `${partID()}-${resourceName()}`;
 
     return nextClient;
   });
