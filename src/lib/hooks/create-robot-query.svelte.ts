@@ -55,7 +55,7 @@ export const createRobotQuery: {
   const queryOptions = $derived(
     createQueryOptions({
       queryKey: [
-        'robot-client',
+        'RobotClient',
         (client.current as T & { uuid: string })?.uuid,
         String(method),
         args?.(),

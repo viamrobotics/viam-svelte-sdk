@@ -1,16 +1,19 @@
 <script lang="ts">
-import { createRobotQuery, useRobotClient } from '$lib';
+import { createRobotMutation, createRobotQuery, useRobotClient } from '$lib';
 
 let { partID } = $props();
 
 const client = useRobotClient(() => partID);
-const query = createRobotQuery(client, 'getVersion');
+const version = createRobotQuery(client, 'getVersion');
+const stopAll = createRobotMutation(client, 'stopAll');
 </script>
 
-{#if query.current.error}
-  Error fetching version: {query.current.error.message}
-{:else if query.current.data}
-  <p>Platform: {query.current.data.platform}</p>
-  <p>API version: {query.current.data.apiVersion}</p>
-  <p>Version: {query.current.data.version}</p>
+{#if version.current.error}
+  Error fetching version: {version.current.error.message}
+{:else if version.current.data}
+  <p>Platform: {version.current.data.platform}</p>
+  <p>API version: {version.current.data.apiVersion}</p>
+  <p>Version: {version.current.data.version}</p>
 {/if}
+
+<button onclick={() => stopAll.current.mutate([])}> Stop All </button>
