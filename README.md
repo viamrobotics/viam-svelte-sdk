@@ -156,10 +156,18 @@ pnpm dev
 pnpm dev -- --open
 ```
 
-## Building
+## Building and Publishing
 
 To build the library:
 
 ```bash
 pnpm package
 ```
+
+To publish a new version of the library, run the changeset CLI:
+
+```bash
+npx @changesets/cli
+```
+
+This will trigger the github changeset bot to prepare a new version in CI.
