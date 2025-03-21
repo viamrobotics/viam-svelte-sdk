@@ -1,5 +1,7 @@
 {
-	"name": "my-app",
+	"name": "@viamrobotics/svelte-sdk",
+	"description": "Build Svelte apps with Viam",
+	"license": "Apache-2.0",
 	"version": "0.0.1",
 	"scripts": {
 		"dev": "vite dev",
@@ -32,6 +34,10 @@
 			"svelte": "./dist/index.js"
 		}
 	},
+	"repository": {
+    "type": "git",
+    "url": "https://github.com/viamrobotics/viam-svelte-sdk.git"
+  },
 	"peerDependencies": {
 		"@tanstack/svelte-query": ">=5",
 		"@viamrobotics/sdk": ">=0.38",
