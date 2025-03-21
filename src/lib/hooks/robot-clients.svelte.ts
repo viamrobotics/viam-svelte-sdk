@@ -3,7 +3,7 @@ import {
   createRobotClient,
   type DialConf,
   MachineConnectionEvent,
-  RobotClient,
+  type RobotClient,
 } from '@viamrobotics/sdk';
 import isEqual from 'lodash/isEqual';
 import { getContext, setContext } from 'svelte';
