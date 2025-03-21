@@ -9,7 +9,7 @@ const parseConfigs = () => {
     );
   }
 
-  return JSON.parse(rawRobots ?? {});
+  return JSON.parse(rawRobots ?? '{}');
 };
 
 export const dialConfigs: Record<string, DialConf> = parseConfigs();
