@@ -123,6 +123,52 @@ Is moving: {isMoving.current.data ?? false}
 <button onclick={() => moveStraight.current.mutate([100, 10])}> Move </button>
 ```
 
+### createStreamClient
+
+A hook for more easily dealing with StreamClient.
+
+```svelte
+<script lang="ts">
+import { createStreamClient } from '@viamrobotics/svelte-sdk';
+
+interface Props {
+  partID: string;
+  name: string;
+}
+
+let { partID, name }: Props = $props();
+
+let element: HTMLVideoElement;
+
+const client = createStreamClient(
+  () => partID,
+  () => name
+);
+
+$effect(() => {
+  element.srcObject = client.mediaStream;
+});
+
+$effect(() => {
+  const [firstResolution] = client.resolutions ?? [];
+
+  console.log(firstResolution);
+
+  if (firstResolution) {
+    client.setResolution(firstResolution);
+  }
+});
+</script>
+
+<video
+  muted
+  autoplay
+  controls={false}
+  playsinline
+  bind:this={element}
+></video>
+```
+
 ### useResourceNames
 
 Wraps `client.resourceNames()` in a reactive query. Supports optional filtering by resource subtype.

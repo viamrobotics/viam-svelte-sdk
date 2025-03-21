@@ -3,6 +3,7 @@ import { useConnectionStatus, useResourceNames } from '$lib';
 import { dialConfigs } from '../configs';
 import Base from './base.svelte';
 import Camera from './camera.svelte';
+import Stream from './stream.svelte';
 import Version from './version.svelte';
 
 const partIDs = Object.keys(dialConfigs);
@@ -13,6 +14,8 @@ const status = useConnectionStatus(() => partID);
 const resources = useResourceNames(() => partID);
 const cameras = useResourceNames(() => partID, 'camera');
 const bases = useResourceNames(() => partID, 'base');
+
+let streaming = true;
 </script>
 
 <section class="p-4">
@@ -53,9 +56,16 @@ const bases = useResourceNames(() => partID, 'base');
   {/each}
 
   {#each cameras.current as { name } (name)}
-    <Camera
-      {name}
-      {partID}
-    />
+    {#if streaming}
+      <Stream
+        {name}
+        {partID}
+      />
+    {:else}
+      <Camera
+        {name}
+        {partID}
+      />
+    {/if}
   {/each}
 </section>
