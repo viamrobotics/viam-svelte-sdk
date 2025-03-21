@@ -4,12 +4,12 @@ const parseConfigs = () => {
   const rawRobots = import.meta.env.VITE_CONFIGS;
 
   if (!rawRobots) {
-    throw new Error(
+    console.warn(
       'Cannot find configs. Please read the README.md for more info'
     );
   }
 
-  return JSON.parse(rawRobots);
+  return JSON.parse(rawRobots ?? {});
 };
 
 export const dialConfigs: Record<string, DialConf> = parseConfigs();
