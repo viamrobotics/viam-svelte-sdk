@@ -17,7 +17,7 @@ const bases = useResourceNames(() => partID, 'base');
 
 <section class="p-4">
   <div class="flex items-center gap-2">
-    {#each partIDs as id, index}
+    {#each partIDs as id, index (id)}
       <button
         class="border p-2"
         class:bg-blue-100={partID === id}
