@@ -64,7 +64,11 @@ To execute queries / mutations directly on the robot client, use the following c
 
 ```svelte
 <script lang="ts">
-import { createRobotMutation, createRobotQuery, useRobotClient } from '$lib';
+import {
+  createRobotMutation,
+  createRobotQuery,
+  useRobotClient,
+} from '@viamrobotics/svelte-sdk';
 
 let { partID } = $props();
 
@@ -121,7 +125,7 @@ Is moving: {isMoving.current.data ?? false}
 
 ### useResourceNames
 
-Wraps `client.resourceNames()` in a reactive query.
+Wraps `client.resourceNames()` in a reactive query. Supports optional filtering by resource subtype.
 
 ```svelte
 <script lang="ts">
