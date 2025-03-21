@@ -1,6 +1,6 @@
 # viam-svelte-sdk
 
-`pnpm i @viamrobotics/svelte-sdk @viamrobotics/sdk @tanstack/svelte-query`
+`pnpm i --save @viamrobotics/svelte-sdk @viamrobotics/sdk @tanstack/svelte-query`
 
 ## Getting started
 

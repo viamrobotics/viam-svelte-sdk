@@ -15,7 +15,8 @@
 		"lint": "prettier --check . && eslint .",
 		"test:unit": "vitest",
 		"test": "npm run test:unit -- --run && npm run test:e2e",
-		"test:e2e": "playwright test"
+		"test:e2e": "playwright test",
+		"release": "changeset publish"
 	},
 	"files": [
 		"dist",
@@ -35,9 +36,9 @@
 		}
 	},
 	"repository": {
-    "type": "git",
-    "url": "git+https://github.com/viamrobotics/viam-svelte-sdk.git"
-  },
+		"type": "git",
+		"url": "git+https://github.com/viamrobotics/viam-svelte-sdk.git"
+	},
 	"peerDependencies": {
 		"@tanstack/svelte-query": ">=5",
 		"@viamrobotics/sdk": ">=0.38",
