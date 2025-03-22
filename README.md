@@ -25,7 +25,7 @@ const dialConfigs: Record<string, DialConf> = {
       authEntity: 'my-api-key-id',
       payload: 'my-api-key-value',
     },
-    signalingAddress: 'https://app.viam.dev:443',
+    signalingAddress: 'https://app.viam.com:443',
     disableSessions: false,
   },
 };
