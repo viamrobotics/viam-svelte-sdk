@@ -50,6 +50,8 @@ export const createStreamClient = (
         'getOptions',
       ],
       enabled: streamClient !== undefined,
+      retry: false,
+      refetchOnWindowFocus: false,
       queryFn: async () => {
         return streamClient?.getOptions(resourceName());
       },

@@ -5,11 +5,10 @@ import {
   MachineConnectionEvent,
   type RobotClient,
 } from '@viamrobotics/sdk';
-import isEqual from 'lodash/isEqual';
 import { getContext, setContext } from 'svelte';
 import { useQueryClient } from '@tanstack/svelte-query';
 import type { PartID } from '../part';
-import { comparePartIds } from '../compare';
+import { comparePartIds, isJsonEqual } from '../compare';
 
 const clientKey = Symbol('clients-context');
 const connectionKey = Symbol('connection-status-context');
@@ -50,7 +49,6 @@ export const provideRobotClientsContext = (
 
     connectionStatus[partID] = MachineConnectionEvent.DISCONNECTING;
 
-    console.log(client.listeners);
     await Promise.all([
       client?.disconnect(),
       queryClient.cancelQueries({ queryKey: ['partID', partID] }),
@@ -113,7 +111,8 @@ export const provideRobotClientsContext = (
 
     for (const partID of unchanged) {
       const config = configs[partID];
-      if (config && !isEqual(lastConfigs[partID], config)) {
+      const lastConfig = lastConfigs[partID];
+      if (config && lastConfig && !isJsonEqual(lastConfig, config)) {
         connect(partID, config);
       }
     }
