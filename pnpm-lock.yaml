@@ -47,9 +47,6 @@ devDependencies:
   '@testing-library/svelte':
     specifier: ^5.2.7
     version: 5.2.7(svelte@5.24.1)(vite@6.2.2)(vitest@3.0.9)
-  '@types/lodash':
-    specifier: ^4.17.16
-    version: 4.17.16
   '@viamrobotics/eslint-config':
     specifier: ^1.0.2
     version: 1.0.2(eslint@9.22.0)(typescript@5.8.2)(vitest@3.0.9)
@@ -77,9 +74,6 @@ devDependencies:
   jsdom:
     specifier: ^26.0.0
     version: 26.0.0
-  lodash:
-    specifier: ^4.17.21
-    version: 4.17.21
   prettier:
     specifier: ^3.5.3
     version: 3.5.3
@@ -1249,10 +1243,6 @@ packages:
 
   /@types/json-schema@7.0.15:
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
-    dev: true
-
-  /@types/lodash@4.17.16:
-    resolution: {integrity: sha512-HX7Em5NYQAXKW+1T+FiuG27NGwzJfCX3s1GjOa7ujxZa52kjJLOr4FUxT+giF6Tgxv1e+/czV/iTtBw27WTU9g==}
     dev: true
 
   /@types/node@12.20.55:
