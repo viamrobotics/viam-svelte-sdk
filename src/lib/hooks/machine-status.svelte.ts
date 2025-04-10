@@ -37,8 +37,6 @@ export const provideMachineStatusContext = (refetchInterval: () => number) => {
     createQueries({
       queries: toStore(() => options),
       combine: (results) => {
-        console.log(results);
-
         const partIDs = Object.keys(clients.current);
 
         return Object.fromEntries(
