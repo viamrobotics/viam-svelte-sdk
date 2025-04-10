@@ -7,14 +7,23 @@ import InternalProvider from './internal-provider.svelte';
 interface Props {
   dialConfigs: Record<string, DialConf>;
   client?: QueryClient;
+  machineStatusRefetchInterval?: number;
   children: Snippet;
 }
 
-let { dialConfigs, client = new QueryClient(), children }: Props = $props();
+let {
+  dialConfigs,
+  client = new QueryClient(),
+  machineStatusRefetchInterval,
+  children,
+}: Props = $props();
 </script>
 
 <QueryClientProvider {client}>
-  <InternalProvider {dialConfigs}>
+  <InternalProvider
+    {dialConfigs}
+    {machineStatusRefetchInterval}
+  >
     {@render children()}
   </InternalProvider>
 </QueryClientProvider>
