@@ -7,6 +7,7 @@ import { getContext, setContext } from 'svelte';
 import { fromStore, toStore } from 'svelte/store';
 import { useRobotClients } from './robot-clients.svelte';
 import type { PartID } from '../part';
+import { useMachineStatuses } from './machine-status.svelte';
 
 const key = Symbol('resources-context');
 
@@ -24,12 +25,16 @@ interface Context {
 }
 
 export const provideResourceNamesContext = () => {
+  const machineStatuses = useMachineStatuses();
   const clients = useRobotClients();
 
   const options = $derived(
     Object.entries(clients.current).map(([partID, client]) => {
+      const revision =
+        machineStatuses.current[partID]?.data?.config?.revision ?? '';
+
       return {
-        queryKey: ['partID', partID, 'robotClient', 'resourceNames'],
+        queryKey: ['partID', partID, 'robotClient', 'resourceNames', revision],
         queryFn: async () => {
           if (!client) return [];
           return client.resourceNames();

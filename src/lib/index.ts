@@ -12,4 +12,5 @@ export { createResourceQuery } from './hooks/create-resource-query.svelte';
 export { createResourceMutation } from './hooks/create-resource-mutation.svelte';
 export { createStreamClient } from './hooks/create-stream-client.svelte';
 
+export { useMachineStatus } from './hooks/machine-status.svelte';
 export { useResourceNames } from './hooks/resource-names.svelte';

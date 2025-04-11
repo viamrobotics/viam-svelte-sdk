@@ -169,9 +169,31 @@ $effect(() => {
 ></video>
 ```
 
+### useMachineStatus
+
+Wraps `robotClient.getMachineStatus()` in a reactive query at the ViamProvider level.
+
+```svelte
+<script lang="ts">
+import { useMachineStatus } from '@viamrobotics/svelte-sdk';
+
+interface Props {
+  partID: string;
+}
+
+let { partID }: Props = $props();
+
+const machineStatus = useMachineStatus(() => partID);
+
+$inspect(machineStatus.current);
+$inspect(machineStatus.error);
+$inspect(machineStatus.fetching);
+</script>
+```
+
 ### useResourceNames
 
-Wraps `client.resourceNames()` in a reactive query. Supports optional filtering by resource subtype.
+Wraps `robotClient.resourceNames()` in a reactive query at the ViamProvider level. Supports optional filtering by resource subtype.
 
 ```svelte
 <script lang="ts">
