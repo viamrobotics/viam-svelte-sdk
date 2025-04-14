@@ -1,5 +1,11 @@
 # @viamrobotics/svelte-sdk
 
+## 0.1.3
+
+### Patch Changes
+
+- 3172a77: Add useMachineStatus hook
+
 ## 0.1.2
 
 ### Patch Changes
