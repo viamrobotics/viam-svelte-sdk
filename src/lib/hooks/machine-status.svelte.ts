@@ -24,10 +24,14 @@ export const provideMachineStatusContext = (refetchInterval: () => number) => {
   const options = $derived(
     Object.entries(clients.current).map(([partID, client]) => {
       return queryOptions({
+        enabled: client !== undefined,
         queryKey: ['partID', partID, 'robotClient', 'machineStatus'],
         refetchInterval: refetchInterval(),
-        queryFn: async () => {
-          return client?.getMachineStatus();
+        queryFn: async (): Promise<MachineStatus> => {
+          if (!client) {
+            throw new Error('No client');
+          }
+          return client.getMachineStatus();
         },
       });
     })
@@ -38,7 +42,6 @@ export const provideMachineStatusContext = (refetchInterval: () => number) => {
       queries: toStore(() => options),
       combine: (results) => {
         const partIDs = Object.keys(clients.current);
-
         return Object.fromEntries(
           results.map((result, index) => [partIDs[index], result])
         );

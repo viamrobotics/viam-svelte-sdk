@@ -34,6 +34,7 @@ export const isJsonEqual = (object1: object, object2: object) => {
       return false;
     }
   }
+
   return true;
 };
 
