@@ -1,5 +1,6 @@
 import {
   createQueries,
+  queryOptions,
   type QueryObserverResult,
 } from '@tanstack/svelte-query';
 import type { ResourceName } from '@viamrobotics/sdk';
@@ -33,13 +34,16 @@ export const provideResourceNamesContext = () => {
       const revision =
         machineStatuses.current[partID]?.data?.config?.revision ?? '';
 
-      return {
+      return queryOptions({
+        enabled: client !== undefined,
         queryKey: ['partID', partID, 'robotClient', 'resourceNames', revision],
         queryFn: async () => {
-          if (!client) return [];
+          if (!client) {
+            throw new Error('No client');
+          }
           return client.resourceNames();
         },
-      };
+      });
     })
   );
 
