@@ -1,5 +1,11 @@
 # @viamrobotics/svelte-sdk
 
+## 0.1.4
+
+### Patch Changes
+
+- 39a3855: Enable machine status and resource names queries only when robot client is defined
+
 ## 0.1.3
 
 ### Patch Changes
