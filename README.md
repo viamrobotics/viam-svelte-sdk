@@ -217,6 +217,53 @@ $inspect(resources.fetching);
 </script>
 ```
 
+## Components
+
+### <CameraImage>
+
+Fetches a camera image at a constant interval and displays it in an `<img>` tag.
+
+```svelte
+<script lang="ts">
+import { CameraImage } from '@viamrobotics/svelte-sdk';
+
+interface Props {
+  partID: string;
+  name: string;
+}
+
+let { partID, name }: Props = $props();
+</script>
+
+<CameraImage
+  {partID}
+  {name}
+  refetchInterval={2000}
+/>
+```
+
+### <CameraStream>
+
+Opens a camera stream and renders it in `<video>` tag.
+
+```svelte
+<script lang="ts">
+import { CameraStream } from '@viamrobotics/svelte-sdk';
+
+interface Props {
+  partID: string;
+  name: string;
+}
+
+let { partID, name }: Props = $props();
+</script>
+
+<CameraStream
+  {partID}
+  {name}
+/>
+```
+
 ## Developing
 
 First install dependencies with `pnpm install`, then start a development server:
