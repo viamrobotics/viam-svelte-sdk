@@ -219,7 +219,7 @@ $inspect(resources.fetching);
 
 ## Components
 
-### <CameraImage>
+### `<CameraImage>`
 
 Fetches a camera image at a constant interval and displays it in an `<img>` tag.
 
@@ -242,7 +242,7 @@ let { partID, name }: Props = $props();
 />
 ```
 
-### <CameraStream>
+### `<CameraStream>`
 
 Opens a camera stream and renders it in `<video>` tag.
 
