@@ -5,7 +5,7 @@ import {
   MachineConnectionEvent,
   type RobotClient,
 } from '@viamrobotics/sdk';
-import { getContext, setContext } from 'svelte';
+import { getContext, onMount, setContext } from 'svelte';
 import { useQueryClient } from '@tanstack/svelte-query';
 import type { PartID } from '../part';
 import { comparePartIds, isJsonEqual } from '../compare';
@@ -90,13 +90,17 @@ export const provideRobotClientsContext = (
     }
   };
 
-  $effect.pre(() => {
+  $effect(() => {
     const configs = dialConfigs();
 
     const { added, removed, unchanged } = comparePartIds(
       Object.keys(configs),
       Object.keys(lastConfigs)
     );
+
+    for (const partID of removed) {
+      disconnect(partID, lastConfigs[partID]);
+    }
 
     for (const partID of added) {
       const config = configs[partID];
@@ -105,22 +109,21 @@ export const provideRobotClientsContext = (
       }
     }
 
-    for (const partID of removed) {
-      disconnect(partID, lastConfigs[partID]);
-    }
-
     for (const partID of unchanged) {
       const config = configs[partID];
       const lastConfig = lastConfigs[partID];
+
       if (config && lastConfig && !isJsonEqual(lastConfig, config)) {
         connect(partID, config);
       }
     }
 
     lastConfigs = configs;
+  });
 
+  onMount(() => {
     return () => {
-      for (const partID of Object.keys(configs)) {
+      for (const partID of Object.keys(dialConfigs())) {
         clients[partID]?.disconnect();
       }
     };
