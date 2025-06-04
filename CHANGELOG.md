@@ -1,5 +1,11 @@
 # @viamrobotics/svelte-sdk
 
+## 0.2.1
+
+### Patch Changes
+
+- 6a77b17: Fix disconnect issue
+
 ## 0.2.0
 
 ### Minor Changes
