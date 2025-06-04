@@ -1,5 +1,11 @@
 # @viamrobotics/svelte-sdk
 
+## 0.2.0
+
+### Minor Changes
+
+- 59452ac: Add CameraImage and CameraStream components
+
 ## 0.1.4
 
 ### Patch Changes
