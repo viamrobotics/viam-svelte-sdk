@@ -114,7 +114,6 @@ export const provideRobotClientsContext = (
       const lastConfig = lastConfigs[partID];
 
       if (config && lastConfig && !isJsonEqual(lastConfig, config)) {
-        console.log('hi', partID);
         connect(partID, config);
       }
     }
