@@ -74,6 +74,9 @@ export const provideRobotClientsContext = (
         };
       }
 
+      config.reconnectMaxAttempts ??= 1e9;
+      config.reconnectMaxWait ??= 2000;
+
       const client = await createRobotClient(config);
       (client as RobotClient & { partID: string }).partID = partID;
       client.on('connectionstatechange', (event) => {

@@ -10,15 +10,25 @@ interface Props {
   children: Snippet;
 }
 
-let dialConfigs = $state(configs);
-
-$effect(() => {
-  const id = setInterval(() => (dialConfigs = { ...dialConfigs }), 3000);
-  return () => clearInterval(id);
-});
+let enabled = $state<Record<string, boolean>>({});
+let dialConfigs = $derived(
+  Object.fromEntries(Object.entries(configs).filter(([key]) => enabled[key]))
+);
 
 let { children }: Props = $props();
 </script>
+
+<div class="flex gap-4 p-4">
+  {#each Object.keys(configs) as part (part)}
+    <div>
+      <input
+        type="checkbox"
+        bind:checked={enabled[part]}
+      />
+      {part}
+    </div>
+  {/each}
+</div>
 
 <ViamProvider {dialConfigs}>
   <Parts />
