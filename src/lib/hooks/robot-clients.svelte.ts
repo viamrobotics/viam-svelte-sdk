@@ -65,22 +65,21 @@ export const provideRobotClientsContext = (
     connectionStatus[partID] ??= MachineConnectionEvent.DISCONNECTED;
 
     try {
-      const dialConfig = { ...config };
-      await disconnect(partID, dialConfig);
+      await disconnect(partID, config);
 
       connectionStatus[partID] = MachineConnectionEvent.CONNECTING;
 
       // Reset the abort signal if it exists
-      if (dialConfig.reconnectAbortSignal !== undefined) {
-        dialConfig.reconnectAbortSignal = {
+      if (config.reconnectAbortSignal !== undefined) {
+        config.reconnectAbortSignal = {
           abort: false,
         };
       }
 
-      dialConfig.reconnectMaxAttempts ??= 1e9;
-      dialConfig.reconnectMaxWait ??= 2000;
+      config.reconnectMaxAttempts ??= 1e9;
+      config.reconnectMaxWait ??= 2000;
 
-      const client = await createRobotClient(dialConfig);
+      const client = await createRobotClient(config);
       (client as RobotClient & { partID: string }).partID = partID;
       client.on('connectionstatechange', (event) => {
         connectionStatus[partID] = (
@@ -104,6 +103,8 @@ export const provideRobotClientsContext = (
       Object.keys(lastConfigs)
     );
 
+    lastConfigs = structuredClone(configs);
+
     for (const partID of removed) {
       disconnect(partID, lastConfigs[partID]);
     }
@@ -123,8 +124,6 @@ export const provideRobotClientsContext = (
         connect(partID, config);
       }
     }
-
-    lastConfigs = configs;
   });
 
   onMount(() => {

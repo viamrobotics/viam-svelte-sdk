@@ -3,18 +3,30 @@ import '../app.css';
 import { SvelteQueryDevtools } from '@tanstack/svelte-query-devtools';
 import { ViamProvider } from '$lib';
 import type { Snippet } from 'svelte';
-import { dialConfigs as configs } from './configs';
+import { dialConfigs as c } from './configs';
 import Parts from './components/parts.svelte';
+import type { DialConf } from '@viamrobotics/sdk';
 
 interface Props {
   children: Snippet;
 }
+
+let configs = $state.raw<Record<string, DialConf>>({});
+
+const id = setInterval(() => {
+  configs = structuredClone(c);
+}, 1000);
+
+$effect.pre(() => {
+  return () => clearTimeout(id);
+});
 
 let enabled = $state<Record<string, boolean>>({});
 let dialConfigs = $derived(
   Object.fromEntries(Object.entries(configs).filter(([key]) => enabled[key]))
 );
 
+$inspect(dialConfigs);
 let { children }: Props = $props();
 </script>
 
