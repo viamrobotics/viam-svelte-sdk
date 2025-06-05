@@ -25,7 +25,13 @@ export const provideMachineStatusContext = (refetchInterval: () => number) => {
     Object.entries(clients.current).map(([partID, client]) => {
       return queryOptions({
         enabled: client !== undefined,
-        queryKey: ['partID', partID, 'robotClient', 'machineStatus'],
+        queryKey: [
+          'viam-svelte-sdk',
+          'partID',
+          partID,
+          'robotClient',
+          'machineStatus',
+        ],
         refetchInterval: refetchInterval(),
         queryFn: async (): Promise<MachineStatus> => {
           if (!client) {

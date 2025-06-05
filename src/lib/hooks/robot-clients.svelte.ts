@@ -51,7 +51,9 @@ export const provideRobotClientsContext = (
 
     await Promise.all([
       client?.disconnect(),
-      queryClient.cancelQueries({ queryKey: ['partID', partID] }),
+      queryClient.cancelQueries({
+        queryKey: ['viam-svelte-sdk', 'partID', partID],
+      }),
     ]);
 
     client.listeners['connectionstatechange']?.clear();
