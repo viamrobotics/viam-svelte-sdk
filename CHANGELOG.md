@@ -1,5 +1,11 @@
 # @viamrobotics/svelte-sdk
 
+## 0.3.1
+
+### Patch Changes
+
+- f435207: Improve query keys
+
 ## 0.3.0
 
 ### Minor Changes
