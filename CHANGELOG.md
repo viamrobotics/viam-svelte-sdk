@@ -1,5 +1,11 @@
 # @viamrobotics/svelte-sdk
 
+## 0.3.3
+
+### Patch Changes
+
+- 47e988a: Clone previous configs for diffing
+
 ## 0.3.2
 
 ### Patch Changes
