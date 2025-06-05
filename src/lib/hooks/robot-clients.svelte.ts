@@ -65,21 +65,22 @@ export const provideRobotClientsContext = (
     connectionStatus[partID] ??= MachineConnectionEvent.DISCONNECTED;
 
     try {
-      await disconnect(partID, config);
+      const dialConfig = { ...config };
+      await disconnect(partID, dialConfig);
 
       connectionStatus[partID] = MachineConnectionEvent.CONNECTING;
 
       // Reset the abort signal if it exists
-      if (config.reconnectAbortSignal !== undefined) {
-        config.reconnectAbortSignal = {
+      if (dialConfig.reconnectAbortSignal !== undefined) {
+        dialConfig.reconnectAbortSignal = {
           abort: false,
         };
       }
 
-      config.reconnectMaxAttempts ??= 1e9;
-      config.reconnectMaxWait ??= 2000;
+      dialConfig.reconnectMaxAttempts ??= 1e9;
+      dialConfig.reconnectMaxWait ??= 2000;
 
-      const client = await createRobotClient(config);
+      const client = await createRobotClient(dialConfig);
       (client as RobotClient & { partID: string }).partID = partID;
       client.on('connectionstatechange', (event) => {
         connectionStatus[partID] = (
