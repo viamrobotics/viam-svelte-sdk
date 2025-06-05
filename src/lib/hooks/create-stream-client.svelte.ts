@@ -42,6 +42,7 @@ export const createStreamClient = (
   const queryOptions = $derived(
     createQueryOptions({
       queryKey: [
+        'viam-svelte-sdk',
         'partID',
         partID(),
         'resource',
@@ -62,6 +63,7 @@ export const createStreamClient = (
 
   const mutationOptions = $derived({
     mutationKey: [
+      'viam-svelte-sdk',
       'partID',
       partID(),
       'resource',
