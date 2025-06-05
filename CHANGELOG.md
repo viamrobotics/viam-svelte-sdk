@@ -1,5 +1,11 @@
 # @viamrobotics/svelte-sdk
 
+## 0.3.0
+
+### Minor Changes
+
+- f8074e0: Set retry defaults
+
 ## 0.2.1
 
 ### Patch Changes
