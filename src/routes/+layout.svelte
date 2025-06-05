@@ -19,7 +19,7 @@ let { children }: Props = $props();
 </script>
 
 <div class="flex gap-4 p-4">
-  {#each Object.keys(configs) as part}
+  {#each Object.keys(configs) as part (part)}
     <div>
       <input
         type="checkbox"
