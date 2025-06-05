@@ -1,9 +1,12 @@
 <script lang="ts">
-import { useConnectionStatus, useResourceNames } from '$lib';
+import {
+  useConnectionStatus,
+  useResourceNames,
+  CameraImage,
+  CameraStream,
+} from '$lib';
 import { dialConfigs } from '../configs';
 import Base from './base.svelte';
-import Camera from './camera.svelte';
-import Stream from './stream.svelte';
 import Version from './version.svelte';
 
 const partIDs = Object.keys(dialConfigs);
@@ -57,12 +60,12 @@ let streaming = true;
 
   {#each cameras.current as { name } (name)}
     {#if streaming}
-      <Stream
+      <CameraStream
         {name}
         {partID}
       />
     {:else}
-      <Camera
+      <CameraImage
         {name}
         {partID}
       />

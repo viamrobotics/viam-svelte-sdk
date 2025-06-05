@@ -1,12 +1,13 @@
 <script lang="ts">
 import { createStreamClient } from '$lib';
+import type { HTMLVideoAttributes } from 'svelte/elements';
 
-interface Props {
+interface Props extends HTMLVideoAttributes {
   partID: string;
   name: string;
 }
 
-let { partID, name }: Props = $props();
+let { partID, name, ...rest }: Props = $props();
 
 let element: HTMLVideoElement;
 
@@ -22,8 +23,6 @@ $effect(() => {
 $effect(() => {
   const [firstResolution] = client.resolutions ?? [];
 
-  console.log(firstResolution);
-
   if (firstResolution) {
     client.setResolution(firstResolution);
   }
@@ -36,4 +35,5 @@ $effect(() => {
   controls={false}
   playsinline
   bind:this={element}
+  {...rest}
 ></video>

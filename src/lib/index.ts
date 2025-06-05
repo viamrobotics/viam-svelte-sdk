@@ -1,5 +1,10 @@
 export { default as ViamProvider } from './components/provider.svelte';
 
+// Components
+export { default as CameraImage } from './components/camera.svelte';
+export { default as CameraStream } from './components/stream.svelte';
+
+// Hooks
 export {
   useConnectionStatus,
   useRobotClient,

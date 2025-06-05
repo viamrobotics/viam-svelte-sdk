@@ -1,5 +1,17 @@
 # @viamrobotics/svelte-sdk
 
+## 0.2.1
+
+### Patch Changes
+
+- 6a77b17: Fix disconnect issue
+
+## 0.2.0
+
+### Minor Changes
+
+- 59452ac: Add CameraImage and CameraStream components
+
 ## 0.1.4
 
 ### Patch Changes
