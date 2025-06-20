@@ -5,7 +5,7 @@ import {
   MachineConnectionEvent,
   type RobotClient,
 } from '@viamrobotics/sdk';
-import { getContext, setContext } from 'svelte';
+import { getContext, onMount, setContext } from 'svelte';
 import { useQueryClient } from '@tanstack/svelte-query';
 import type { PartID } from '../part';
 import { comparePartIds, isJsonEqual } from '../compare';
@@ -51,7 +51,9 @@ export const provideRobotClientsContext = (
 
     await Promise.all([
       client?.disconnect(),
-      queryClient.cancelQueries({ queryKey: ['partID', partID] }),
+      queryClient.cancelQueries({
+        queryKey: ['viam-svelte-sdk', 'partID', partID],
+      }),
     ]);
 
     client.listeners['connectionstatechange']?.clear();
@@ -74,6 +76,9 @@ export const provideRobotClientsContext = (
         };
       }
 
+      config.reconnectMaxAttempts ??= 1e9;
+      config.reconnectMaxWait ??= 2000;
+
       const client = await createRobotClient(config);
       (client as RobotClient & { partID: string }).partID = partID;
       client.on('connectionstatechange', (event) => {
@@ -90,13 +95,19 @@ export const provideRobotClientsContext = (
     }
   };
 
-  $effect.pre(() => {
+  $effect(() => {
     const configs = dialConfigs();
 
     const { added, removed, unchanged } = comparePartIds(
       Object.keys(configs),
       Object.keys(lastConfigs)
     );
+
+    lastConfigs = structuredClone(configs);
+
+    for (const partID of removed) {
+      disconnect(partID, lastConfigs[partID]);
+    }
 
     for (const partID of added) {
       const config = configs[partID];
@@ -105,22 +116,19 @@ export const provideRobotClientsContext = (
       }
     }
 
-    for (const partID of removed) {
-      disconnect(partID, lastConfigs[partID]);
-    }
-
     for (const partID of unchanged) {
       const config = configs[partID];
       const lastConfig = lastConfigs[partID];
+
       if (config && lastConfig && !isJsonEqual(lastConfig, config)) {
         connect(partID, config);
       }
     }
+  });
 
-    lastConfigs = configs;
-
+  onMount(() => {
     return () => {
-      for (const partID of Object.keys(configs)) {
+      for (const partID of Object.keys(dialConfigs())) {
         clients[partID]?.disconnect();
       }
     };

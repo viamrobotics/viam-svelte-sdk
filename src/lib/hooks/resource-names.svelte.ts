@@ -36,11 +36,19 @@ export const provideResourceNamesContext = () => {
 
       return queryOptions({
         enabled: client !== undefined,
-        queryKey: ['partID', partID, 'robotClient', 'resourceNames', revision],
+        queryKey: [
+          'viam-svelte-sdk',
+          'partID',
+          partID,
+          'robotClient',
+          'resourceNames',
+          revision,
+        ],
         queryFn: async () => {
           if (!client) {
             throw new Error('No client');
           }
+
           return client.resourceNames();
         },
       });
