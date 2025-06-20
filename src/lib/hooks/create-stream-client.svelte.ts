@@ -35,24 +35,11 @@ export const createStreamClient = (
   });
 
   $effect(() => {
-    const client = streamClient;
     const name = resourceName();
 
-    if (!client) return;
-
-    const getStream = async () => {
-      try {
-        await client.getStream(name);
-      } catch (error) {
-        console.warn(error);
-        return getStream();
-      }
-    };
-
-    getStream();
-
+    streamClient?.add(name);
     return () => {
-      client.remove(name);
+      streamClient?.remove(name);
     };
   });
 
