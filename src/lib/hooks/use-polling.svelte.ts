@@ -1,14 +1,14 @@
 import { useQueryClient } from '@tanstack/svelte-query';
 
 export function usePolling(
-  queryKeys: () => unknown[][],
+  queryKey: () => unknown[],
   interval: () => number | false
 ) {
   const queryClient = useQueryClient();
   let timeoutId: ReturnType<typeof setTimeout>;
 
   $effect(() => {
-    const keys = queryKeys();
+    const key = queryKey();
     const currentInterval = interval();
 
     if (!currentInterval) {
@@ -16,10 +16,7 @@ export function usePolling(
     }
 
     const poll = async () => {
-      Promise.allSettled(
-        keys.map((queryKey) => queryClient.refetchQueries({ queryKey }))
-      );
-
+      await queryClient.refetchQueries({ queryKey: key });
       timeoutId = setTimeout(poll, currentInterval);
     };
 

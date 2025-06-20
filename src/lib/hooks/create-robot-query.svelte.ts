@@ -78,7 +78,7 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
   );
 
   usePolling(
-    () => [queryOptions.queryKey],
+    () => queryOptions.queryKey,
     () => _options.refetchInterval
   );
 

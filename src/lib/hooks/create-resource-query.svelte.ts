@@ -77,7 +77,7 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
   );
 
   usePolling(
-    () => [queryOptions.queryKey],
+    () => queryOptions.queryKey,
     () => _options.refetchInterval
   );
 
