@@ -20,7 +20,7 @@ export const createStreamClient = (
   );
 
   const handleTrack = (event: unknown) => {
-    const [stream] = (event as { streams: MediaStream[] }).streams;
+    const [stream] = (event as RTCTrackEvent).streams;
 
     if (!stream || stream.id !== resourceName()) {
       return;
@@ -36,11 +36,8 @@ export const createStreamClient = (
 
   $effect(() => {
     const name = resourceName();
-
     streamClient?.add(name);
-    return () => {
-      streamClient?.remove(name);
-    };
+    return () => streamClient?.remove(name);
   });
 
   const queryOptions = $derived(
