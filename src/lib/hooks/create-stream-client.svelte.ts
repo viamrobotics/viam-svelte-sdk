@@ -35,8 +35,25 @@ export const createStreamClient = (
   });
 
   $effect(() => {
-    streamClient?.getStream(resourceName());
-    return () => streamClient?.remove(resourceName());
+    const client = streamClient;
+    const name = resourceName();
+
+    if (!client) return;
+
+    const getStream = async () => {
+      try {
+        await client.getStream(name);
+      } catch (error) {
+        console.warn(error);
+        return getStream();
+      }
+    };
+
+    getStream();
+
+    return () => {
+      client.remove(name);
+    };
   });
 
   const queryOptions = $derived(
@@ -51,7 +68,14 @@ export const createStreamClient = (
       ],
       enabled: streamClient !== undefined,
       retry: false,
+
+      /**
+       * Resolution options are fairly static,
+       * so we don't refetch often.
+       */
       refetchOnWindowFocus: false,
+      refetchOnMount: false,
+
       queryFn: async () => {
         return streamClient?.getOptions(resourceName());
       },
