@@ -41,6 +41,7 @@ export const provideResourceNamesContext = () => {
           if (!client) {
             throw new Error('No client');
           }
+
           return client.resourceNames();
         },
       });
