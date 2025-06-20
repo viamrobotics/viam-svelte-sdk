@@ -37,7 +37,7 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
 ): { current: QueryObserverResult<ResolvedReturnType<T[K]>> } => {
   let [args, options] = additional;
 
-  if (options === undefined) {
+  if (options === undefined && args !== undefined) {
     options = args as QueryOptions;
     args = undefined;
   }
@@ -79,7 +79,7 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
 
   usePolling(
     () => queryOptions.queryKey,
-    () => _options.refetchInterval
+    () => _options?.refetchInterval ?? false
   );
 
   return fromStore(createQuery(toStore(() => queryOptions)));
