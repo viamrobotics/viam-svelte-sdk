@@ -16,6 +16,7 @@ export const createRobotMutation = <T extends RobotClient, K extends keyof T>(
 
   const mutationOptions = $derived({
     mutationKey: [
+      'viam-svelte-sdk',
       'partID',
       (client.current as T & { partID: string })?.partID,
       'robotClient',
