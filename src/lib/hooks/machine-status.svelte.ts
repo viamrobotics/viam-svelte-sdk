@@ -8,6 +8,7 @@ import {
 import { getContext, setContext } from 'svelte';
 import type { PartID } from '$lib/part';
 import type { RobotClient } from '@viamrobotics/sdk';
+import { usePolling } from './use-polling.svelte';
 
 const key = Symbol('machine-status-context');
 
@@ -30,13 +31,14 @@ export const provideMachineStatusContext = (refetchInterval: () => number) => {
           'partID',
           partID,
           'robotClient',
-          'machineStatus',
+          'getMachineStatus',
         ],
-        refetchInterval: refetchInterval(),
+        refetchInterval: false,
         queryFn: async (): Promise<MachineStatus> => {
           if (!client) {
             throw new Error('No client');
           }
+
           return client.getMachineStatus();
         },
       });
@@ -54,6 +56,12 @@ export const provideMachineStatusContext = (refetchInterval: () => number) => {
       },
     })
   );
+
+  $effect(() => {
+    for (const option of options) {
+      usePolling(() => option.queryKey, refetchInterval);
+    }
+  });
 
   setContext(key, {
     get current() {

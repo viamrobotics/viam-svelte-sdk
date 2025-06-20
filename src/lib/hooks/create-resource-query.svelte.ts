@@ -5,6 +5,7 @@ import {
 } from '@tanstack/svelte-query';
 import type { Resource } from '@viamrobotics/sdk';
 import { toStore, fromStore } from 'svelte/store';
+import { usePolling } from './use-polling.svelte';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ArgumentsType<T> = T extends (...args: infer U) => any ? U : never;
@@ -35,7 +36,7 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
 ): { current: QueryObserverResult<ResolvedReturnType<T[K]>> } => {
   let [args, options] = additional;
 
-  if (options === undefined) {
+  if (options === undefined && args !== undefined) {
     options = args as QueryOptions;
     args = undefined;
   }
@@ -72,7 +73,13 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
         >;
       },
       ..._options,
+      refetchInterval: false,
     })
+  );
+
+  usePolling(
+    () => queryOptions.queryKey,
+    () => _options?.refetchInterval ?? false
   );
 
   return fromStore(createQuery(toStore(() => queryOptions)));
