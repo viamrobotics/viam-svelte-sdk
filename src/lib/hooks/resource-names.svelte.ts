@@ -3,7 +3,7 @@ import {
   queryOptions,
   type QueryObserverResult,
 } from '@tanstack/svelte-query';
-import { ResourceName } from '@viamrobotics/sdk';
+import type { ResourceName } from '@viamrobotics/sdk';
 import { getContext, setContext } from 'svelte';
 import { fromStore, toStore } from 'svelte/store';
 import { useRobotClients } from './robot-clients.svelte';
