@@ -68,6 +68,7 @@ export const provideResourceNamesContext = () => {
   const machineStatuses = useMachineStatuses();
   const clients = useRobotClients();
 
+  const partIDs = $derived(Object.keys(clients.current));
   const options = $derived(
     Object.entries(clients.current).map(([partID, client]) => {
       return queryOptions({
@@ -105,7 +106,7 @@ export const provideResourceNamesContext = () => {
   $effect(() => {
     let index = 0;
 
-    for (const [partID] of Object.entries(clients.current)) {
+    for (const partID of partIDs) {
       const revision =
         machineStatuses.current[partID]?.data?.config?.revision ?? '';
       const lastRevision = revisions.get(partID);
@@ -121,7 +122,6 @@ export const provideResourceNamesContext = () => {
     }
   });
 
-  const partIDs = $derived(Object.keys(clients.current));
   const current = $derived(
     Object.fromEntries(
       queries.current.map((result, index) => [partIDs[index], result])
