@@ -26,7 +26,6 @@ let dialConfigs = $derived(
   Object.fromEntries(Object.entries(configs).filter(([key]) => enabled[key]))
 );
 
-$inspect(dialConfigs);
 let { children }: Props = $props();
 </script>
 

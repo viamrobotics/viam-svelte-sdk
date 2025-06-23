@@ -3,7 +3,7 @@ import {
   queryOptions,
   type QueryObserverResult,
 } from '@tanstack/svelte-query';
-import type { ResourceName } from '@viamrobotics/sdk';
+import { ResourceName } from '@viamrobotics/sdk';
 import { getContext, setContext } from 'svelte';
 import { fromStore, toStore } from 'svelte/store';
 import { useRobotClients } from './robot-clients.svelte';
@@ -25,15 +25,25 @@ interface Context {
   current: Record<PartID, Query | undefined>;
 }
 
+const revisions = new Map<string, string>();
+
+const deepEqualResourceNames = (
+  a: ResourceName[],
+  b: ResourceName[]
+): boolean => {
+  if (a.length !== b.length) {
+    return false;
+  }
+
+  return a.every((item, i) => JSON.stringify(item) === JSON.stringify(b[i]));
+};
+
 export const provideResourceNamesContext = () => {
   const machineStatuses = useMachineStatuses();
   const clients = useRobotClients();
 
   const options = $derived(
     Object.entries(clients.current).map(([partID, client]) => {
-      const revision =
-        machineStatuses.current[partID]?.data?.config?.revision ?? '';
-
       return queryOptions({
         enabled: client !== undefined,
         queryKey: [
@@ -42,8 +52,8 @@ export const provideResourceNamesContext = () => {
           partID,
           'robotClient',
           'resourceNames',
-          revision,
         ],
+        staleTime: Infinity,
         queryFn: async () => {
           if (!client) {
             throw new Error('No client');
@@ -58,18 +68,38 @@ export const provideResourceNamesContext = () => {
   const queries = fromStore(
     createQueries({
       queries: toStore(() => options),
-      combine: (results) => {
-        const partIDs = Object.keys(clients.current);
-        return Object.fromEntries(
-          results.map((result, index) => [partIDs[index], result])
-        );
-      },
     })
+  );
+
+  $effect(() => {
+    let index = 0;
+
+    for (const [partID] of Object.entries(clients.current)) {
+      const revision =
+        machineStatuses.current[partID]?.data?.config?.revision ?? '';
+      const lastRevision = revisions.get(partID);
+      revisions.set(partID, revision);
+
+      if (!lastRevision) continue;
+
+      if (revision !== lastRevision) {
+        queries.current[index]?.refetch();
+      }
+
+      index += 1;
+    }
+  });
+
+  const partIDs = $derived(Object.keys(clients.current));
+  const current = $derived(
+    Object.fromEntries(
+      queries.current.map((result, index) => [partIDs[index], result])
+    )
   );
 
   setContext<Context>(key, {
     get current() {
-      return queries.current;
+      return current;
     },
   });
 };
@@ -84,15 +114,26 @@ export const useResourceNames = (
   const resourceSubtype = $derived(
     typeof subtype === 'function' ? subtype() : subtype
   );
-  const filtered = $derived(
-    subtype ? data.filter((value) => value.subtype === resourceSubtype) : data
-  );
   const error = $derived(query?.error ?? undefined);
   const fetching = $derived(query?.isFetching ?? true);
 
+  const filtered = $derived(
+    subtype ? data.filter((value) => value.subtype === resourceSubtype) : data
+  );
+
+  let current = $state.raw<ResourceName[]>([]);
+  let last: ResourceName[] = [];
+
+  $effect.pre(() => {
+    if (!deepEqualResourceNames(last, filtered)) {
+      last = current;
+      current = filtered;
+    }
+  });
+
   return {
     get current() {
-      return filtered;
+      return current;
     },
     get error() {
       return error;
