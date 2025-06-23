@@ -13,5 +13,3 @@ const parseConfigs = () => {
 };
 
 export const dialConfigs: Record<string, DialConf> = parseConfigs();
-
-console.log('what', dialConfigs);
