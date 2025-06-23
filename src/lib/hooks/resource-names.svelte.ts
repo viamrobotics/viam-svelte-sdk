@@ -70,7 +70,8 @@ export const provideResourceNamesContext = () => {
 
   const partIDs = $derived(Object.keys(clients.current));
   const options = $derived(
-    Object.entries(clients.current).map(([partID, client]) => {
+    partIDs.map((partID) => {
+      const client = clients.current[partID];
       return queryOptions({
         enabled: client !== undefined,
         queryKey: [
