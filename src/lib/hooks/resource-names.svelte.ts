@@ -71,6 +71,9 @@ export const provideResourceNamesContext = () => {
     })
   );
 
+  /**
+   * Individually refetch part resource names based on revision
+   */
   $effect(() => {
     let index = 0;
 
