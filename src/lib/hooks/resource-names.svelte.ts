@@ -38,6 +38,32 @@ const deepEqualResourceNames = (
   return a.every((item, i) => JSON.stringify(item) === JSON.stringify(b[i]));
 };
 
+/**
+ * sorts resource names by local/remote -> type -> name (alphabetical)
+ * to produce a list like:
+ *
+ * component a
+ * component z
+ * service   b
+ * component remote:c
+ * service   remote:b
+ * @param resourceNames
+ */
+const sortResourceNames = (resourceNames: ResourceName[]) => {
+  resourceNames.sort(({ type, name }, { type: otherType, name: otherName }) => {
+    // sort all non-remote resources before remote resources
+    if (name.includes(':') !== otherName.includes(':')) {
+      return name.includes(':') ? 1 : -1;
+    }
+
+    // sort alphabetically within type
+    // sort components before services
+    return type === otherType
+      ? name.localeCompare(otherName)
+      : type.localeCompare(otherType);
+  });
+};
+
 export const provideResourceNamesContext = () => {
   const machineStatuses = useMachineStatuses();
   const clients = useRobotClients();
@@ -59,7 +85,9 @@ export const provideResourceNamesContext = () => {
             throw new Error('No client');
           }
 
-          return client.resourceNames();
+          const resourceNames = await client.resourceNames();
+          sortResourceNames(resourceNames);
+          return resourceNames;
         },
       });
     })
