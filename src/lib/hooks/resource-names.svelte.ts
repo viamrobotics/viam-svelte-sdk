@@ -25,15 +25,53 @@ interface Context {
   current: Record<PartID, Query | undefined>;
 }
 
+const revisions = new Map<string, string>();
+
+const deepEqualResourceNames = (
+  a: ResourceName[],
+  b: ResourceName[]
+): boolean => {
+  if (a.length !== b.length) {
+    return false;
+  }
+
+  return a.every((item, i) => JSON.stringify(item) === JSON.stringify(b[i]));
+};
+
+/**
+ * sorts resource names by local/remote -> type -> name (alphabetical)
+ * to produce a list like:
+ *
+ * component a
+ * component z
+ * service   b
+ * component remote:c
+ * service   remote:b
+ * @param resourceNames
+ */
+const sortResourceNames = (resourceNames: ResourceName[]) => {
+  resourceNames.sort(({ type, name }, { type: otherType, name: otherName }) => {
+    // sort all non-remote resources before remote resources
+    if (name.includes(':') !== otherName.includes(':')) {
+      return name.includes(':') ? 1 : -1;
+    }
+
+    // sort alphabetically within type
+    // sort components before services
+    return type === otherType
+      ? name.localeCompare(otherName)
+      : type.localeCompare(otherType);
+  });
+};
+
 export const provideResourceNamesContext = () => {
   const machineStatuses = useMachineStatuses();
   const clients = useRobotClients();
 
+  const partIDs = $derived(Object.keys(clients.current));
   const options = $derived(
-    Object.entries(clients.current).map(([partID, client]) => {
-      const revision =
-        machineStatuses.current[partID]?.data?.config?.revision ?? '';
-
+    partIDs.map((partID) => {
+      const client = clients.current[partID];
       return queryOptions({
         enabled: client !== undefined,
         queryKey: [
@@ -42,14 +80,16 @@ export const provideResourceNamesContext = () => {
           partID,
           'robotClient',
           'resourceNames',
-          revision,
         ],
+        staleTime: Infinity,
         queryFn: async () => {
           if (!client) {
             throw new Error('No client');
           }
 
-          return client.resourceNames();
+          const resourceNames = await client.resourceNames();
+          sortResourceNames(resourceNames);
+          return resourceNames;
         },
       });
     })
@@ -58,18 +98,40 @@ export const provideResourceNamesContext = () => {
   const queries = fromStore(
     createQueries({
       queries: toStore(() => options),
-      combine: (results) => {
-        const partIDs = Object.keys(clients.current);
-        return Object.fromEntries(
-          results.map((result, index) => [partIDs[index], result])
-        );
-      },
     })
+  );
+
+  /**
+   * Individually refetch part resource names based on revision
+   */
+  $effect(() => {
+    let index = 0;
+
+    for (const partID of partIDs) {
+      const revision =
+        machineStatuses.current[partID]?.data?.config?.revision ?? '';
+      const lastRevision = revisions.get(partID);
+      revisions.set(partID, revision);
+
+      if (!lastRevision) continue;
+
+      if (revision !== lastRevision) {
+        queries.current[index]?.refetch();
+      }
+
+      index += 1;
+    }
+  });
+
+  const current = $derived(
+    Object.fromEntries(
+      queries.current.map((result, index) => [partIDs[index], result])
+    )
   );
 
   setContext<Context>(key, {
     get current() {
-      return queries.current;
+      return current;
     },
   });
 };
@@ -84,15 +146,26 @@ export const useResourceNames = (
   const resourceSubtype = $derived(
     typeof subtype === 'function' ? subtype() : subtype
   );
-  const filtered = $derived(
-    subtype ? data.filter((value) => value.subtype === resourceSubtype) : data
-  );
   const error = $derived(query?.error ?? undefined);
   const fetching = $derived(query?.isFetching ?? true);
 
+  const filtered = $derived(
+    subtype ? data.filter((value) => value.subtype === resourceSubtype) : data
+  );
+
+  let current = $state.raw<ResourceName[]>([]);
+  let last: ResourceName[] = [];
+
+  $effect.pre(() => {
+    if (!deepEqualResourceNames(last, filtered)) {
+      last = current;
+      current = filtered;
+    }
+  });
+
   return {
     get current() {
-      return filtered;
+      return current;
     },
     get error() {
       return error;
