@@ -1,5 +1,15 @@
 # @viamrobotics/svelte-sdk
 
+## 0.4.0
+
+### Minor Changes
+
+- e7e2093: Only poll once request round trips have finished
+
+### Patch Changes
+
+- 5fb0fe4: Memoize useResourceNames results
+
 ## 0.3.3
 
 ### Patch Changes
