@@ -27,7 +27,7 @@ interface Context {
 
 const revisions = new Map<string, string>();
 
-const deepEqualResourceNames = (
+const areResourceNamesEqual = (
   a: ResourceName[],
   b: ResourceName[]
 ): boolean => {
@@ -35,7 +35,13 @@ const deepEqualResourceNames = (
     return false;
   }
 
-  return a.every((item, i) => JSON.stringify(item) === JSON.stringify(b[i]));
+  for (let i = 0; i < a.length; i++) {
+    if (JSON.stringify(a[i]) !== JSON.stringify(b[i])) {
+      return false;
+    }
+  }
+
+  return true;
 };
 
 /**
@@ -150,14 +156,16 @@ export const useResourceNames = (
   const fetching = $derived(query?.isFetching ?? true);
 
   const filtered = $derived(
-    subtype ? data.filter((value) => value.subtype === resourceSubtype) : data
+    resourceSubtype
+      ? data.filter((value) => value.subtype === resourceSubtype)
+      : data
   );
 
-  let current = $state.raw<ResourceName[]>([]);
-  let last: ResourceName[] = [];
+  let current = $state.raw<ResourceName[]>(filtered);
+  let last: ResourceName[] = filtered;
 
   $effect.pre(() => {
-    if (!deepEqualResourceNames(last, filtered)) {
+    if (!areResourceNamesEqual(last, filtered)) {
       last = current;
       current = filtered;
     }
