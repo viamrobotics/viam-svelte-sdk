@@ -1,4 +1,5 @@
 <script lang="ts">
+import { PersistedState } from 'runed';
 import {
   useConnectionStatus,
   useResourceNames,
@@ -11,12 +12,12 @@ import Version from './version.svelte';
 
 const partIDs = Object.keys(dialConfigs);
 
-let partID = $state(partIDs[0] ?? '');
+let partID = new PersistedState('selected-partID', partIDs[0] ?? '');
 
-const status = useConnectionStatus(() => partID);
-const resources = useResourceNames(() => partID);
-const cameras = useResourceNames(() => partID, 'camera');
-const bases = useResourceNames(() => partID, 'base');
+const status = useConnectionStatus(() => partID.current);
+const resources = useResourceNames(() => partID.current);
+const cameras = useResourceNames(() => partID.current, 'camera');
+const bases = useResourceNames(() => partID.current, 'base');
 
 let streaming = true;
 </script>
@@ -26,8 +27,8 @@ let streaming = true;
     {#each partIDs as id, index (id)}
       <button
         class="border p-2"
-        class:bg-blue-100={partID === id}
-        onclick={() => (partID = id)}
+        class:bg-blue-100={partID.current === id}
+        onclick={() => (partID.current = id)}
       >
         part {index + 1}
       </button>
@@ -43,6 +44,8 @@ let streaming = true;
     Error fetching: {resources.error.message}
   {:else if resources.fetching}
     <ul class="text-xs">Fetching...</ul>
+  {:else if !resources.fetching && resources.current.length === 0}
+    No resources
   {:else}
     <ul class="text-xs">
       {#each resources.current as resource (resource.name)}
@@ -54,7 +57,7 @@ let streaming = true;
   {#each bases.current as { name } (name)}
     <Base
       {name}
-      {partID}
+      partID={partID.current}
     />
   {/each}
 
@@ -62,12 +65,12 @@ let streaming = true;
     {#if streaming}
       <CameraStream
         {name}
-        {partID}
+        partID={partID.current}
       />
     {:else}
       <CameraImage
         {name}
-        {partID}
+        partID={partID.current}
       />
     {/if}
   {/each}

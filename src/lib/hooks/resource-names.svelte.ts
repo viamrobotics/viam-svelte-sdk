@@ -18,6 +18,7 @@ interface QueryContext {
   current: ResourceName[];
   error: Error | undefined;
   fetching: boolean;
+  loading: boolean;
   refetch: () => Promise<Query> | Promise<void>;
 }
 
@@ -27,7 +28,7 @@ interface Context {
 
 const revisions = new Map<string, string>();
 
-const deepEqualResourceNames = (
+const areResourceNamesEqual = (
   a: ResourceName[],
   b: ResourceName[]
 ): boolean => {
@@ -35,7 +36,13 @@ const deepEqualResourceNames = (
     return false;
   }
 
-  return a.every((item, i) => JSON.stringify(item) === JSON.stringify(b[i]));
+  for (let i = 0; i < a.length; i++) {
+    if (JSON.stringify(a[i]) !== JSON.stringify(b[i])) {
+      return false;
+    }
+  }
+
+  return true;
 };
 
 /**
@@ -72,6 +79,7 @@ export const provideResourceNamesContext = () => {
   const options = $derived(
     partIDs.map((partID) => {
       const client = clients.current[partID];
+
       return queryOptions({
         enabled: client !== undefined,
         queryKey: [
@@ -98,6 +106,11 @@ export const provideResourceNamesContext = () => {
   const queries = fromStore(
     createQueries({
       queries: toStore(() => options),
+      combine: (results): Record<PartID, Query | undefined> => {
+        return Object.fromEntries(
+          results.map((result, index) => [partIDs[index], result])
+        );
+      },
     })
   );
 
@@ -105,8 +118,6 @@ export const provideResourceNamesContext = () => {
    * Individually refetch part resource names based on revision
    */
   $effect(() => {
-    let index = 0;
-
     for (const partID of partIDs) {
       const revision =
         machineStatuses.current[partID]?.data?.config?.revision ?? '';
@@ -116,51 +127,41 @@ export const provideResourceNamesContext = () => {
       if (!lastRevision) continue;
 
       if (revision !== lastRevision) {
-        queries.current[index]?.refetch();
+        queries.current[partID]?.refetch();
       }
-
-      index += 1;
     }
   });
 
-  const current = $derived(
-    Object.fromEntries(
-      queries.current.map((result, index) => [partIDs[index], result])
-    )
-  );
-
-  setContext<Context>(key, {
-    get current() {
-      return current;
-    },
-  });
+  setContext<Context>(key, queries);
 };
 
 export const useResourceNames = (
   partID: () => PartID,
-  subtype?: string | (() => string)
+  resourceSubtype?: string | (() => string)
 ): QueryContext => {
-  const context = getContext<Context>(key);
-  const query = $derived(context.current[partID()]);
+  const queries = getContext<Context>(key);
+  const query = $derived(queries.current[partID()]);
   const data = $derived(query?.data ?? []);
-  const resourceSubtype = $derived(
-    typeof subtype === 'function' ? subtype() : subtype
-  );
   const error = $derived(query?.error ?? undefined);
   const fetching = $derived(query?.isFetching ?? true);
+  const loading = $derived(query?.isLoading ?? true);
 
+  const subtype = $derived(
+    typeof resourceSubtype === 'function' ? resourceSubtype() : resourceSubtype
+  );
   const filtered = $derived(
-    subtype ? data.filter((value) => value.subtype === resourceSubtype) : data
+    subtype ? data.filter((value) => value.subtype === subtype) : data
   );
 
-  let current = $state.raw<ResourceName[]>([]);
-  let last: ResourceName[] = [];
+  let last: ResourceName[] = filtered;
 
-  $effect.pre(() => {
-    if (!deepEqualResourceNames(last, filtered)) {
-      last = current;
-      current = filtered;
+  const current = $derived.by(() => {
+    if (areResourceNamesEqual(last, filtered)) {
+      return last;
     }
+
+    last = filtered;
+    return filtered;
   });
 
   return {
@@ -172,6 +173,9 @@ export const useResourceNames = (
     },
     get fetching() {
       return fetching;
+    },
+    get loading() {
+      return loading;
     },
     refetch() {
       return query?.refetch() ?? Promise.resolve();

@@ -11,7 +11,7 @@ interface Props {
   children: Snippet;
 }
 
-let configs = $state.raw<Record<string, DialConf>>({});
+let configs = $state.raw<Record<string, DialConf>>(structuredClone(c));
 
 const id = setInterval(() => {
   configs = structuredClone(c);
@@ -21,7 +21,9 @@ $effect.pre(() => {
   return () => clearTimeout(id);
 });
 
-let enabled = $state<Record<string, boolean>>({});
+let enabled = $state<Record<string, boolean>>(
+  Object.fromEntries(Object.keys(configs).map((partID) => [partID, true]))
+);
 let dialConfigs = $derived(
   Object.fromEntries(Object.entries(configs).filter(([key]) => enabled[key]))
 );
