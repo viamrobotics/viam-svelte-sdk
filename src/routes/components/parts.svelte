@@ -19,9 +19,6 @@ const resources = useResourceNames(() => partID.current);
 const cameras = useResourceNames(() => partID.current, 'camera');
 const bases = useResourceNames(() => partID.current, 'base');
 
-// Fixes
-const currentResources = $derived(resources.current);
-
 let streaming = true;
 </script>
 
@@ -47,11 +44,11 @@ let streaming = true;
     Error fetching: {resources.error.message}
   {:else if resources.fetching}
     <ul class="text-xs">Fetching...</ul>
-  {:else if !resources.fetching && currentResources.length === 0}
+  {:else if !resources.fetching && resources.current.length === 0}
     No resources
   {:else}
     <ul class="text-xs">
-      {#each currentResources as resource (resource.name)}
+      {#each resources.current as resource (resource.name)}
         <li>{resource.name}</li>
       {/each}
     </ul>
