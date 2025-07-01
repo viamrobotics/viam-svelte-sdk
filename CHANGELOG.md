@@ -1,5 +1,11 @@
 # @viamrobotics/svelte-sdk
 
+## 0.4.1
+
+### Patch Changes
+
+- e5aaa88: Fix reactivity updates for useResourceNames
+
 ## 0.4.0
 
 ### Minor Changes
