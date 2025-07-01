@@ -90,7 +90,6 @@ export const provideResourceNamesContext = () => {
           'resourceNames',
         ],
         staleTime: Infinity,
-        refetchOnMount: true,
         queryFn: async () => {
           if (!client) {
             throw new Error('No client');
@@ -118,7 +117,7 @@ export const provideResourceNamesContext = () => {
   /**
    * Individually refetch part resource names based on revision
    */
-  $effect.pre(() => {
+  $effect(() => {
     let index = 0;
 
     for (const partID of partIDs) {
