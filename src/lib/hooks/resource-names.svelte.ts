@@ -106,7 +106,7 @@ export const provideResourceNamesContext = () => {
   const queries = fromStore(
     createQueries({
       queries: toStore(() => options),
-      combine: (results) => {
+      combine: (results): Record<PartID, Query | undefined> => {
         return Object.fromEntries(
           results.map((result, index) => [partIDs[index], result])
         );
@@ -118,8 +118,6 @@ export const provideResourceNamesContext = () => {
    * Individually refetch part resource names based on revision
    */
   $effect(() => {
-    let index = 0;
-
     for (const partID of partIDs) {
       const revision =
         machineStatuses.current[partID]?.data?.config?.revision ?? '';
@@ -129,10 +127,8 @@ export const provideResourceNamesContext = () => {
       if (!lastRevision) continue;
 
       if (revision !== lastRevision) {
-        queries.current[index]?.refetch();
+        queries.current[partID]?.refetch();
       }
-
-      index += 1;
     }
   });
 

@@ -35,7 +35,7 @@ export const createStreamClient = (
   });
 
   $effect(() => {
-    streamClient?.getStream(resourceName());
+    streamClient?.add(resourceName());
     return () => streamClient?.remove(resourceName());
   });
 
