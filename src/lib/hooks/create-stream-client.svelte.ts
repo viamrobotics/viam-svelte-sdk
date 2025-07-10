@@ -20,7 +20,7 @@ export const createStreamClient = (
   );
 
   const handleTrack = (event: unknown) => {
-    const [stream] = (event as { streams: MediaStream[] }).streams;
+    const [stream] = (event as RTCTrackEvent).streams;
 
     if (!stream || stream.id !== resourceName()) {
       return;
@@ -35,8 +35,9 @@ export const createStreamClient = (
   });
 
   $effect(() => {
-    streamClient?.getStream(resourceName());
-    return () => streamClient?.remove(resourceName());
+    const name = resourceName();
+    streamClient?.add(name);
+    return () => streamClient?.remove(name);
   });
 
   const queryOptions = $derived(
@@ -52,7 +53,14 @@ export const createStreamClient = (
       ],
       enabled: streamClient !== undefined,
       retry: false,
+
+      /**
+       * Resolution options are fairly static,
+       * so we don't refetch often.
+       */
       refetchOnWindowFocus: false,
+      refetchOnMount: false,
+
       queryFn: async () => {
         return streamClient?.getOptions(resourceName());
       },
