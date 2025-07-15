@@ -1,5 +1,12 @@
 # @viamrobotics/svelte-sdk
 
+## 0.4.2
+
+### Patch Changes
+
+- 8f5af82: Replace structuredClone call with state.snapshot
+- 2eaea47: Ensure consistent streamClient and resourceName in stream related effects
+
 ## 0.4.1
 
 ### Patch Changes
