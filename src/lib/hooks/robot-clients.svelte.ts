@@ -103,7 +103,7 @@ export const provideRobotClientsContext = (
       Object.keys(lastConfigs)
     );
 
-    lastConfigs = structuredClone(configs);
+    lastConfigs = $state.snapshot(configs);
 
     for (const partID of removed) {
       disconnect(partID, lastConfigs[partID]);
