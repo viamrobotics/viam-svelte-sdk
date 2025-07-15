@@ -9,6 +9,7 @@ node_modules
 /.svelte-kit
 /build
 /dist
+viamrobotics-svelte-sdk-*.tgz
 
 # OS
 .DS_Store
