@@ -30,13 +30,16 @@ export const createStreamClient = (
   };
 
   $effect(() => {
-    streamClient?.on('track', handleTrack);
-    return () => streamClient?.off('track', handleTrack);
+    const client = streamClient;
+    client?.on('track', handleTrack);
+    return () => client?.off('track', handleTrack);
   });
 
   $effect(() => {
-    streamClient?.getStream(resourceName());
-    return () => streamClient?.remove(resourceName());
+    const name = resourceName();
+    const client = streamClient;
+    client?.getStream(name);
+    return () => client?.remove(name);
   });
 
   const queryOptions = $derived(
