@@ -81,10 +81,20 @@ export const provideRobotClientsContext = (
 
       const client = await createRobotClient(config);
       (client as RobotClient & { partID: string }).partID = partID;
-      client.on('connectionstatechange', (event) => {
+      client.on('connectionstatechange', async (event) => {
         connectionStatus[partID] = (
           event as { eventType: MachineConnectionEvent }
         ).eventType;
+
+        if (connectionStatus[partID] === MachineConnectionEvent.DISCONNECTED) {
+          await queryClient.cancelQueries({
+            queryKey: ['viam-svelte-sdk', 'partID', partID],
+          });
+
+          await queryClient.resetQueries({
+            queryKey: ['viam-svelte-sdk', 'partID', partID],
+          });
+        }
       });
 
       clients[partID] = client;
