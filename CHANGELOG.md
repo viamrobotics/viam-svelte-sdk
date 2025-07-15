@@ -1,5 +1,11 @@
 # @viamrobotics/svelte-sdk
 
+## 0.4.3
+
+### Patch Changes
+
+- ad0acfb: Cancel and reset queries on part disconnect
+
 ## 0.4.2
 
 ### Patch Changes
