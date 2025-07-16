@@ -1,5 +1,11 @@
 # @viamrobotics/svelte-sdk
 
+## 0.4.4
+
+### Patch Changes
+
+- b08f0ae: Throw errors on polling refetch
+
 ## 0.4.3
 
 ### Patch Changes
