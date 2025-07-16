@@ -24,7 +24,10 @@ export function usePolling(
     }
 
     const poll = async () => {
-      await queryClient.refetchQueries({ queryKey: key });
+      await queryClient.refetchQueries(
+        { queryKey: key },
+        { throwOnError: true }
+      );
       timeoutId = setTimeout(poll, currentInterval);
     };
 
