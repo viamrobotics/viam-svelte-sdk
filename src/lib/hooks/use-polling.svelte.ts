@@ -1,4 +1,4 @@
-import { useQueryClient } from '@tanstack/svelte-query';
+import { CancelledError, useQueryClient } from '@tanstack/svelte-query';
 
 /**
  * Polls a query at an interval while waiting for
@@ -24,10 +24,7 @@ export function usePolling(
     }
 
     const poll = async () => {
-      await queryClient.refetchQueries(
-        { queryKey: key },
-        { throwOnError: true }
-      );
+      await queryClient.refetchQueries({ queryKey: key });
       timeoutId = setTimeout(poll, currentInterval);
     };
 
