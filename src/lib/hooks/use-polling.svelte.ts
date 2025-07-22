@@ -1,4 +1,4 @@
-import { CancelledError, useQueryClient } from '@tanstack/svelte-query';
+import { useQueryClient } from '@tanstack/svelte-query';
 
 /**
  * Polls a query at an interval while waiting for
