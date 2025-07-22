@@ -1,5 +1,11 @@
 # @viamrobotics/svelte-sdk
 
+## 0.4.5
+
+### Patch Changes
+
+- f96b59c: Remove throwOnError from usePolling
+
 ## 0.4.4
 
 ### Patch Changes
