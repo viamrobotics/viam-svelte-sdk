@@ -7,6 +7,7 @@ import {
 import type { RobotClient } from '@viamrobotics/sdk';
 import { toStore, fromStore } from 'svelte/store';
 import { usePolling } from './use-polling.svelte';
+import { debugLogQuery } from '$lib/debug';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ArgumentsType<T> = T extends (...args: infer U) => any ? U : never;
@@ -47,6 +48,10 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
   );
   const _args = $derived(typeof args === 'function' ? args() : args);
 
+  const methodName = $derived(String(method));
+
+  let index = 0;
+
   const queryOptions = $derived(
     createQueryOptions({
       queryKey: [
@@ -54,7 +59,7 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
         'partID',
         (client.current as T & { partID: string })?.partID,
         'robotClient',
-        String(method),
+        methodName,
         ...(_args ? [_args] : []),
       ],
       enabled: client.current !== undefined && _options?.enabled !== false,
@@ -68,10 +73,22 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
           );
         }
 
-        // Call entity.resource.func(args).
-        return clientFunc?.apply(client.current, _args) as Promise<
-          ResolvedReturnType<T[K]>
-        >;
+        debugLogQuery(index, 'REQ', 'robot', methodName, _args);
+
+        try {
+          const result = (await clientFunc?.apply(
+            client.current,
+            _args
+          )) as Promise<ResolvedReturnType<T[K]>>;
+
+          debugLogQuery(index++, 'RES', 'robot', methodName, result);
+
+          return result;
+        } catch (error) {
+          debugLogQuery(index++, 'ERR', 'robot', methodName, error);
+
+          throw error;
+        }
       },
       ..._options,
       refetchInterval: false,

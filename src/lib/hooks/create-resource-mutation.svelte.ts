@@ -6,6 +6,7 @@ import type {
   ResolvedReturnType,
 } from './create-resource-query.svelte';
 import { fromStore, toStore } from 'svelte/store';
+import { debugLogQuery } from '$lib/debug';
 
 export const createResourceMutation = <T extends Resource, K extends keyof T>(
   client: { current: T | undefined },
@@ -14,14 +15,19 @@ export const createResourceMutation = <T extends Resource, K extends keyof T>(
   type MutArgs = ArgumentsType<T[K]>;
   type MutReturn = ResolvedReturnType<T[K]>;
 
+  const name = $derived(client.current?.name);
+  const methodName = $derived(String(method));
+
+  let index = 0;
+
   const mutationOptions = $derived({
     mutationKey: [
       'viam-svelte-sdk',
       'partID',
       (client.current as T & { partID: string })?.partID,
       'resource',
-      client.current?.name,
-      String(method),
+      name,
+      methodName,
     ],
     mutationFn: async (request) => {
       const clientFunc = client.current?.[method];
@@ -32,7 +38,22 @@ export const createResourceMutation = <T extends Resource, K extends keyof T>(
         );
       }
 
-      return clientFunc.apply(client.current, request) as Promise<MutReturn>;
+      debugLogQuery(index, 'REQ', name, methodName, request);
+
+      try {
+        const result = (await clientFunc.apply(
+          client.current,
+          request
+        )) as Promise<MutReturn>;
+
+        debugLogQuery(index++, 'RES', name, methodName, result);
+
+        return result;
+      } catch (error) {
+        debugLogQuery(index++, 'ERR', name, methodName, error);
+
+        throw error;
+      }
     },
   } satisfies MutationOptions<MutReturn, Error, MutArgs>);
 
