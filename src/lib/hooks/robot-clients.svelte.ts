@@ -171,6 +171,15 @@ export const useDialConfigs = (): DialConfigsContext => {
   return getContext<DialConfigsContext>(dialKey);
 };
 
+export const useConnectionStatuses = () => {
+  const context = getContext<ConnectionStatusContext>(connectionKey);
+  return {
+    get current() {
+      return context.current;
+    },
+  };
+};
+
 export const useConnectionStatus = (partID: () => PartID) => {
   const context = getContext<ConnectionStatusContext>(connectionKey);
   const status = $derived(context.current[partID()]);

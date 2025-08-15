@@ -3,10 +3,10 @@ import {
   queryOptions,
   type QueryObserverResult,
 } from '@tanstack/svelte-query';
-import type { ResourceName } from '@viamrobotics/sdk';
+import { MachineConnectionEvent, type ResourceName } from '@viamrobotics/sdk';
 import { getContext, setContext } from 'svelte';
 import { fromStore, toStore } from 'svelte/store';
-import { useRobotClients } from './robot-clients.svelte';
+import { useConnectionStatuses, useRobotClients } from './robot-clients.svelte';
 import type { PartID } from '../part';
 import { useMachineStatuses } from './machine-status.svelte';
 
@@ -72,6 +72,7 @@ const sortResourceNames = (resourceNames: ResourceName[]) => {
 };
 
 export const provideResourceNamesContext = () => {
+  const connectionStatuses = useConnectionStatuses();
   const machineStatuses = useMachineStatuses();
   const clients = useRobotClients();
 
@@ -124,8 +125,15 @@ export const provideResourceNamesContext = () => {
    */
   $effect(() => {
     for (const partID of partIDs) {
+      const status = connectionStatuses.current[partID];
       const query = queries.current[partID];
-      if (query?.isFetched && !query.isLoading && query.data?.length === 0) {
+      const connected = status === MachineConnectionEvent.CONNECTED;
+      if (
+        connected &&
+        query?.isFetched &&
+        !query.isLoading &&
+        query.data?.length === 0
+      ) {
         query.refetch();
       }
     }
