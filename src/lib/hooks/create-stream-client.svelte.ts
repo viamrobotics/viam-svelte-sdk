@@ -13,14 +13,13 @@ export const createStreamClient = (
   partID: () => string,
   resourceName: () => string
 ) => {
+  const debug = useQueryLogger();
   let mediaStream = $state.raw<MediaStream | null>(null);
 
   const client = useRobotClient(partID);
   const streamClient = $derived(
     client.current ? new StreamClient(client.current) : undefined
   );
-
-  const debug = useQueryLogger();
 
   const handleTrack = (event: unknown) => {
     const [stream] = (event as { streams: MediaStream[] }).streams;

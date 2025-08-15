@@ -15,9 +15,9 @@ export const createRobotMutation = <T extends RobotClient, K extends keyof T>(
   type MutArgs = ArgumentsType<T[K]>;
   type MutReturn = ResolvedReturnType<T[K]>;
 
-  const methodName = $derived(String(method));
-
   const debug = useQueryLogger();
+
+  const methodName = $derived(String(method));
 
   const mutationOptions = $derived({
     mutationKey: [

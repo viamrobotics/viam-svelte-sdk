@@ -15,10 +15,10 @@ export const createResourceMutation = <T extends Resource, K extends keyof T>(
   type MutArgs = ArgumentsType<T[K]>;
   type MutReturn = ResolvedReturnType<T[K]>;
 
+  const debug = useQueryLogger();
+
   const name = $derived(client.current?.name);
   const methodName = $derived(String(method));
-
-  const debug = useQueryLogger();
 
   const mutationOptions = $derived({
     mutationKey: [

@@ -36,6 +36,7 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
       ]
     | [options?: (() => QueryOptions) | QueryOptions]
 ): { current: QueryObserverResult<ResolvedReturnType<T[K]>> } => {
+  const debug = useQueryLogger();
   let [args, options] = additional;
 
   if (options === undefined && args !== undefined) {
@@ -47,10 +48,7 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
     typeof options === 'function' ? options() : options
   );
   const _args = $derived(typeof args === 'function' ? args() : args);
-
   const methodName = $derived(String(method));
-
-  const debug = useQueryLogger();
 
   const queryOptions = $derived(
     createQueryOptions({
