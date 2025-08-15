@@ -76,11 +76,12 @@ export const provideResourceNamesContext = () => {
   const clients = useRobotClients();
 
   const partIDs = $derived(Object.keys(clients.current));
-  const options = $derived(
-    partIDs.map((partID) => {
-      const client = clients.current[partID];
+  const options = $derived.by(() => {
+    const results = [];
 
-      return queryOptions({
+    for (const partID of partIDs) {
+      const client = clients.current[partID];
+      const options = queryOptions({
         enabled: client !== undefined,
         queryKey: [
           'viam-svelte-sdk',
@@ -100,8 +101,12 @@ export const provideResourceNamesContext = () => {
           return resourceNames;
         },
       });
-    })
-  );
+
+      results.push(options);
+    }
+
+    return results;
+  });
 
   const queries = fromStore(
     createQueries({
@@ -113,6 +118,18 @@ export const provideResourceNamesContext = () => {
       },
     })
   );
+
+  /**
+   * ResourceNames are not guaranteed on first fetch,
+   */
+  $effect(() => {
+    for (const partID of partIDs) {
+      const query = queries.current[partID];
+      if (query?.isFetched && !query.isLoading && query.data?.length === 0) {
+        query.refetch();
+      }
+    }
+  });
 
   /**
    * Individually refetch part resource names based on revision
