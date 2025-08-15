@@ -3,13 +3,23 @@ import type { Snippet } from 'svelte';
 import { QueryClientProvider, QueryClient } from '@tanstack/svelte-query';
 import type { DialConf } from '@viamrobotics/sdk';
 import InternalProvider from './internal-provider.svelte';
-import { enableDebug, disableDebug } from '../debug';
+import {
+  enableQueryLogging,
+  disableQueryLogging,
+  enableVerboseQueryLogging,
+  disableVerboseQueryLogging,
+} from '../query-logger';
 
 interface Props {
   dialConfigs: Record<string, DialConf>;
   client?: QueryClient;
   machineStatusRefetchInterval?: number;
-  debug?: boolean;
+  logQueries?:
+    | boolean
+    | {
+        enabled: boolean;
+        verbose?: boolean;
+      };
   children: Snippet;
 }
 
@@ -17,11 +27,33 @@ let {
   dialConfigs,
   client = new QueryClient(),
   machineStatusRefetchInterval,
-  debug = false,
+  logQueries,
   children,
 }: Props = $props();
 
-$effect(() => (debug ? enableDebug() : disableDebug()));
+$effect(() => {
+  if (typeof logQueries === 'boolean') {
+    logQueries = { enabled: logQueries };
+  }
+
+  if (logQueries?.enabled) {
+    enableQueryLogging();
+  } else {
+    disableQueryLogging();
+  }
+});
+
+$effect(() => {
+  if (typeof logQueries === 'boolean') {
+    return;
+  }
+
+  if (logQueries?.verbose) {
+    enableVerboseQueryLogging();
+  } else {
+    disableVerboseQueryLogging();
+  }
+});
 </script>
 
 <QueryClientProvider {client}>

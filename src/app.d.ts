@@ -10,8 +10,10 @@ declare global {
   }
 
   interface Window {
-    enableDebug?: () => unknown;
-    disableDebug?: () => unknown;
+    enableQueryLogging?: () => unknown;
+    disableQueryLogging?: () => unknown;
+    enableVerboseQueryLogging?: () => unknown;
+    disableVerboseQueryLogging?: () => unknown;
   }
 }
 

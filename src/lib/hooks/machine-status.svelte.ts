@@ -9,6 +9,7 @@ import { getContext, setContext } from 'svelte';
 import type { PartID } from '$lib/part';
 import type { RobotClient } from '@viamrobotics/sdk';
 import { usePolling } from './use-polling.svelte';
+import { useQueryLogger } from '$lib/query-logger';
 
 const key = Symbol('machine-status-context');
 
@@ -21,6 +22,7 @@ interface Context {
 
 export const provideMachineStatusContext = (refetchInterval: () => number) => {
   const clients = useRobotClients();
+  const debug = useQueryLogger();
 
   const options = $derived(
     Object.entries(clients.current).map(([partID, client]) => {
@@ -39,7 +41,17 @@ export const provideMachineStatusContext = (refetchInterval: () => number) => {
             throw new Error('No client');
           }
 
-          return client.getMachineStatus();
+          const logger = debug.createLogger();
+          logger('REQ', 'robot', 'getMachineStatus');
+
+          try {
+            const response = await client.getMachineStatus();
+            logger('RES', 'robot', 'getMachineStatus', response);
+            return response;
+          } catch (error) {
+            logger('ERR', 'robot', 'getMachineStatus', error);
+            throw error;
+          }
         },
       });
     })

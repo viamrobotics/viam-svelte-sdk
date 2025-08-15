@@ -7,7 +7,7 @@ import {
 import type { RobotClient } from '@viamrobotics/sdk';
 import { toStore, fromStore } from 'svelte/store';
 import { usePolling } from './use-polling.svelte';
-import { debugLogQuery } from '$lib/debug';
+import { useQueryLogger } from '$lib/query-logger';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ArgumentsType<T> = T extends (...args: infer U) => any ? U : never;
@@ -50,7 +50,7 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
 
   const methodName = $derived(String(method));
 
-  let index = 0;
+  const debug = useQueryLogger();
 
   const queryOptions = $derived(
     createQueryOptions({
@@ -73,20 +73,19 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
           );
         }
 
-        debugLogQuery(index, 'REQ', 'robot', methodName, _args);
+        const logger = debug.createLogger();
+        logger('REQ', 'robot', methodName, _args);
 
         try {
-          const result = (await clientFunc?.apply(
+          const response = (await clientFunc?.apply(
             client.current,
             _args
           )) as Promise<ResolvedReturnType<T[K]>>;
 
-          debugLogQuery(index++, 'RES', 'robot', methodName, result);
-
-          return result;
+          logger('RES', 'robot', methodName, response);
+          return response;
         } catch (error) {
-          debugLogQuery(index++, 'ERR', 'robot', methodName, error);
-
+          logger('ERR', 'robot', methodName, error);
           throw error;
         }
       },

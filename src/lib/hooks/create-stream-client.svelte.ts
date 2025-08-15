@@ -7,6 +7,7 @@ import {
   queryOptions as createQueryOptions,
 } from '@tanstack/svelte-query';
 import { fromStore, toStore } from 'svelte/store';
+import { useQueryLogger } from '../query-logger';
 
 export const createStreamClient = (
   partID: () => string,
@@ -18,6 +19,8 @@ export const createStreamClient = (
   const streamClient = $derived(
     client.current ? new StreamClient(client.current) : undefined
   );
+
+  const debug = useQueryLogger();
 
   const handleTrack = (event: unknown) => {
     const [stream] = (event as { streams: MediaStream[] }).streams;
@@ -57,7 +60,17 @@ export const createStreamClient = (
       retry: false,
       refetchOnWindowFocus: false,
       queryFn: async () => {
-        return streamClient?.getOptions(resourceName());
+        const logger = debug.createLogger();
+        logger('REQ', resourceName(), 'getOptions');
+
+        try {
+          const response = await streamClient?.getOptions(resourceName());
+          logger('RES', resourceName(), 'getOptions', response);
+          return response;
+        } catch (error) {
+          logger('ERR', resourceName(), 'getOptions', error);
+          throw error;
+        }
       },
     })
   );
@@ -76,14 +89,34 @@ export const createStreamClient = (
     ],
     mutationFn: async (resolution?: streamApi.Resolution) => {
       if (resolution) {
-        return streamClient?.setOptions(
-          resourceName(),
-          resolution.width,
-          resolution.height
-        );
+        const logger = debug.createLogger();
+        logger('REQ', resourceName(), 'setOptions', resolution);
+
+        try {
+          const response = await streamClient?.setOptions(
+            resourceName(),
+            resolution.width,
+            resolution.height
+          );
+          logger('RES', resourceName(), 'setOptions', response);
+          return response;
+        } catch (error) {
+          logger('ERR', resourceName(), 'setOptions', error);
+          throw error;
+        }
       }
 
-      return streamClient?.resetOptions(resourceName());
+      const logger = debug.createLogger();
+      logger('REQ', resourceName(), 'resetOptions');
+
+      try {
+        const response = await streamClient?.resetOptions(resourceName());
+        logger('RES', resourceName(), 'resetOptions', response);
+        return response;
+      } catch (error) {
+        logger('ERR', resourceName(), 'resetOptions', error);
+        throw error;
+      }
     },
   });
   const mutation = fromStore(createMutation(toStore(() => mutationOptions)));

@@ -6,7 +6,7 @@ import type {
   ResolvedReturnType,
 } from './create-resource-query.svelte';
 import { fromStore, toStore } from 'svelte/store';
-import { debugLogQuery } from '$lib/debug';
+import { useQueryLogger } from '$lib/query-logger';
 
 export const createRobotMutation = <T extends RobotClient, K extends keyof T>(
   client: { current: T | undefined },
@@ -17,7 +17,7 @@ export const createRobotMutation = <T extends RobotClient, K extends keyof T>(
 
   const methodName = $derived(String(method));
 
-  let index = 0;
+  const debug = useQueryLogger();
 
   const mutationOptions = $derived({
     mutationKey: [
@@ -36,19 +36,19 @@ export const createRobotMutation = <T extends RobotClient, K extends keyof T>(
         );
       }
 
-      debugLogQuery(index, 'REQ', 'robot', methodName, request);
+      const logger = debug.createLogger();
+      logger('REQ', 'robot', methodName, request);
 
       try {
-        const result = (await clientFunc.apply(
+        const response = (await clientFunc.apply(
           client.current,
           request
         )) as Promise<MutReturn>;
-        debugLogQuery(index++, 'RES', 'robot', methodName, result);
 
-        return result;
+        logger('RES', 'robot', methodName, response);
+        return response;
       } catch (error) {
-        debugLogQuery(index++, 'ERR', 'robot', methodName, error);
-
+        logger('ERR', 'robot', methodName, error);
         throw error;
       }
     },

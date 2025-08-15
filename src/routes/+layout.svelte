@@ -45,7 +45,7 @@ let { children }: Props = $props();
 
 <ViamProvider
   {dialConfigs}
-  debug
+  logQueries
 >
   <Parts />
   {@render children()}
