@@ -268,7 +268,7 @@ let { partID, name }: Props = $props();
 
 ### Query Logger
 
-Enables query and mutation logs to the browser console. It can be set at with the `<ViamProvier />` or with `window` functions:
+Enables query and mutation logs to the browser console. It can be set at with the `<ViamProvider />` or with `window` functions:
 
 ```svelte
 <!-- enable query logging -->
