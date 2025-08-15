@@ -120,7 +120,7 @@ export const provideResourceNamesContext = () => {
   );
 
   /**
-   * ResourceNames are not guaranteed on first fetch,
+   * ResourceNames are not guaranteed on first fetch, refetch until they're populated
    */
   $effect(() => {
     for (const partID of partIDs) {
