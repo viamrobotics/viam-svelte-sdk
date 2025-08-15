@@ -266,7 +266,7 @@ let { partID, name }: Props = $props();
 
 ## Debugging
 
-### Query Debugger
+### Query Logger
 
 Enables query and mutation logs to the browser console. It can be set at with the `<ViamProvier />` or with `window` functions:
 
