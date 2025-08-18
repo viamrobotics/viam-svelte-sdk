@@ -9,6 +9,7 @@ import { fromStore, toStore } from 'svelte/store';
 import { useConnectionStatuses, useRobotClients } from './robot-clients.svelte';
 import type { PartID } from '../part';
 import { useMachineStatuses } from './machine-status.svelte';
+import { useQueryLogger } from '$lib/query-logger';
 import { useDebounce } from 'runed';
 
 const key = Symbol('resources-context');
@@ -76,6 +77,7 @@ export const provideResourceNamesContext = () => {
   const connectionStatuses = useConnectionStatuses();
   const machineStatuses = useMachineStatuses();
   const clients = useRobotClients();
+  const debug = useQueryLogger();
 
   const partIDs = $derived(Object.keys(clients.current));
   const options = $derived.by(() => {
@@ -98,9 +100,18 @@ export const provideResourceNamesContext = () => {
             throw new Error('No client');
           }
 
-          const resourceNames = await client.resourceNames();
-          sortResourceNames(resourceNames);
-          return resourceNames;
+          const logger = debug.createLogger();
+          logger('REQ', partID, 'resourceNames');
+
+          try {
+            const resourceNames = await client.resourceNames();
+            logger('RES', partID, 'resourceNames', resourceNames);
+            sortResourceNames(resourceNames);
+            return resourceNames;
+          } catch (error) {
+            logger('ERR', partID, 'resourceNames', error);
+            throw error;
+          }
         },
       });
 

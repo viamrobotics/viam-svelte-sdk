@@ -43,7 +43,10 @@ let { children }: Props = $props();
   {/each}
 </div>
 
-<ViamProvider {dialConfigs}>
+<ViamProvider
+  {dialConfigs}
+  logQueries
+>
   <Parts />
   {@render children()}
   <SvelteQueryDevtools />
