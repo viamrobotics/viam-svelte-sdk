@@ -4,11 +4,12 @@ import {
   type QueryObserverResult,
 } from '@tanstack/svelte-query';
 import { MachineConnectionEvent, type ResourceName } from '@viamrobotics/sdk';
-import { getContext, setContext } from 'svelte';
+import { getContext, setContext, untrack } from 'svelte';
 import { fromStore, toStore } from 'svelte/store';
 import { useConnectionStatuses, useRobotClients } from './robot-clients.svelte';
 import type { PartID } from '../part';
 import { useMachineStatuses } from './machine-status.svelte';
+import { useDebounce } from 'runed';
 
 const key = Symbol('resources-context');
 
@@ -120,6 +121,21 @@ export const provideResourceNamesContext = () => {
     })
   );
 
+  const debouncedRefetch = $derived.by<Record<string, () => void>>(() => {
+    const entries: [string, () => void][] = [];
+    for (const partID of partIDs) {
+      entries.push([
+        partID,
+        useDebounce(() => {
+          queries.current[partID]?.refetch();
+          console.log('refetch');
+        }, 500),
+      ]);
+    }
+
+    return Object.fromEntries(entries);
+  });
+
   /**
    * ResourceNames are not guaranteed on first fetch, refetch until they're populated
    */
@@ -134,7 +150,7 @@ export const provideResourceNamesContext = () => {
         !query.isLoading &&
         query.data?.length === 0
       ) {
-        query.refetch();
+        untrack(() => debouncedRefetch[partID]?.());
       }
     }
   });
