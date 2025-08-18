@@ -1,5 +1,11 @@
 # @viamrobotics/svelte-sdk
 
+## 0.4.6
+
+### Patch Changes
+
+- 57fef62: Refetch resourceNames if list is empty and connection established
+
 ## 0.4.5
 
 ### Patch Changes
