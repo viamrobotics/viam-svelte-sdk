@@ -19,7 +19,6 @@ const resources = useResourceNames(() => partID.current);
 const cameras = useResourceNames(() => partID.current, 'camera');
 const bases = useResourceNames(() => partID.current, 'base');
 
-$inspect(resources.fetching);
 let streaming = true;
 </script>
 
