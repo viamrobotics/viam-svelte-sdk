@@ -42,9 +42,9 @@ let streaming = true;
   <h2 class="py-2">Resources</h2>
   {#if resources.error}
     Error fetching: {resources.error.message}
-  {:else if resources.fetching}
+  {:else if resources.pending}
     <ul class="text-xs">Fetching...</ul>
-  {:else if !resources.fetching && resources.current.length === 0}
+  {:else if !resources.pending && resources.current.length === 0}
     No resources
   {:else}
     <ul class="text-xs">

@@ -3,10 +3,10 @@ import {
   queryOptions,
   type QueryObserverResult,
 } from '@tanstack/svelte-query';
-import { MachineConnectionEvent, type ResourceName } from '@viamrobotics/sdk';
-import { getContext, setContext, untrack } from 'svelte';
+import type { ResourceName } from '@viamrobotics/sdk';
+import { getContext, setContext } from 'svelte';
 import { fromStore, toStore } from 'svelte/store';
-import { useConnectionStatuses, useRobotClients } from './robot-clients.svelte';
+import { useRobotClients } from './robot-clients.svelte';
 import type { PartID } from '../part';
 import { useMachineStatuses } from './machine-status.svelte';
 import { useQueryLogger } from '$lib/query-logger';
@@ -16,11 +16,19 @@ const key = Symbol('resources-context');
 
 type Query = QueryObserverResult<ResourceName[], Error>;
 
+/** @todo(mp) Expose in the ts-sdk and remove */
+const MachineState = {
+  Unspecified: 0,
+  Initializing: 1,
+  Running: 2,
+};
+
 interface QueryContext {
   current: ResourceName[];
   error: Error | undefined;
   fetching: boolean;
   loading: boolean;
+  pending: boolean;
   refetch: () => Promise<Query> | Promise<void>;
 }
 
@@ -74,7 +82,6 @@ const sortResourceNames = (resourceNames: ResourceName[]) => {
 };
 
 export const provideResourceNamesContext = () => {
-  const connectionStatuses = useConnectionStatuses();
   const machineStatuses = useMachineStatuses();
   const clients = useRobotClients();
   const debug = useQueryLogger();
@@ -84,9 +91,12 @@ export const provideResourceNamesContext = () => {
     const results = [];
 
     for (const partID of partIDs) {
+      const machineStatus = machineStatuses.current[partID]?.data;
       const client = clients.current[partID];
       const options = queryOptions({
-        enabled: client !== undefined,
+        refetchOnMount: false,
+        enabled:
+          client !== undefined && machineStatus?.state === MachineState.Running,
         queryKey: [
           'viam-svelte-sdk',
           'partID',
@@ -147,38 +157,18 @@ export const provideResourceNamesContext = () => {
   });
 
   /**
-   * ResourceNames are not guaranteed on first fetch, refetch until they're populated
+   * Refetch part resource names based on revision
    */
   $effect(() => {
     for (const partID of partIDs) {
-      const status = connectionStatuses.current[partID];
-      const query = queries.current[partID];
-      const connected = status === MachineConnectionEvent.CONNECTED;
-      if (
-        connected &&
-        query?.isFetched &&
-        !query.isLoading &&
-        query.data?.length === 0
-      ) {
-        untrack(() => debouncedRefetch[partID]?.());
-      }
-    }
-  });
-
-  /**
-   * Individually refetch part resource names based on revision
-   */
-  $effect(() => {
-    for (const partID of partIDs) {
-      const revision =
-        machineStatuses.current[partID]?.data?.config?.revision ?? '';
+      const machineStatus = machineStatuses.current[partID]?.data;
+      const revision = machineStatus?.config?.revision ?? '';
       const lastRevision = revisions.get(partID);
+
       revisions.set(partID, revision);
 
-      if (!lastRevision) continue;
-
-      if (revision !== lastRevision) {
-        queries.current[partID]?.refetch();
+      if (lastRevision && revision !== lastRevision) {
+        debouncedRefetch[partID]?.();
       }
     }
   });
@@ -196,6 +186,7 @@ export const useResourceNames = (
   const error = $derived(query?.error ?? undefined);
   const fetching = $derived(query?.isFetching ?? true);
   const loading = $derived(query?.isLoading ?? true);
+  const pending = $derived(query?.isPending ?? true);
 
   const subtype = $derived(
     typeof resourceSubtype === 'function' ? resourceSubtype() : resourceSubtype
@@ -227,6 +218,9 @@ export const useResourceNames = (
     },
     get loading() {
       return loading;
+    },
+    get pending() {
+      return pending;
     },
     refetch() {
       return query?.refetch() ?? Promise.resolve();
