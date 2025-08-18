@@ -1,5 +1,12 @@
 # @viamrobotics/svelte-sdk
 
+## 0.4.7
+
+### Patch Changes
+
+- c0ecc42: Add configurable query logging.
+- ea611c1: Only fetch resourceNames if machine status is 'Running'
+
 ## 0.4.6
 
 ### Patch Changes
