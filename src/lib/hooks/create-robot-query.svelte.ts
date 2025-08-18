@@ -7,6 +7,7 @@ import {
 import type { RobotClient } from '@viamrobotics/sdk';
 import { toStore, fromStore } from 'svelte/store';
 import { usePolling } from './use-polling.svelte';
+import { useQueryLogger } from '$lib/query-logger';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ArgumentsType<T> = T extends (...args: infer U) => any ? U : never;
@@ -35,6 +36,7 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
       ]
     | [options?: (() => QueryOptions) | QueryOptions]
 ): { current: QueryObserverResult<ResolvedReturnType<T[K]>> } => {
+  const debug = useQueryLogger();
   let [args, options] = additional;
 
   if (options === undefined && args !== undefined) {
@@ -46,6 +48,7 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
     typeof options === 'function' ? options() : options
   );
   const _args = $derived(typeof args === 'function' ? args() : args);
+  const methodName = $derived(String(method));
 
   const queryOptions = $derived(
     createQueryOptions({
@@ -54,7 +57,7 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
         'partID',
         (client.current as T & { partID: string })?.partID,
         'robotClient',
-        String(method),
+        methodName,
         ...(_args ? [_args] : []),
       ],
       enabled: client.current !== undefined && _options?.enabled !== false,
@@ -68,10 +71,21 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
           );
         }
 
-        // Call entity.resource.func(args).
-        return clientFunc?.apply(client.current, _args) as Promise<
-          ResolvedReturnType<T[K]>
-        >;
+        const logger = debug.createLogger();
+        logger('REQ', 'robot', methodName, _args);
+
+        try {
+          const response = (await clientFunc?.apply(
+            client.current,
+            _args
+          )) as Promise<ResolvedReturnType<T[K]>>;
+
+          logger('RES', 'robot', methodName, response);
+          return response;
+        } catch (error) {
+          logger('ERR', 'robot', methodName, error);
+          throw error;
+        }
       },
       ..._options,
       refetchInterval: false,

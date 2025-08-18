@@ -8,6 +8,13 @@ declare global {
     // interface PageState {}
     // interface Platform {}
   }
+
+  interface Window {
+    enableQueryLogging?: () => unknown;
+    disableQueryLogging?: () => unknown;
+    enableVerboseQueryLogging?: () => unknown;
+    disableVerboseQueryLogging?: () => unknown;
+  }
 }
 
 export {};

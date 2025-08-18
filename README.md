@@ -264,6 +264,40 @@ let { partID, name }: Props = $props();
 />
 ```
 
+## Debugging
+
+### Query Logger
+
+Enables query and mutation logs to the browser console. It can be set at with the `<ViamProvider />` or with `window` functions:
+
+```svelte
+<!-- enable query logging -->
+<ViamProvider
+  {dialConfigs}
+  logQueries
+>
+  {@render children()}
+</ViamProvider>
+
+<!-- enable verbose query logging -->
+<ViamProvider
+  {dialConfigs}
+  logQueries={{ enabled: true, verbose: true }}
+>
+  {@render children()}
+</ViamProvider>
+```
+
+```js
+// enable/disable query logging
+window.enableQueryLogging();
+window.disableQueryLogging();
+
+// enable/disable verbose query logging
+window.enableVerboseQueryLogging();
+window.disableVerboseQueryLogging();
+```
+
 ## Developing
 
 First install dependencies with `pnpm install`, then start a development server:
