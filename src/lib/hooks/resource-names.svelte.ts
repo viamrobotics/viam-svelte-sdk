@@ -3,12 +3,13 @@ import {
   queryOptions,
   type QueryObserverResult,
 } from '@tanstack/svelte-query';
-import type { ResourceName } from '@viamrobotics/sdk';
-import { getContext, setContext } from 'svelte';
+import { MachineConnectionEvent, type ResourceName } from '@viamrobotics/sdk';
+import { getContext, setContext, untrack } from 'svelte';
 import { fromStore, toStore } from 'svelte/store';
-import { useRobotClients } from './robot-clients.svelte';
+import { useConnectionStatuses, useRobotClients } from './robot-clients.svelte';
 import type { PartID } from '../part';
 import { useMachineStatuses } from './machine-status.svelte';
+import { useDebounce } from 'runed';
 
 const key = Symbol('resources-context');
 
@@ -72,15 +73,17 @@ const sortResourceNames = (resourceNames: ResourceName[]) => {
 };
 
 export const provideResourceNamesContext = () => {
+  const connectionStatuses = useConnectionStatuses();
   const machineStatuses = useMachineStatuses();
   const clients = useRobotClients();
 
   const partIDs = $derived(Object.keys(clients.current));
-  const options = $derived(
-    partIDs.map((partID) => {
-      const client = clients.current[partID];
+  const options = $derived.by(() => {
+    const results = [];
 
-      return queryOptions({
+    for (const partID of partIDs) {
+      const client = clients.current[partID];
+      const options = queryOptions({
         enabled: client !== undefined,
         queryKey: [
           'viam-svelte-sdk',
@@ -100,8 +103,12 @@ export const provideResourceNamesContext = () => {
           return resourceNames;
         },
       });
-    })
-  );
+
+      results.push(options);
+    }
+
+    return results;
+  });
 
   const queries = fromStore(
     createQueries({
@@ -113,6 +120,39 @@ export const provideResourceNamesContext = () => {
       },
     })
   );
+
+  const debouncedRefetch = $derived.by<Record<string, () => void>>(() => {
+    const entries: [string, () => void][] = [];
+    for (const partID of partIDs) {
+      entries.push([
+        partID,
+        useDebounce(() => {
+          queries.current[partID]?.refetch();
+        }, 500),
+      ]);
+    }
+
+    return Object.fromEntries(entries);
+  });
+
+  /**
+   * ResourceNames are not guaranteed on first fetch, refetch until they're populated
+   */
+  $effect(() => {
+    for (const partID of partIDs) {
+      const status = connectionStatuses.current[partID];
+      const query = queries.current[partID];
+      const connected = status === MachineConnectionEvent.CONNECTED;
+      if (
+        connected &&
+        query?.isFetched &&
+        !query.isLoading &&
+        query.data?.length === 0
+      ) {
+        untrack(() => debouncedRefetch[partID]?.());
+      }
+    }
+  });
 
   /**
    * Individually refetch part resource names based on revision

@@ -31,7 +31,11 @@ const query = createResourceQuery(cameraClient, 'getImage', () => ({
 
 const src = $derived(
   query.current.data
-    ? URL.createObjectURL(new Blob([query.current.data], { type: mimeType }))
+    ? URL.createObjectURL(
+        new Blob([query.current.data as Uint8Array<ArrayBuffer>], {
+          type: mimeType,
+        })
+      )
     : undefined
 );
 </script>
