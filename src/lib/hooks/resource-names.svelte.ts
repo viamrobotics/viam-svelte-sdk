@@ -157,7 +157,7 @@ export const provideResourceNamesContext = () => {
   });
 
   /**
-   * Refetch part resource names based on revision and machine state
+   * Refetch part resource names based on revision
    */
   $effect(() => {
     for (const partID of partIDs) {
