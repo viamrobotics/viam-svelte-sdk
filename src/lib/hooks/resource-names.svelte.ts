@@ -128,7 +128,6 @@ export const provideResourceNamesContext = () => {
         partID,
         useDebounce(() => {
           queries.current[partID]?.refetch();
-          console.log('refetch');
         }, 500),
       ]);
     }
