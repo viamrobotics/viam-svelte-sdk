@@ -1,5 +1,11 @@
 # @viamrobotics/svelte-sdk
 
+## 0.5.0
+
+### Minor Changes
+
+- de190dc: Add app client hooks
+
 ## 0.4.7
 
 ### Patch Changes
