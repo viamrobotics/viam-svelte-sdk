@@ -6,7 +6,6 @@ import type { Snippet } from 'svelte';
 import { dialConfigs as c } from './configs';
 import Parts from './components/parts.svelte';
 import type { DialConf } from '@viamrobotics/sdk';
-import App from './components/app.svelte';
 
 interface Props {
   children: Snippet;
