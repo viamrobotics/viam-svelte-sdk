@@ -9,6 +9,7 @@ import { getContext, onMount, setContext } from 'svelte';
 import { useQueryClient } from '@tanstack/svelte-query';
 import type { PartID } from '../part';
 import { comparePartIds, isJsonEqual } from '../compare';
+import { ROBOT_CLIENT_MAX_RECCONNECT_ATTEMPTS } from '$lib/constants';
 
 const clientKey = Symbol('clients-context');
 const connectionKey = Symbol('connection-status-context');
@@ -76,7 +77,7 @@ export const provideRobotClientsContext = (
         };
       }
 
-      config.reconnectMaxAttempts ??= 1e9;
+      config.reconnectMaxAttempts ??= ROBOT_CLIENT_MAX_RECCONNECT_ATTEMPTS;
       config.reconnectMaxWait ??= 1000;
 
       const client = await createRobotClient(config);
