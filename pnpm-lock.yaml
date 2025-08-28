@@ -4,16 +4,10 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  '@viamrobotics/sdk': link:../viam-typescript-sdk
-
 importers:
 
   .:
     dependencies:
-      '@viamrobotics/sdk':
-        specifier: link:../viam-typescript-sdk
-        version: link:../viam-typescript-sdk
       runed:
         specifier: ^0.29.1
         version: 0.29.2(svelte@5.25.10)
@@ -63,6 +57,9 @@ importers:
       '@viamrobotics/prettier-config-svelte':
         specifier: ^1.1.0
         version: 1.1.0(prettier@3.6.2)(svelte@5.25.10)(tailwindcss@4.1.11)
+      '@viamrobotics/sdk':
+        specifier: ^0.45.0
+        version: 0.45.0
       '@viamrobotics/typescript-config':
         specifier: ^0.1.1
         version: 0.1.1(typescript@5.9.2)
@@ -139,6 +136,9 @@ packages:
     resolution: {integrity: sha512-KHp2IflsnGywDjBWDkR9iEqiWSpc8GIi0lgTT3mOElT0PP1tG26P4tmFI2YvAdzgq9RGyoHZQEIEdZy6Ec5xCA==}
     engines: {node: '>=6.9.0'}
 
+  '@bufbuild/protobuf@1.10.1':
+    resolution: {integrity: sha512-wJ8ReQbHxsAfXhrf9ixl0aYbZorRuOWpBNzm8pL8ftmSxQx/wnJD5Eg861NwJU/czy2VXFIebCeZnZrI9rktIQ==}
+
   '@changesets/apply-release-plan@7.0.12':
     resolution: {integrity: sha512-EaET7As5CeuhTzvXTQCRZeBUcisoYPDDcXvgTE/2jmmypKp0RC7LxKj/yzqeh/1qFTZI7oDGFcL1PHRuQuketQ==}
 
@@ -193,6 +193,17 @@ packages:
 
   '@changesets/write@0.4.0':
     resolution: {integrity: sha512-CdTLvIOPiCNuH71pyDu3rA+Q0n65cmAbXnwWH84rKGiFumFzkmHNT8KHTMEchcxN+Kl8I54xGUhJ7l3E7X396Q==}
+
+  '@connectrpc/connect-web@1.6.1':
+    resolution: {integrity: sha512-GVfxQOmt3TtgTaKeXLS/EA2IHa3nHxwe2BCHT7X0Q/0hohM+nP5DDnIItGEjGrGdt3LTTqWqE4s70N4h+qIMlQ==}
+    peerDependencies:
+      '@bufbuild/protobuf': ^1.10.0
+      '@connectrpc/connect': 1.6.1
+
+  '@connectrpc/connect@1.6.1':
+    resolution: {integrity: sha512-KchMDNtU4CDTdkyf0qG7ugJ6qHTOR/aI7XebYn3OTCNagaDYWiZUVKgRgwH79yeMkpNgvEUaXSK7wKjaBK9b/Q==}
+    peerDependencies:
+      '@bufbuild/protobuf': ^1.10.0
 
   '@csstools/color-helpers@5.0.2':
     resolution: {integrity: sha512-JqWH1vsgdGcw2RR6VliXXdA0/59LttzlU8UlRT/iUUsEeWfYq8I+K0yhihEUTTHLRm1EXvpsCx3083EU15ecsA==}
@@ -928,6 +939,9 @@ packages:
     peerDependencies:
       prettier: '>=3 <4'
 
+  '@viamrobotics/sdk@0.45.0':
+    resolution: {integrity: sha512-zl272isirvqI26abFCj/CboIgdrnrlj91KiWzCrSLng6lEo6xDX4ydECm56fVScVQOKLjmddscYjlA5FwJsATw==}
+
   '@viamrobotics/typescript-config@0.1.1':
     resolution: {integrity: sha512-cIbEOlldP4r+F3/nESoXz3zXtYGnJNhRwPWtDjLRwswDJkz2i+moKO1DE2pRib/Z3+B1Qo+TzLYkkzEZJxevcw==}
     peerDependencies:
@@ -1054,6 +1068,9 @@ packages:
     resolution: {integrity: sha512-0si2SJK3ooGzIawRu61ZdPCO1IncZwS8IzuX73sPZsXW6EQ/w/DAfPyKI8l1ETTCr2MnvqWitmlCUxgdul45jA==}
     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
     hasBin: true
+
+  bsonfy@1.0.2:
+    resolution: {integrity: sha512-/kLM6B2x/CWXdkTu2kAv65trB4YruwahBpFDxYkkSunve6Rvx7KSoSHHe1f4jsPXPgXvDG393IjkQ3Us645Eag==}
 
   builtin-modules@5.0.0:
     resolution: {integrity: sha512-bkXY9WsVpY7CvMhKSR6pZilZu9Ln5WDrKVBUXf2S443etkmEO4V58heTecXcUIsNsi4Rx8JUO4NfX1IcQl4deg==}
@@ -1318,6 +1335,9 @@ packages:
   expect-type@1.2.2:
     resolution: {integrity: sha512-JhFGDVJ7tmDJItKhYgJCGLOWjuK9vPxiXoUFLwLDc99NlmklilbiQJwoctZtt13+xMw91MCk/REan6MWHqDjyA==}
     engines: {node: '>=12.0.0'}
+
+  exponential-backoff@3.1.2:
+    resolution: {integrity: sha512-8QxYTVXUkuy7fIIoitQkPwGonB8F3Zj8eEO8Sqg9Zv/bkI7RJAzowee4gr81Hak/dUTpA2Z7VfQgoijjPNlUZA==}
 
   extendable-error@0.1.7:
     resolution: {integrity: sha512-UOiS2in6/Q0FK0R0q6UY9vYpQ21mr/Qn1KOnte7vsACuNJf514WvCCUHSRCPcgjPT2bAhNIJdlE6bVap1GKmeg==}
@@ -2475,6 +2495,8 @@ snapshots:
 
   '@babel/runtime@7.28.2': {}
 
+  '@bufbuild/protobuf@1.10.1': {}
+
   '@changesets/apply-release-plan@7.0.12':
     dependencies:
       '@changesets/config': 3.1.1
@@ -2616,6 +2638,15 @@ snapshots:
       fs-extra: 7.0.1
       human-id: 4.1.1
       prettier: 2.8.8
+
+  '@connectrpc/connect-web@1.6.1(@bufbuild/protobuf@1.10.1)(@connectrpc/connect@1.6.1(@bufbuild/protobuf@1.10.1))':
+    dependencies:
+      '@bufbuild/protobuf': 1.10.1
+      '@connectrpc/connect': 1.6.1(@bufbuild/protobuf@1.10.1)
+
+  '@connectrpc/connect@1.6.1(@bufbuild/protobuf@1.10.1)':
+    dependencies:
+      '@bufbuild/protobuf': 1.10.1
 
   '@csstools/color-helpers@5.0.2': {}
 
@@ -3315,6 +3346,14 @@ snapshots:
     dependencies:
       prettier: 3.6.2
 
+  '@viamrobotics/sdk@0.45.0':
+    dependencies:
+      '@bufbuild/protobuf': 1.10.1
+      '@connectrpc/connect': 1.6.1(@bufbuild/protobuf@1.10.1)
+      '@connectrpc/connect-web': 1.6.1(@bufbuild/protobuf@1.10.1)(@connectrpc/connect@1.6.1(@bufbuild/protobuf@1.10.1))
+      bsonfy: 1.0.2
+      exponential-backoff: 3.1.2
+
   '@viamrobotics/typescript-config@0.1.1(typescript@5.9.2)':
     dependencies:
       typescript: 5.9.2
@@ -3437,6 +3476,8 @@ snapshots:
       electron-to-chromium: 1.5.200
       node-releases: 2.0.19
       update-browserslist-db: 1.1.3(browserslist@4.25.2)
+
+  bsonfy@1.0.2: {}
 
   builtin-modules@5.0.0: {}
 
@@ -3723,6 +3764,8 @@ snapshots:
   esutils@2.0.3: {}
 
   expect-type@1.2.2: {}
+
+  exponential-backoff@3.1.2: {}
 
   extendable-error@0.1.7: {}
 
