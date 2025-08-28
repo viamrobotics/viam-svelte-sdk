@@ -89,7 +89,10 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild"
-    ]
+    ],
+    "overrides": {
+      "@viamrobotics/sdk": "link:../viam-typescript-sdk"
+    }
   },
   "packageManager": "pnpm@10.14.0"
 }
