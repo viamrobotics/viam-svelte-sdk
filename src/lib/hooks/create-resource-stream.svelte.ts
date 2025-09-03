@@ -11,6 +11,14 @@ import { useQueryLogger } from '../query-logger';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ArgumentsType<T> = T extends (...args: infer U) => any ? U : never;
 
+export type StreamItemType<T> = T extends (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ...args: any[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+) => AsyncGenerator<infer R, any, any>
+  ? R
+  : never;
+
 interface QueryOptions {
   // enabled defaults to true if unspecified
   enabled?: boolean;
@@ -18,17 +26,7 @@ interface QueryOptions {
   maxChunks?: number;
 }
 
-export type ResolvedReturnType<T> = T extends (
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ...args: any[]
-) => infer R
-  ? R
-  : never;
-
-type QueryResult<T extends Resource, K extends keyof T> = QueryObserverResult<
-  ResolvedReturnType<T[K]>[],
-  Error
->;
+type QueryResult<U> = QueryObserverResult<U[], Error>;
 
 export const createResourceStream = <T extends Resource, K extends keyof T>(
   client: { current: T | undefined },
@@ -39,7 +37,7 @@ export const createResourceStream = <T extends Resource, K extends keyof T>(
         options?: (() => QueryOptions) | QueryOptions,
       ]
     | [options?: (() => QueryOptions) | QueryOptions]
-): { current: QueryResult<T, K> } => {
+): { current: QueryResult<StreamItemType<T[K]>> } => {
   const debug = useQueryLogger();
 
   let [args, options] = additional;
@@ -66,7 +64,6 @@ export const createResourceStream = <T extends Resource, K extends keyof T>(
     ...(_args ? [_args] : []),
   ]);
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type, @typescript-eslint/no-explicit-any
   function processStream() {
     const clientFunc = client.current?.[method];
 
@@ -83,15 +80,11 @@ export const createResourceStream = <T extends Resource, K extends keyof T>(
       const response = clientFunc?.apply(
         client.current,
         _args
-      ) as AsyncGenerator<ResolvedReturnType<T[K]>>;
+      ) as AsyncGenerator<StreamItemType<T[K]>>;
       console.log('response', typeof response);
 
       logger('RES', name, methodName, response);
-      return {
-        async *[Symbol.asyncIterator]() {
-          yield* response;
-        },
-      };
+      return response;
     } catch (error) {
       logger('ERR', name, methodName, error);
       throw error;
@@ -102,7 +95,7 @@ export const createResourceStream = <T extends Resource, K extends keyof T>(
     createQueryOptions({
       queryKey,
       enabled: client.current !== undefined && _options?.enabled !== false,
-      queryFn: streamedQuery<ResolvedReturnType<T[K]>>({
+      queryFn: streamedQuery<StreamItemType<T[K]>>({
         queryFn: processStream,
         ..._options,
       }),
