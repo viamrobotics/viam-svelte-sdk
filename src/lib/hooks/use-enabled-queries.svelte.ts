@@ -5,45 +5,20 @@ export const useEnabledQueries = () => {
   let robotQueries = $state(true);
   let streams = $state(true);
 
-  const enableResourceQueries = () => {
-    resourceQueries = true;
-  };
+  const enableResourceQueries = () => (resourceQueries = true);
+  const disableResourceQueries = () => (resourceQueries = false);
 
-  const disableResourceQueries = () => {
-    resourceQueries = false;
-  };
+  const enableMachineStatus = () => (machineStatus = true);
+  const disableMachineStatus = () => (machineStatus = false);
 
-  const enableMachineStatus = () => {
-    machineStatus = true;
-  };
+  const enableResourceNames = () => (resourceNames = true);
+  const disableResourceNames = () => (resourceNames = false);
 
-  const disableMachineStatus = () => {
-    machineStatus = false;
-  };
+  const enableRobotQueries = () => (robotQueries = true);
+  const disableRobotQueries = () => (robotQueries = false);
 
-  const enableResourceNames = () => {
-    resourceNames = true;
-  };
-
-  const disableResourceNames = () => {
-    resourceNames = false;
-  };
-
-  const enableRobotQueries = () => {
-    robotQueries = true;
-  };
-
-  const disableRobotQueries = () => {
-    robotQueries = false;
-  };
-
-  const enableStreams = () => {
-    streams = true;
-  };
-
-  const disableStreams = () => {
-    streams = false;
-  };
+  const enableStreams = () => (streams = true);
+  const disableStreams = () => (streams = false);
 
   return {
     get resourceQueries() {
