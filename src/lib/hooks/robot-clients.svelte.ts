@@ -1,9 +1,8 @@
 import {
   type Client,
-  createRobotClient,
   type DialConf,
   MachineConnectionEvent,
-  type RobotClient,
+  RobotClient,
 } from '@viamrobotics/sdk';
 import { getContext, onMount, setContext } from 'svelte';
 import { useQueryClient } from '@tanstack/svelte-query';
@@ -35,12 +34,7 @@ export const provideRobotClientsContext = (
 
   let lastConfigs: Record<PartID, DialConf | undefined> = {};
 
-  const disconnect = async (partID: PartID, config?: DialConf) => {
-    // If currently making the initial connection, abort it.
-    if (config?.reconnectAbortSignal !== undefined) {
-      config.reconnectAbortSignal.abort = true;
-    }
-
+  const disconnect = async (partID: PartID) => {
     const client = clients[partID];
 
     if (!client) {
@@ -65,22 +59,18 @@ export const provideRobotClientsContext = (
     connectionStatus[partID] ??= MachineConnectionEvent.DISCONNECTED;
 
     try {
-      await disconnect(partID, config);
-
-      connectionStatus[partID] = MachineConnectionEvent.CONNECTING;
-
-      // Reset the abort signal if it exists
-      if (config.reconnectAbortSignal !== undefined) {
-        config.reconnectAbortSignal = {
-          abort: false,
-        };
-      }
+      await disconnect(partID);
 
       config.reconnectMaxAttempts ??= 1e9;
       config.reconnectMaxWait ??= 1000;
 
-      const client = await createRobotClient(config);
+      const client = new RobotClient();
       (client as RobotClient & { partID: string }).partID = partID;
+
+      clients[partID] = client;
+
+      connectionStatus[partID] = MachineConnectionEvent.CONNECTING;
+
       client.on('connectionstatechange', async (event) => {
         connectionStatus[partID] = (
           event as { eventType: MachineConnectionEvent }
@@ -97,7 +87,8 @@ export const provideRobotClientsContext = (
         }
       });
 
-      clients[partID] = client;
+      await client.dial(config);
+
       connectionStatus[partID] = MachineConnectionEvent.CONNECTED;
     } catch (error) {
       console.error(error);
@@ -113,10 +104,8 @@ export const provideRobotClientsContext = (
       Object.keys(lastConfigs)
     );
 
-    lastConfigs = $state.snapshot(configs);
-
     for (const partID of removed) {
-      disconnect(partID, lastConfigs[partID]);
+      disconnect(partID);
     }
 
     for (const partID of added) {
@@ -134,6 +123,8 @@ export const provideRobotClientsContext = (
         connect(partID, config);
       }
     }
+
+    lastConfigs = $state.snapshot(configs);
   });
 
   onMount(() => {
