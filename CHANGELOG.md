@@ -1,5 +1,12 @@
 # @viamrobotics/svelte-sdk
 
+## 0.6.1
+
+### Patch Changes
+
+- 92cfb39: Fix tanstack stream query options
+- 5c0c4b4: Use new `robotClient.dial` method for connection
+
 ## 0.6.0
 
 ### Minor Changes
