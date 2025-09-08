@@ -1,5 +1,11 @@
 # @viamrobotics/svelte-sdk
 
+## 0.6.0
+
+### Minor Changes
+
+- e4a8e83: Add createResourceStream hook
+
 ## 0.5.0
 
 ### Minor Changes
