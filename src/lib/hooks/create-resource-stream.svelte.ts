@@ -96,7 +96,7 @@ export const createResourceStream = <T extends Resource, K extends keyof T>(
       queryKey,
       enabled: client.current !== undefined && _options?.enabled !== false,
       queryFn: streamedQuery<StreamItemType<T[K]>>({
-        queryFn: processStream,
+        streamFn: processStream,
         ..._options,
       }),
     })
