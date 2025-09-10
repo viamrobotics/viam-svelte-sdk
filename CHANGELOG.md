@@ -1,5 +1,11 @@
 # @viamrobotics/svelte-sdk
 
+## 0.6.2
+
+### Patch Changes
+
+- eb67d3d: Fix create-resource-stream params"
+
 ## 0.6.1
 
 ### Patch Changes
