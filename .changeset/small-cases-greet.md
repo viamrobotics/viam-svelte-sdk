@@ -1,5 +1,5 @@
 ---
-'@viamrobotics/svelte-sdk': patch
+'@viamrobotics/svelte-sdk': minor
 ---
 
 Add enable queries hook
