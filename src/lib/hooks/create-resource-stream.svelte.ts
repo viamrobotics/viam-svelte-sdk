@@ -23,8 +23,8 @@ export type StreamItemType<T> = T extends (
 interface QueryOptions {
   // enabled defaults to true if unspecified
   enabled?: boolean;
+  // refetchMode defaults to 'reset' if unspecified
   refetchMode?: 'append' | 'reset' | 'replace';
-  maxChunks?: number;
 }
 
 type QueryResult<U> = QueryObserverResult<U[], Error>;
@@ -56,6 +56,7 @@ export const createResourceStream = <T extends Resource, K extends keyof T>(
   const _args = $derived(typeof args === 'function' ? args() : args);
   const name = $derived(client.current?.name);
   const methodName = $derived(String(method));
+  const refetchMode = $derived(_options?.refetchMode ?? 'reset');
   const queryKey = $derived([
     'viam-svelte-sdk',
     'partID',
@@ -102,7 +103,7 @@ export const createResourceStream = <T extends Resource, K extends keyof T>(
         enabledQueries.resourceQueries,
       queryFn: streamedQuery<StreamItemType<T[K]>>({
         streamFn: processStream,
-        ..._options,
+        refetchMode,
       }),
     })
   );
