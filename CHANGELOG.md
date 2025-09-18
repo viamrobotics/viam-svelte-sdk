@@ -5,7 +5,7 @@
 ### Patch Changes
 
 - 79604ac: Export streamQueryKey factory to help with query management
-- eb67d3d: Fix create-resource-stream params"
+- eb67d3d: Fix create-resource-stream params
 
 ## 0.6.1
 
