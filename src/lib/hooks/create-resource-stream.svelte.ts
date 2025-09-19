@@ -7,6 +7,7 @@ import {
 import type { Resource } from '@viamrobotics/sdk';
 import { toStore, fromStore } from 'svelte/store';
 import { useQueryLogger } from '../query-logger';
+import { useEnabledQueries } from './use-enabled-queries.svelte';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ArgumentsType<T> = T extends (...args: infer U) => any ? U : never;
@@ -54,6 +55,7 @@ export const createResourceStream = <T extends Resource, K extends keyof T>(
     | [options?: (() => QueryOptions) | QueryOptions]
 ): { current: QueryResult<StreamItemType<T[K]>> } => {
   const debug = useQueryLogger();
+  const enabledQueries = useEnabledQueries();
 
   let [args, options] = additional;
 
@@ -103,7 +105,10 @@ export const createResourceStream = <T extends Resource, K extends keyof T>(
   const queryOptions = $derived(
     createQueryOptions({
       queryKey,
-      enabled: client.current !== undefined && _options?.enabled !== false,
+      enabled:
+        client.current !== undefined &&
+        _options?.enabled !== false &&
+        enabledQueries.resourceQueries,
       queryFn: streamedQuery<StreamItemType<T[K]>>({
         streamFn: processStream,
         refetchMode,

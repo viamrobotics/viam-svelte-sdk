@@ -7,6 +7,7 @@ import type { Resource } from '@viamrobotics/sdk';
 import { toStore, fromStore } from 'svelte/store';
 import { usePolling } from './use-polling.svelte';
 import { useQueryLogger } from '../query-logger';
+import { useEnabledQueries } from './use-enabled-queries.svelte';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ArgumentsType<T> = T extends (...args: infer U) => any ? U : never;
@@ -36,6 +37,7 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
     | [options?: (() => QueryOptions) | QueryOptions]
 ): { current: QueryObserverResult<ResolvedReturnType<T[K]>> } => {
   const debug = useQueryLogger();
+  const enabledQueries = useEnabledQueries();
 
   let [args, options] = additional;
 
@@ -62,7 +64,10 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
         methodName,
         ...(_args ? [_args] : []),
       ],
-      enabled: client.current !== undefined && _options?.enabled !== false,
+      enabled:
+        client.current !== undefined &&
+        _options?.enabled !== false &&
+        enabledQueries.resourceQueries,
       retry: false,
       queryFn: async () => {
         const clientFunc = client.current?.[method];
