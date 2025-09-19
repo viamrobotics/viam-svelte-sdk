@@ -29,6 +29,21 @@ interface QueryOptions {
 
 type QueryResult<U> = QueryObserverResult<U[], Error>;
 
+export const streamQueryKey = (
+  partID: string,
+  name: string | undefined,
+  methodName: string,
+  args?: QueryOptions | unknown
+) => [
+  'viam-svelte-sdk',
+  'partID',
+  partID,
+  'resource',
+  name,
+  methodName,
+  ...(args ? [args] : []),
+];
+
 export const createResourceStream = <T extends Resource, K extends keyof T>(
   client: { current: T | undefined },
   method: K,
@@ -57,15 +72,8 @@ export const createResourceStream = <T extends Resource, K extends keyof T>(
   const name = $derived(client.current?.name);
   const methodName = $derived(String(method));
   const refetchMode = $derived(_options?.refetchMode ?? 'reset');
-  const queryKey = $derived([
-    'viam-svelte-sdk',
-    'partID',
-    (client.current as T & { partID: string })?.partID,
-    'resource',
-    name,
-    methodName,
-    ...(_args ? [_args] : []),
-  ]);
+  const partID = $derived((client.current as T & { partID: string })?.partID);
+  const queryKey = $derived(streamQueryKey(partID, name, methodName, _args));
 
   function processStream() {
     const clientFunc = client.current?.[method];
