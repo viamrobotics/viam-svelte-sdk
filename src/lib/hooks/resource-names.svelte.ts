@@ -11,6 +11,7 @@ import type { PartID } from '../part';
 import { useMachineStatuses } from './machine-status.svelte';
 import { useQueryLogger } from '$lib/query-logger';
 import { useDebounce } from 'runed';
+import { useEnabledQueries } from './use-enabled-queries.svelte';
 
 const key = Symbol('resources-context');
 
@@ -85,7 +86,7 @@ export const provideResourceNamesContext = () => {
   const machineStatuses = useMachineStatuses();
   const clients = useRobotClients();
   const debug = useQueryLogger();
-
+  const enabledQueries = useEnabledQueries();
   const partIDs = $derived(Object.keys(clients.current));
   const options = $derived.by(() => {
     const results = [];
@@ -96,7 +97,9 @@ export const provideResourceNamesContext = () => {
       const options = queryOptions({
         refetchOnMount: false,
         enabled:
-          client !== undefined && machineStatus?.state === MachineState.Running,
+          client !== undefined &&
+          machineStatus?.state === MachineState.Running &&
+          enabledQueries.resourceNames,
         queryKey: [
           'viam-svelte-sdk',
           'partID',

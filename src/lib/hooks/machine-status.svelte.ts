@@ -10,6 +10,7 @@ import type { PartID } from '$lib/part';
 import type { RobotClient } from '@viamrobotics/sdk';
 import { usePolling } from './use-polling.svelte';
 import { useQueryLogger } from '$lib/query-logger';
+import { useEnabledQueries } from './use-enabled-queries.svelte';
 
 const key = Symbol('machine-status-context');
 
@@ -23,11 +24,12 @@ interface Context {
 export const provideMachineStatusContext = (refetchInterval: () => number) => {
   const clients = useRobotClients();
   const debug = useQueryLogger();
+  const enabledQueries = useEnabledQueries();
 
   const options = $derived(
     Object.entries(clients.current).map(([partID, client]) => {
       return queryOptions({
-        enabled: client !== undefined,
+        enabled: client !== undefined && enabledQueries.machineStatus,
         queryKey: [
           'viam-svelte-sdk',
           'partID',
