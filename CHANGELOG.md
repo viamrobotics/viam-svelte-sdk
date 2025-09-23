@@ -1,5 +1,12 @@
 # @viamrobotics/svelte-sdk
 
+## 0.7.0
+
+### Minor Changes
+
+- 7e38d05: Export usePolling hook
+- cd4b20f: Add enable queries hook
+
 ## 0.6.2
 
 ### Patch Changes
