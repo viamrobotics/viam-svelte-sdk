@@ -88,7 +88,7 @@ export const createAppQuery = <T extends AppClient, K extends keyof T>(
 
   usePolling(
     () => queryOptions.queryKey,
-    () => _options?.refetchInterval ?? false
+    () => (queryOptions.enabled ? _options?.refetchInterval : false)
   );
 
   return fromStore(createQuery(toStore(() => queryOptions)));

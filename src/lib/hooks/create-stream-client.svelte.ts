@@ -15,6 +15,7 @@ export const createStreamClient = (
 ) => {
   const debug = useQueryLogger();
   let mediaStream = $state.raw<MediaStream | null>(null);
+  let error = $state<Error>();
 
   const client = useRobotClient(partID);
   const streamClient = $derived(
@@ -40,7 +41,12 @@ export const createStreamClient = (
   $effect(() => {
     const name = resourceName();
     const client = streamClient;
-    client?.getStream(name);
+    try {
+      client?.getStream(name);
+      error = undefined;
+    } catch (nextError) {
+      error = nextError as Error;
+    }
     return () => client?.remove(name);
   });
 
@@ -123,6 +129,9 @@ export const createStreamClient = (
   return {
     get current() {
       return streamClient;
+    },
+    get error() {
+      return error;
     },
     get mediaStream() {
       return mediaStream;

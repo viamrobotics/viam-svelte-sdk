@@ -10,10 +10,11 @@ import { useQueryClient } from '@tanstack/svelte-query';
  */
 export function usePolling(
   queryKey: () => unknown[],
-  interval: () => number | false
+  interval: () => number | false | undefined
 ) {
   const queryClient = useQueryClient();
   let timeoutId: ReturnType<typeof setTimeout>;
+  let active = true;
 
   $effect(() => {
     const key = queryKey();
@@ -23,13 +24,20 @@ export function usePolling(
       return;
     }
 
+    active = true;
+
     const poll = async () => {
+      if (!active) return;
+
       await queryClient.refetchQueries({ queryKey: key });
       timeoutId = setTimeout(poll, currentInterval);
     };
 
     timeoutId = setTimeout(poll, currentInterval);
 
-    return () => clearTimeout(timeoutId);
+    return () => {
+      clearTimeout(timeoutId);
+      active = false;
+    };
   });
 }

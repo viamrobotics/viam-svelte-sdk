@@ -71,7 +71,10 @@ export const provideMachineStatusContext = (refetchInterval: () => number) => {
 
   $effect(() => {
     for (const option of options) {
-      usePolling(() => option.queryKey, refetchInterval);
+      usePolling(
+        () => option.queryKey,
+        () => (option.enabled ? refetchInterval() : false)
+      );
     }
   });
 
