@@ -89,12 +89,8 @@ export const provideRobotClientsContext = (
         }
       });
 
-      try {
-        await client.dial(config);
-        errors[partID] = undefined;
-      } catch (nextError) {
-        errors[partID] = nextError as Error;
-      }
+      await client.dial(config);
+      errors[partID] = undefined;
 
       connectionStatus[partID] = MachineConnectionEvent.CONNECTED;
     } catch (error) {
