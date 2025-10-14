@@ -17,7 +17,7 @@ export const createStreamClient = (
   const debug = useQueryLogger();
   const enabledQueries = useEnabledQueries();
   let mediaStream = $state.raw<MediaStream | null>(null);
-  let error = $state<Error>();
+  let error = $state.raw<Error>();
 
   const client = useRobotClient(partID);
   const streamClient = $derived(
