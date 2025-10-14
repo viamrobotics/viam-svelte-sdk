@@ -5,10 +5,9 @@ import Base from './base.svelte';
 let { partID } = $props();
 
 const bases = useResourceNames(() => partID, 'base');
-$inspect(bases);
 </script>
 
-{#each bases.current as base}
+{#each bases.current as base (base.name)}
   <Base
     name={base.name}
     {partID}
