@@ -14,7 +14,6 @@ const partIDs = Object.keys(dialConfigs);
 
 let partID = new PersistedState('selected-partID', partIDs[0] ?? '');
 
-$inspect(partID.current);
 const status = useConnectionStatus(() => partID.current);
 const resources = useResourceNames(() => partID.current);
 const cameras = useResourceNames(() => partID.current, 'camera');
