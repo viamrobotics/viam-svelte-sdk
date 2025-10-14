@@ -98,14 +98,13 @@ export const provideRobotClientsContext = (
 
       connectionStatus[partID] = MachineConnectionEvent.CONNECTED;
     } catch (error) {
-      console.error(error);
+      errors[partID] = error as Error;
       connectionStatus[partID] = MachineConnectionEvent.DISCONNECTED;
     }
   };
 
   $effect(() => {
     const configs = dialConfigs();
-    console.log(configs);
 
     const { added, removed, unchanged } = comparePartIds(
       Object.keys(configs),
