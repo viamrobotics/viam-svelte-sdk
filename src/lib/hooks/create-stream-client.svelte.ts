@@ -8,12 +8,14 @@ import {
 } from '@tanstack/svelte-query';
 import { fromStore, toStore } from 'svelte/store';
 import { useQueryLogger } from '../query-logger';
+import { useEnabledQueries } from './use-enabled-queries.svelte';
 
 export const createStreamClient = (
   partID: () => string,
   resourceName: () => string
 ) => {
   const debug = useQueryLogger();
+  const enabledQueries = useEnabledQueries();
   let mediaStream = $state.raw<MediaStream | null>(null);
   let error = $state<Error>();
 
@@ -61,7 +63,7 @@ export const createStreamClient = (
         'stream',
         'getOptions',
       ],
-      enabled: streamClient !== undefined,
+      enabled: streamClient !== undefined && enabledQueries.streams,
       retry: false,
       refetchOnWindowFocus: false,
       queryFn: async () => {

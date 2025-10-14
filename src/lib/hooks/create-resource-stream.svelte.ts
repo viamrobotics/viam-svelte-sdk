@@ -7,6 +7,7 @@ import {
 import type { Resource } from '@viamrobotics/sdk';
 import { toStore, fromStore } from 'svelte/store';
 import { useQueryLogger } from '../query-logger';
+import { useEnabledQueries } from './use-enabled-queries.svelte';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ArgumentsType<T> = T extends (...args: infer U) => any ? U : never;
@@ -22,11 +23,26 @@ export type StreamItemType<T> = T extends (
 interface QueryOptions {
   // enabled defaults to true if unspecified
   enabled?: boolean;
+  // refetchMode defaults to 'reset' if unspecified
   refetchMode?: 'append' | 'reset' | 'replace';
-  maxChunks?: number;
 }
 
 type QueryResult<U> = QueryObserverResult<U[], Error>;
+
+export const streamQueryKey = (
+  partID: string,
+  name: string | undefined,
+  methodName: string,
+  args?: QueryOptions | unknown
+) => [
+  'viam-svelte-sdk',
+  'partID',
+  partID,
+  'resource',
+  name,
+  methodName,
+  ...(args ? [args] : []),
+];
 
 export const createResourceStream = <T extends Resource, K extends keyof T>(
   client: { current: T | undefined },
@@ -39,6 +55,7 @@ export const createResourceStream = <T extends Resource, K extends keyof T>(
     | [options?: (() => QueryOptions) | QueryOptions]
 ): { current: QueryResult<StreamItemType<T[K]>> } => {
   const debug = useQueryLogger();
+  const enabledQueries = useEnabledQueries();
 
   let [args, options] = additional;
 
@@ -54,15 +71,9 @@ export const createResourceStream = <T extends Resource, K extends keyof T>(
   const _args = $derived(typeof args === 'function' ? args() : args);
   const name = $derived(client.current?.name);
   const methodName = $derived(String(method));
-  const queryKey = $derived([
-    'viam-svelte-sdk',
-    'partID',
-    (client.current as T & { partID: string })?.partID,
-    'resource',
-    name,
-    methodName,
-    ...(_args ? [_args] : []),
-  ]);
+  const refetchMode = $derived(_options?.refetchMode ?? 'reset');
+  const partID = $derived((client.current as T & { partID: string })?.partID);
+  const queryKey = $derived(streamQueryKey(partID, name, methodName, _args));
 
   function processStream() {
     const clientFunc = client.current?.[method];
@@ -94,10 +105,13 @@ export const createResourceStream = <T extends Resource, K extends keyof T>(
   const queryOptions = $derived(
     createQueryOptions({
       queryKey,
-      enabled: client.current !== undefined && _options?.enabled !== false,
+      enabled:
+        client.current !== undefined &&
+        _options?.enabled !== false &&
+        enabledQueries.resourceQueries,
       queryFn: streamedQuery<StreamItemType<T[K]>>({
         streamFn: processStream,
-        ..._options,
+        refetchMode,
       }),
     })
   );

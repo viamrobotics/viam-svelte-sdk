@@ -16,11 +16,16 @@ export { createRobotMutation } from './hooks/create-robot-mutation.svelte';
 export { createResourceClient } from './hooks/create-resource-client.svelte';
 export { createResourceQuery } from './hooks/create-resource-query.svelte';
 export { createResourceMutation } from './hooks/create-resource-mutation.svelte';
-export { createResourceStream } from './hooks/create-resource-stream.svelte';
+export {
+  createResourceStream,
+  streamQueryKey,
+} from './hooks/create-resource-stream.svelte';
 export { createStreamClient } from './hooks/create-stream-client.svelte';
 
 export { useMachineStatus } from './hooks/machine-status.svelte';
 export { useResourceNames } from './hooks/resource-names.svelte';
+
+export { usePolling } from './hooks/use-polling.svelte';
 
 // App hooks
 export { useViamClient } from './hooks/app/use-app-client.svelte';

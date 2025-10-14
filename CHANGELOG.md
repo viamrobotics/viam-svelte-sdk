@@ -1,5 +1,26 @@
 # @viamrobotics/svelte-sdk
 
+## 0.7.0
+
+### Minor Changes
+
+- 7e38d05: Export usePolling hook
+- cd4b20f: Add enable queries hook
+
+## 0.6.2
+
+### Patch Changes
+
+- 79604ac: Export streamQueryKey factory to help with query management
+- eb67d3d: Fix create-resource-stream params
+
+## 0.6.1
+
+### Patch Changes
+
+- 92cfb39: Fix tanstack stream query options
+- 5c0c4b4: Use new `robotClient.dial` method for connection
+
 ## 0.6.0
 
 ### Minor Changes

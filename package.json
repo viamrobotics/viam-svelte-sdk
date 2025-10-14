@@ -2,7 +2,7 @@
   "name": "@viamrobotics/svelte-sdk",
   "description": "Build Svelte apps with Viam",
   "license": "Apache-2.0",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "scripts": {
     "dev": "vite dev",
     "build": "vite build && npm run prepack",
@@ -44,7 +44,7 @@
   },
   "peerDependencies": {
     "@tanstack/svelte-query": "5.87.1",
-    "@viamrobotics/sdk": ">=0.38",
+    "@viamrobotics/sdk": ">=0.51",
     "svelte": ">=5"
   },
   "devDependencies": {
