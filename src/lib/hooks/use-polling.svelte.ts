@@ -10,7 +10,7 @@ import { useQueryClient } from '@tanstack/svelte-query';
  */
 export function usePolling(
   queryKey: () => unknown[],
-  interval: () => number | false | undefined
+  interval: () => number | false
 ) {
   const queryClient = useQueryClient();
   let timeoutId: ReturnType<typeof setTimeout>;

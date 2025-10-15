@@ -101,7 +101,7 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
 
   usePolling(
     () => queryOptions.queryKey,
-    () => (queryOptions.enabled ? _options?.refetchInterval : false)
+    () => queryOptions.enabled && (_options?.refetchInterval ?? false)
   );
 
   return fromStore(createQuery(toStore(() => queryOptions)));

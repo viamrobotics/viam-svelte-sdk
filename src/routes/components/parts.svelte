@@ -28,7 +28,6 @@ let streaming = true;
         class="border p-2"
         class:bg-blue-100={partID.current === id}
         onclick={() => {
-          console.log('click');
           partID.current = id;
         }}
       >
