@@ -42,6 +42,9 @@ export const createDataQuery = <T extends DataClient, K extends keyof T>(
   );
   const _args = $derived(typeof args === 'function' ? args() : args);
   const methodName = $derived(String(method));
+  const enabled = $derived(
+    dataClient !== undefined && _options?.enabled !== false
+  );
 
   const queryOptions = $derived(
     createQueryOptions({
@@ -51,7 +54,7 @@ export const createDataQuery = <T extends DataClient, K extends keyof T>(
         methodName,
         ...(_args ? [_args] : []),
       ],
-      enabled: dataClient !== undefined && _options?.enabled !== false,
+      enabled,
       queryFn: async () => {
         if (!dataClient) {
           throw new Error('dataClient is undefined');
@@ -88,7 +91,7 @@ export const createDataQuery = <T extends DataClient, K extends keyof T>(
 
   usePolling(
     () => queryOptions.queryKey,
-    () => _options?.refetchInterval ?? false
+    () => enabled && (_options?.refetchInterval ?? false)
   );
 
   return fromStore(createQuery(toStore(() => queryOptions)));

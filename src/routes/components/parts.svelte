@@ -7,7 +7,7 @@ import {
   CameraStream,
 } from '$lib';
 import { dialConfigs } from '../configs';
-import Base from './base.svelte';
+import Part from './part.svelte';
 import Version from './version.svelte';
 
 const partIDs = Object.keys(dialConfigs);
@@ -17,7 +17,6 @@ let partID = new PersistedState('selected-partID', partIDs[0] ?? '');
 const status = useConnectionStatus(() => partID.current);
 const resources = useResourceNames(() => partID.current);
 const cameras = useResourceNames(() => partID.current, 'camera');
-const bases = useResourceNames(() => partID.current, 'base');
 
 let streaming = true;
 </script>
@@ -28,10 +27,16 @@ let streaming = true;
       <button
         class="border p-2"
         class:bg-blue-100={partID.current === id}
-        onclick={() => (partID.current = id)}
+        onclick={() => {
+          partID.current = id;
+        }}
       >
         part {index + 1}
       </button>
+
+      {#if id === partID.current}
+        <Part partID={id} />
+      {/if}
     {/each}
 
     {status.current}
@@ -53,13 +58,6 @@ let streaming = true;
       {/each}
     </ul>
   {/if}
-
-  {#each bases.current as { name } (name)}
-    <Base
-      {name}
-      partID={partID.current}
-    />
-  {/each}
 
   {#each cameras.current as { name } (name)}
     {#if streaming}

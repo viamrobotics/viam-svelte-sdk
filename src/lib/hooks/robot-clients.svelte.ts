@@ -15,6 +15,7 @@ const dialKey = Symbol('dial-configs-context');
 
 interface ClientContext {
   current: Record<PartID, Client | undefined>;
+  errors: Record<PartID, Error | undefined>;
 }
 
 interface ConnectionStatusContext {
@@ -30,6 +31,7 @@ export const provideRobotClientsContext = (
 ) => {
   const queryClient = useQueryClient();
   const clients = $state<Record<PartID, Client | undefined>>({});
+  const errors = $state<Record<PartID, Error | undefined>>({});
   const connectionStatus = $state<Record<PartID, MachineConnectionEvent>>({});
 
   let lastConfigs: Record<PartID, DialConf | undefined> = {};
@@ -88,10 +90,11 @@ export const provideRobotClientsContext = (
       });
 
       await client.dial(config);
+      errors[partID] = undefined;
 
       connectionStatus[partID] = MachineConnectionEvent.CONNECTED;
     } catch (error) {
-      console.error(error);
+      errors[partID] = error as Error;
       connectionStatus[partID] = MachineConnectionEvent.DISCONNECTED;
     }
   };
@@ -138,6 +141,9 @@ export const provideRobotClientsContext = (
   setContext<ClientContext>(clientKey, {
     get current() {
       return clients;
+    },
+    get errors() {
+      return errors;
     },
   });
 
