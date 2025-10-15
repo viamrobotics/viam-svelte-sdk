@@ -52,6 +52,11 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
   const _args = $derived(typeof args === 'function' ? args() : args);
   const name = $derived(client.current?.name);
   const methodName = $derived(String(method));
+  const enabled = $derived(
+    client.current !== undefined &&
+      _options?.enabled !== false &&
+      enabledQueries.resourceQueries
+  );
 
   const queryOptions = $derived(
     createQueryOptions({
@@ -64,10 +69,7 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
         methodName,
         ...(_args ? [_args] : []),
       ],
-      enabled:
-        client.current !== undefined &&
-        _options?.enabled !== false &&
-        enabledQueries.resourceQueries,
+      enabled,
       retry: false,
       queryFn: async () => {
         const clientFunc = client.current?.[method];
@@ -101,7 +103,7 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
 
   usePolling(
     () => queryOptions.queryKey,
-    () => queryOptions.enabled && (_options?.refetchInterval ?? false)
+    () => enabled && (_options?.refetchInterval ?? false)
   );
 
   return fromStore(createQuery(toStore(() => queryOptions)));

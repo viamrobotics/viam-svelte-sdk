@@ -42,6 +42,9 @@ export const createAppQuery = <T extends AppClient, K extends keyof T>(
   );
   const _args = $derived(typeof args === 'function' ? args() : args);
   const methodName = $derived(String(method));
+  const enabled = $derived(
+    appClient !== undefined && _options?.enabled !== false
+  );
 
   const queryOptions = $derived(
     createQueryOptions({
@@ -51,7 +54,7 @@ export const createAppQuery = <T extends AppClient, K extends keyof T>(
         methodName,
         ...(_args ? [_args] : []),
       ],
-      enabled: appClient !== undefined && _options?.enabled !== false,
+      enabled,
       queryFn: async () => {
         if (!appClient) {
           throw new Error('appClient is undefined');
@@ -88,7 +91,7 @@ export const createAppQuery = <T extends AppClient, K extends keyof T>(
 
   usePolling(
     () => queryOptions.queryKey,
-    () => queryOptions.enabled && (_options?.refetchInterval ?? false)
+    () => enabled && (_options?.refetchInterval ?? false)
   );
 
   return fromStore(createQuery(toStore(() => queryOptions)));

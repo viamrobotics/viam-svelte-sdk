@@ -51,6 +51,11 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
   );
   const _args = $derived(typeof args === 'function' ? args() : args);
   const methodName = $derived(String(method));
+  const enabled = $derived(
+    client.current !== undefined &&
+      _options?.enabled !== false &&
+      enabledQueries.robotQueries
+  );
 
   const queryOptions = $derived(
     createQueryOptions({
@@ -62,10 +67,7 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
         methodName,
         ...(_args ? [_args] : []),
       ],
-      enabled:
-        client.current !== undefined &&
-        _options?.enabled !== false &&
-        enabledQueries.robotQueries,
+      enabled,
       retry: false,
       queryFn: async () => {
         const clientFunc = client.current?.[method];
@@ -99,7 +101,7 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
 
   usePolling(
     () => queryOptions.queryKey,
-    () => _options?.refetchInterval ?? false
+    () => enabled && (_options?.refetchInterval ?? false)
   );
 
   return fromStore(createQuery(toStore(() => queryOptions)));
