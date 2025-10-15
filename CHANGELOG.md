@@ -1,5 +1,12 @@
 # @viamrobotics/svelte-sdk
 
+## 0.7.1
+
+### Patch Changes
+
+- 7712e9a: Don't poll when disabled, include errors in hooks
+- cb37189: Update machine status hook to include pending field and sort resource statuses by name.
+
 ## 0.7.0
 
 ### Minor Changes
