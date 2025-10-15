@@ -22,7 +22,10 @@ export {
 } from './hooks/create-resource-stream.svelte';
 export { createStreamClient } from './hooks/create-stream-client.svelte';
 
-export { useMachineStatus } from './hooks/machine-status.svelte';
+export {
+  useMachineStatus,
+  type ResourceStatus,
+} from './hooks/machine-status.svelte';
 export { useResourceNames } from './hooks/resource-names.svelte';
 
 export { usePolling } from './hooks/use-polling.svelte';

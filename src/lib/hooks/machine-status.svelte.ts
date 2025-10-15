@@ -7,19 +7,78 @@ import {
 } from '@tanstack/svelte-query';
 import { getContext, setContext } from 'svelte';
 import type { PartID } from '$lib/part';
-import type { RobotClient } from '@viamrobotics/sdk';
+import type { PlainMessage, robotApi } from '@viamrobotics/sdk';
 import { usePolling } from './use-polling.svelte';
 import { useQueryLogger } from '$lib/query-logger';
 import { useEnabledQueries } from './use-enabled-queries.svelte';
 
 const key = Symbol('machine-status-context');
 
-type MachineStatus = Awaited<ReturnType<RobotClient['getMachineStatus']>>;
+type MachineStatus = PlainMessage<robotApi.GetMachineStatusResponse>;
 type Query = QueryObserverResult<MachineStatus, Error>;
+
+// TODO: move to ts-sdk
+export type ResourceStatus = PlainMessage<robotApi.ResourceStatus>;
 
 interface Context {
   current: Record<PartID, Query | undefined>;
 }
+
+/**
+ * sorts machine status resources by local/remote -> type -> name (alphabetical)
+ * to produce a list like:
+ *
+ * component a
+ * component z
+ * service   b
+ * component remote:c
+ * service   remote:b
+ * @param machineStatus
+ */
+const sortResourceStatuses = (machineStatus: MachineStatus) => {
+  const resources = machineStatus.resources.toSorted(
+    ({ name }, { name: otherName }) => {
+      if (name === undefined && otherName === undefined) {
+        return 0;
+      }
+
+      if (name === undefined) {
+        return -1;
+      }
+
+      if (otherName === undefined) {
+        return 1;
+      }
+
+      const { name: aName, type: aType, subtype: aSubtype } = name;
+      const { name: bName, type: bType, subtype: bSubtype } = otherName;
+
+      // sort all non-remote resources before remote resources
+      if (aName.includes(':') !== bName.includes(':')) {
+        return aName.includes(':') ? 1 : -1;
+      }
+
+      if (aName === bName && aType === bType) {
+        return aSubtype.localeCompare(bSubtype);
+      }
+
+      if (aName === bName) {
+        return aType.localeCompare(bType);
+      }
+
+      // sort alphabetically within type
+      // sort components before services
+      return aType === bType
+        ? aName.localeCompare(bName)
+        : aType.localeCompare(bType);
+    }
+  );
+
+  return {
+    ...machineStatus,
+    resources,
+  };
+};
 
 export const provideMachineStatusContext = (refetchInterval: () => number) => {
   const clients = useRobotClients();
@@ -49,7 +108,7 @@ export const provideMachineStatusContext = (refetchInterval: () => number) => {
           try {
             const response = await client.getMachineStatus();
             logger('RES', 'robot', 'getMachineStatus', response);
-            return response;
+            return sortResourceStatuses(response);
           } catch (error) {
             logger('ERR', 'robot', 'getMachineStatus', error);
             throw error;
@@ -99,6 +158,7 @@ export const useMachineStatus = (partID: () => PartID) => {
   const error = $derived(query?.error);
   const fetching = $derived(query?.isFetching);
   const loading = $derived(query?.isLoading);
+  const pending = $derived(query?.isPending ?? true);
 
   return {
     get current() {
@@ -112,6 +172,12 @@ export const useMachineStatus = (partID: () => PartID) => {
     },
     get loading() {
       return loading;
+    },
+    get pending() {
+      return pending;
+    },
+    refetch() {
+      return query?.refetch() ?? Promise.resolve();
     },
   };
 };
