@@ -1,5 +1,11 @@
 # @viamrobotics/svelte-sdk
 
+## 0.7.2
+
+### Patch Changes
+
+- 530af6c: do not create resource clients until connected
+
 ## 0.7.1
 
 ### Patch Changes
