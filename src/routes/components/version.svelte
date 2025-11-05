@@ -6,6 +6,8 @@ let { partID } = $props();
 const client = useRobotClient(() => partID);
 const version = createRobotQuery(client, 'getVersion');
 const stopAll = createRobotMutation(client, 'stopAll');
+
+$inspect(version.current);
 </script>
 
 {#if version.current.error}

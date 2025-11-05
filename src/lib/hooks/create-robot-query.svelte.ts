@@ -38,7 +38,8 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
       ]
     | [options?: (() => QueryOptions) | QueryOptions]
 ): { current: QueryObserverResult<ResolvedReturnType<T[K]>> } => {
-  const connectionStatus = useConnectionStatus();
+  const partID = $derived((client.current as T & { partID: string })?.partID);
+  const connectionStatus = useConnectionStatus(() => partID);
   const debug = useQueryLogger();
   const enabledQueries = useEnabledQueries();
   let [args, options] = additional;
@@ -48,6 +49,7 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
     args = undefined;
   }
 
+  $inspect(connectionStatus.current, MachineConnectionEvent.CONNECTED);
   const _options = $derived(
     typeof options === 'function' ? options() : options
   );
@@ -59,13 +61,14 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
       _options?.enabled !== false &&
       enabledQueries.robotQueries
   );
+  $inspect(enabled);
 
   const queryOptions = $derived(
     createQueryOptions({
       queryKey: [
         'viam-svelte-sdk',
         'partID',
-        (client.current as T & { partID: string })?.partID,
+        partID,
         'robotClient',
         methodName,
         ...(_args ? [_args] : []),
