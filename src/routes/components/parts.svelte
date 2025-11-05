@@ -35,14 +35,14 @@ let streaming = true;
       </button>
 
       {#if id === partID.current}
+        <Version partID={id} />
+
         <Part partID={id} />
       {/if}
     {/each}
 
     {status.current}
   </div>
-
-  <Version {partID} />
 
   <h2 class="py-2">Resources</h2>
   {#if resources.error}
