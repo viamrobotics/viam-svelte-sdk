@@ -1,6 +1,10 @@
-import type { Resource, RobotClient } from '@viamrobotics/sdk';
+import {
+  type Resource,
+  type RobotClient,
+  MachineConnectionEvent,
+} from '@viamrobotics/sdk';
 
-import { useRobotClient } from './robot-clients.svelte';
+import { useConnectionStatus, useRobotClient } from './robot-clients.svelte';
 
 export type Client<T> = new (part: RobotClient, name: string) => T;
 
@@ -10,9 +14,14 @@ export const createResourceClient = <T extends Resource>(
   resourceName: () => string
 ): { current: T | undefined } => {
   const robotClient = useRobotClient(partID);
+  const connectionStatus = useConnectionStatus(partID);
 
   const resourceClient = $derived.by<T | undefined>(() => {
     if (!robotClient.current) {
+      return;
+    }
+
+    if (connectionStatus.current !== MachineConnectionEvent.CONNECTED) {
       return;
     }
 
