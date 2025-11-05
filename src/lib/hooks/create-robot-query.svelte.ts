@@ -4,11 +4,12 @@ import {
   type QueryObserverResult,
 } from '@tanstack/svelte-query';
 
-import type { RobotClient } from '@viamrobotics/sdk';
+import { MachineConnectionEvent, type RobotClient } from '@viamrobotics/sdk';
 import { toStore, fromStore } from 'svelte/store';
 import { usePolling } from './use-polling.svelte';
 import { useQueryLogger } from '$lib/query-logger';
 import { useEnabledQueries } from './use-enabled-queries.svelte';
+import { useConnectionStatus } from './robot-clients.svelte';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ArgumentsType<T> = T extends (...args: infer U) => any ? U : never;
@@ -37,6 +38,7 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
       ]
     | [options?: (() => QueryOptions) | QueryOptions]
 ): { current: QueryObserverResult<ResolvedReturnType<T[K]>> } => {
+  const connectionStatus = useConnectionStatus();
   const debug = useQueryLogger();
   const enabledQueries = useEnabledQueries();
   let [args, options] = additional;
@@ -52,7 +54,8 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
   const _args = $derived(typeof args === 'function' ? args() : args);
   const methodName = $derived(String(method));
   const enabled = $derived(
-    client.current !== undefined &&
+    connectionStatus.current === MachineConnectionEvent.CONNECTED &&
+      client.current !== undefined &&
       _options?.enabled !== false &&
       enabledQueries.robotQueries
   );
