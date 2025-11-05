@@ -49,7 +49,6 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
     args = undefined;
   }
 
-  $inspect(connectionStatus.current, MachineConnectionEvent.CONNECTED);
   const _options = $derived(
     typeof options === 'function' ? options() : options
   );
@@ -61,7 +60,6 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
       _options?.enabled !== false &&
       enabledQueries.robotQueries
   );
-  $inspect(enabled);
 
   const queryOptions = $derived(
     createQueryOptions({
