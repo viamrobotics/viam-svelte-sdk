@@ -1,23 +1,25 @@
-let debugQueries = false;
-let verbose = false;
+import { PersistedState } from 'runed';
+
+const debugQueries = new PersistedState('queryLoggingEnabled', false);
+const verbose = new PersistedState('verboseQueryLoggingEnabled', false);
 
 export const enableQueryLogging = () => {
-  debugQueries = true;
+  debugQueries.current = true;
   return 'query logging enabled';
 };
 
 export const disableQueryLogging = () => {
-  debugQueries = false;
+  debugQueries.current = false;
   return 'query logging disabled';
 };
 
 export const enableVerboseQueryLogging = () => {
-  verbose = true;
+  verbose.current = true;
   return 'verbose query logging enabled';
 };
 
 export const disableVerboseQueryLogging = () => {
-  verbose = false;
+  verbose.current = false;
   return 'verbose query logging disabled';
 };
 
@@ -37,12 +39,12 @@ export const useQueryLogger = () => {
     methodName: string,
     data?: unknown
   ) => {
-    if (!debugQueries) {
+    if (!debugQueries.current) {
       return;
     }
 
     let log = `${index}\t${new Date().toISOString()}\t${type} \t${name ?? 'unknown'}\t${methodName}`;
-    if (data !== undefined && verbose) {
+    if (data !== undefined && verbose.current) {
       log += `\n\t${JSON.stringify(data, null, 2)}`;
     }
 
