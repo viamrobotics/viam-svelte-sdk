@@ -39,7 +39,7 @@ interface Context {
 
 const revisions = new Map<string, string>();
 
-const areResourceNamesEqual = (
+export const areResourceNamesEqual = (
   a: ResourceName[],
   b: ResourceName[]
 ): boolean => {
@@ -67,7 +67,7 @@ const areResourceNamesEqual = (
  * service   remote:b
  * @param resourceNames
  */
-const sortResourceNames = (resourceNames: ResourceName[]) => {
+export const sortResourceNames = (resourceNames: ResourceName[]) => {
   resourceNames.sort(({ type, name }, { type: otherType, name: otherName }) => {
     // sort all non-remote resources before remote resources
     if (name.includes(':') !== otherName.includes(':')) {

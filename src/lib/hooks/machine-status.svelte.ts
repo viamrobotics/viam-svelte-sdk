@@ -35,7 +35,7 @@ interface Context {
  * service   remote:b
  * @param machineStatus
  */
-const sortResourceStatuses = (machineStatus: MachineStatus) => {
+export const sortResourceStatuses = (machineStatus: MachineStatus) => {
   const resources = machineStatus.resources.toSorted(
     ({ name }, { name: otherName }) => {
       if (name === undefined && otherName === undefined) {
