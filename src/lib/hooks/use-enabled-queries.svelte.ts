@@ -1,4 +1,8 @@
-export const useEnabledQueries = () => {
+import { getContext, setContext } from 'svelte';
+
+const key = Symbol('enabled-queries-context');
+
+export const provideEnabledQueriesContext = () => {
   let machineStatus = $state(true);
   let resourceNames = $state(true);
   let resourceQueries = $state(true);
@@ -20,7 +24,7 @@ export const useEnabledQueries = () => {
   const enableStreams = () => (streams = true);
   const disableStreams = () => (streams = false);
 
-  return {
+  return setContext(key, {
     get resourceQueries() {
       return resourceQueries;
     },
@@ -47,5 +51,14 @@ export const useEnabledQueries = () => {
     disableRobotQueries,
     enableStreams,
     disableStreams,
-  };
+  });
+};
+
+export const useEnabledQueries = () => {
+  const context =
+    getContext<ReturnType<typeof provideEnabledQueriesContext>>(key);
+  if (!context) {
+    throw new Error('EnabledQueriesContext not found');
+  }
+  return context;
 };

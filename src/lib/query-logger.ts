@@ -5,7 +5,7 @@ const verbose = new PersistedState('verboseQueryLoggingEnabled', false);
 
 export const enableQueryLogging = () => {
   debugQueries.current = true;
-  return 'query logging enabled';
+  return 'query logging enabled, format: \n\tindex timestamp type name method';
 };
 
 export const disableQueryLogging = () => {
@@ -15,7 +15,7 @@ export const disableQueryLogging = () => {
 
 export const enableVerboseQueryLogging = () => {
   verbose.current = true;
-  return 'verbose query logging enabled';
+  return 'verbose query logging enabled, format: \n\tindex timestamp type name method\n\t\tdata';
 };
 
 export const disableVerboseQueryLogging = () => {
