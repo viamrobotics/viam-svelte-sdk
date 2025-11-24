@@ -5,7 +5,6 @@ import { provideViamClient } from '../hooks/app/use-app-client.svelte';
 import type { Credentials } from '@viamrobotics/sdk';
 
 interface Props {
-  client?: QueryClient;
   serviceHost: string;
   credentials: Credentials;
   children?: Snippet;
