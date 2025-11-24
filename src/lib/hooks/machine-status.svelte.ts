@@ -1,7 +1,10 @@
 import { useRobotClient } from './robot-clients.svelte';
 import type { PartID } from '$lib/part';
 import type { PlainMessage, robotApi } from '@viamrobotics/sdk';
-import { createRobotQuery } from './create-robot-query.svelte';
+import {
+  createRobotQuery,
+  type QueryOptions,
+} from './create-robot-query.svelte';
 
 type MachineStatus = PlainMessage<robotApi.GetMachineStatusResponse>;
 
@@ -64,9 +67,12 @@ const sortResourceStatuses = (machineStatus: MachineStatus) => {
   };
 };
 
-export const useMachineStatus = (partID: () => PartID) => {
+export const useMachineStatus = (
+  partID: () => PartID,
+  options?: (() => QueryOptions) | QueryOptions
+) => {
   const client = useRobotClient(partID);
-  const query = createRobotQuery(client, 'getMachineStatus');
+  const query = createRobotQuery(client, 'getMachineStatus', options);
 
   const current = $derived(
     query.data ? sortResourceStatuses(query.data) : undefined

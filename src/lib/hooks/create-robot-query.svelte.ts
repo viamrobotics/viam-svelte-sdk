@@ -20,7 +20,7 @@ export type ResolvedReturnType<T> = T extends (
   ? R
   : never;
 
-interface QueryOptions {
+export interface QueryOptions {
   enabled?: boolean;
   staleTime?: number;
   refetchOnMount?: boolean;
@@ -32,7 +32,7 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
   client: { current: T | undefined },
   method: K,
   ...additional:
-    | [options?: (() => QueryOptions) | QueryOptions]
+    | [options?: (() => QueryOptions) | QueryOptions | undefined]
     | [
         args?: (() => ArgumentsType<T[K]>) | ArgumentsType<T[K]>,
         options?: (() => QueryOptions) | QueryOptions,

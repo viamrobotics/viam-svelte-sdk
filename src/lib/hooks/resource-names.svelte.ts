@@ -73,7 +73,9 @@ export const useResourceNames = (
 ): QueryContext => {
   const enabledQueries = useEnabledQueries();
   const client = useRobotClient(partID);
-  const machineStatus = createRobotQuery(client, 'getMachineStatus');
+  const machineStatus = createRobotQuery(client, 'getMachineStatus', {
+    refetchInterval: 1000,
+  });
 
   const query = createRobotQuery(client, 'resourceNames', () => ({
     enabled:
