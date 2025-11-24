@@ -12,7 +12,6 @@ import {
 
 interface Props {
   dialConfigs: Record<string, DialConf>;
-  machineStatusRefetchInterval?: number;
   logQueries?:
     | boolean
     | {
@@ -22,8 +21,7 @@ interface Props {
   children: Snippet;
 }
 
-let { dialConfigs, machineStatusRefetchInterval, logQueries, children }: Props =
-  $props();
+let { dialConfigs, logQueries, children }: Props = $props();
 
 export const client = new QueryClient();
 
