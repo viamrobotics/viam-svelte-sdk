@@ -53,10 +53,7 @@ $effect(() => {
 </script>
 
 <QueryClientProvider {client}>
-  <InternalProvider
-    {dialConfigs}
-    {machineStatusRefetchInterval}
-  >
+  <InternalProvider {dialConfigs}>
     {@render children()}
   </InternalProvider>
 </QueryClientProvider>
