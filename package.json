@@ -40,10 +40,11 @@
     "url": "git+https://github.com/viamrobotics/viam-svelte-sdk.git"
   },
   "dependencies": {
+    "@tanstack/svelte-query": "^6.0.8",
+    "@tanstack/svelte-query-devtools": "^6.0.1",
     "runed": "^0.29.1"
   },
   "peerDependencies": {
-    "@tanstack/svelte-query": "5.87.1",
     "@viamrobotics/sdk": ">=0.51",
     "svelte": ">=5"
   },
@@ -57,13 +58,11 @@
     "@sveltejs/package": "^2.3.12",
     "@sveltejs/vite-plugin-svelte": "^5.1.0",
     "@tailwindcss/vite": "^4.1.11",
-    "@tanstack/svelte-query": "5.87.1",
-    "@tanstack/svelte-query-devtools": "5.87.3",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/svelte": "^5.2.8",
     "@viamrobotics/eslint-config": "^1.1.0",
     "@viamrobotics/prettier-config-svelte": "^1.1.0",
-    "@viamrobotics/sdk": "^0.51.0",
+    "@viamrobotics/sdk": "^0.56.0",
     "@viamrobotics/typescript-config": "^0.1.1",
     "eslint": "^9.30.0",
     "eslint-config-prettier": "^10.1.5",

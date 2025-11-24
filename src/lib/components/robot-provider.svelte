@@ -12,7 +12,6 @@ import {
 
 interface Props {
   dialConfigs: Record<string, DialConf>;
-  client?: QueryClient;
   machineStatusRefetchInterval?: number;
   logQueries?:
     | boolean
@@ -23,13 +22,10 @@ interface Props {
   children: Snippet;
 }
 
-let {
-  dialConfigs,
-  client = new QueryClient(),
-  machineStatusRefetchInterval,
-  logQueries,
-  children,
-}: Props = $props();
+let { dialConfigs, machineStatusRefetchInterval, logQueries, children }: Props =
+  $props();
+
+export const client = new QueryClient();
 
 $effect(() => {
   if (typeof logQueries === 'boolean') {

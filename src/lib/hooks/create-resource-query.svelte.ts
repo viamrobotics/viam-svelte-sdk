@@ -4,7 +4,6 @@ import {
   type QueryObserverResult,
 } from '@tanstack/svelte-query';
 import type { Resource } from '@viamrobotics/sdk';
-import { toStore, fromStore } from 'svelte/store';
 import { usePolling } from './use-polling.svelte';
 import { useQueryLogger } from '../query-logger';
 import { useEnabledQueries } from './use-enabled-queries.svelte';
@@ -20,9 +19,10 @@ export type ResolvedReturnType<T> = T extends (
   : never;
 
 interface QueryOptions {
-  // enabled defaults to true if unspecified
   enabled?: boolean;
-  refetchInterval: number | false;
+  staleTime?: number;
+  refetchOnMount?: boolean;
+  refetchInterval?: number | false;
   refetchIntervalInBackground?: boolean;
 }
 
@@ -30,12 +30,12 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
   client: { current: T | undefined },
   method: K,
   ...additional:
+    | [options?: (() => QueryOptions) | QueryOptions]
     | [
         args?: (() => ArgumentsType<T[K]>) | ArgumentsType<T[K]>,
         options?: (() => QueryOptions) | QueryOptions,
       ]
-    | [options?: (() => QueryOptions) | QueryOptions]
-): { current: QueryObserverResult<ResolvedReturnType<T[K]>> } => {
+): QueryObserverResult<ResolvedReturnType<T[K]>> => {
   const debug = useQueryLogger();
   const enabledQueries = useEnabledQueries();
 
@@ -106,5 +106,5 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
     () => enabled && (_options?.refetchInterval ?? false)
   );
 
-  return fromStore(createQuery(toStore(() => queryOptions)));
+  return createQuery(() => queryOptions);
 };

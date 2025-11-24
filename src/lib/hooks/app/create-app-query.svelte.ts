@@ -4,7 +4,6 @@ import {
   type QueryObserverResult,
 } from '@tanstack/svelte-query';
 import type { AppClient } from '@viamrobotics/sdk';
-import { toStore, fromStore } from 'svelte/store';
 import { usePolling } from '../use-polling.svelte';
 import { useQueryLogger } from '../../query-logger';
 import { useViamClient } from './use-app-client.svelte';
@@ -25,7 +24,7 @@ export const createAppQuery = <T extends AppClient, K extends keyof T>(
         options?: (() => QueryOptions) | QueryOptions,
       ]
     | [options?: (() => QueryOptions) | QueryOptions]
-): { current: QueryObserverResult<ResolvedReturnType<T[K]>> } => {
+): QueryObserverResult<ResolvedReturnType<T[K]>> => {
   const viamClient = useViamClient();
   const appClient = $derived(viamClient.current?.appClient as T);
   const debug = useQueryLogger();
@@ -94,5 +93,5 @@ export const createAppQuery = <T extends AppClient, K extends keyof T>(
     () => enabled && (_options?.refetchInterval ?? false)
   );
 
-  return fromStore(createQuery(toStore(() => queryOptions)));
+  return createQuery(() => queryOptions);
 };

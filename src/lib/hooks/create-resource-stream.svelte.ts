@@ -5,7 +5,6 @@ import {
   queryOptions as createQueryOptions,
 } from '@tanstack/svelte-query';
 import type { Resource } from '@viamrobotics/sdk';
-import { toStore, fromStore } from 'svelte/store';
 import { useQueryLogger } from '../query-logger';
 import { useEnabledQueries } from './use-enabled-queries.svelte';
 
@@ -53,7 +52,7 @@ export const createResourceStream = <T extends Resource, K extends keyof T>(
         options?: (() => QueryOptions) | QueryOptions,
       ]
     | [options?: (() => QueryOptions) | QueryOptions]
-): { current: QueryResult<StreamItemType<T[K]>> } => {
+): QueryResult<StreamItemType<T[K]>> => {
   const debug = useQueryLogger();
   const enabledQueries = useEnabledQueries();
 
@@ -116,5 +115,5 @@ export const createResourceStream = <T extends Resource, K extends keyof T>(
     })
   );
 
-  return fromStore(createQuery(toStore(() => queryOptions)));
+  return createQuery(() => queryOptions);
 };

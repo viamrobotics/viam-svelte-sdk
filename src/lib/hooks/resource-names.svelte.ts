@@ -1,19 +1,10 @@
-import {
-  createQueries,
-  queryOptions,
-  type QueryObserverResult,
-} from '@tanstack/svelte-query';
+import { type QueryObserverResult } from '@tanstack/svelte-query';
 import type { ResourceName } from '@viamrobotics/sdk';
-import { getContext, setContext } from 'svelte';
-import { fromStore, toStore } from 'svelte/store';
-import { useRobotClients } from './robot-clients.svelte';
+import { useRobotClient } from './robot-clients.svelte';
 import type { PartID } from '../part';
-import { useMachineStatuses } from './machine-status.svelte';
-import { useQueryLogger } from '$lib/query-logger';
 import { useDebounce } from 'runed';
 import { useEnabledQueries } from './use-enabled-queries.svelte';
-
-const key = Symbol('resources-context');
+import { createRobotQuery } from './create-robot-query.svelte';
 
 type Query = QueryObserverResult<ResourceName[], Error>;
 
@@ -26,15 +17,7 @@ const MachineState = {
 
 interface QueryContext {
   current: ResourceName[];
-  error: Error | undefined;
-  fetching: boolean;
-  loading: boolean;
-  pending: boolean;
-  refetch: () => Promise<Query> | Promise<void>;
-}
-
-interface Context {
-  current: Record<PartID, Query | undefined>;
+  query: Query | undefined;
 }
 
 const revisions = new Map<string, string>();
@@ -80,116 +63,41 @@ const sortResourceNames = (resourceNames: ResourceName[]) => {
       ? name.localeCompare(otherName)
       : type.localeCompare(otherType);
   });
-};
 
-export const provideResourceNamesContext = () => {
-  const machineStatuses = useMachineStatuses();
-  const clients = useRobotClients();
-  const debug = useQueryLogger();
-  const enabledQueries = useEnabledQueries();
-  const partIDs = $derived(Object.keys(clients.current));
-  const options = $derived.by(() => {
-    const results = [];
-
-    for (const partID of partIDs) {
-      const machineStatus = machineStatuses.current[partID]?.data;
-      const client = clients.current[partID];
-      const options = queryOptions({
-        refetchOnMount: false,
-        enabled:
-          client !== undefined &&
-          machineStatus?.state === MachineState.Running &&
-          enabledQueries.resourceNames,
-        queryKey: [
-          'viam-svelte-sdk',
-          'partID',
-          partID,
-          'robotClient',
-          'resourceNames',
-        ],
-        staleTime: Infinity,
-        queryFn: async () => {
-          if (!client) {
-            throw new Error('No client');
-          }
-
-          const logger = debug.createLogger();
-          logger('REQ', partID, 'resourceNames');
-
-          try {
-            const resourceNames = await client.resourceNames();
-            logger('RES', partID, 'resourceNames', resourceNames);
-            sortResourceNames(resourceNames);
-            return resourceNames;
-          } catch (error) {
-            logger('ERR', partID, 'resourceNames', error);
-            throw error;
-          }
-        },
-      });
-
-      results.push(options);
-    }
-
-    return results;
-  });
-
-  const queries = fromStore(
-    createQueries({
-      queries: toStore(() => options),
-      combine: (results): Record<PartID, Query | undefined> => {
-        return Object.fromEntries(
-          results.map((result, index) => [partIDs[index], result])
-        );
-      },
-    })
-  );
-
-  const debouncedRefetch = $derived.by<Record<string, () => void>>(() => {
-    const entries: [string, () => void][] = [];
-    for (const partID of partIDs) {
-      entries.push([
-        partID,
-        useDebounce(() => {
-          queries.current[partID]?.refetch();
-        }, 500),
-      ]);
-    }
-
-    return Object.fromEntries(entries);
-  });
-
-  /**
-   * Refetch part resource names based on revision
-   */
-  $effect(() => {
-    for (const partID of partIDs) {
-      const machineStatus = machineStatuses.current[partID]?.data;
-      const revision = machineStatus?.config?.revision ?? '';
-      const lastRevision = revisions.get(partID);
-
-      revisions.set(partID, revision);
-
-      if (lastRevision && revision !== lastRevision) {
-        debouncedRefetch[partID]?.();
-      }
-    }
-  });
-
-  setContext<Context>(key, queries);
+  return resourceNames;
 };
 
 export const useResourceNames = (
   partID: () => PartID,
   resourceSubtype?: string | (() => string)
 ): QueryContext => {
-  const queries = getContext<Context>(key);
-  const query = $derived(queries.current[partID()]);
-  const data = $derived(query?.data ?? []);
-  const error = $derived(query?.error ?? undefined);
-  const fetching = $derived(query?.isFetching ?? true);
-  const loading = $derived(query?.isLoading ?? true);
-  const pending = $derived(query?.isPending ?? true);
+  const enabledQueries = useEnabledQueries();
+  const client = useRobotClient(partID);
+  const machineStatus = createRobotQuery(client, 'getMachineStatus');
+
+  const query = createRobotQuery(client, 'resourceNames', () => ({
+    enabled:
+      client !== undefined &&
+      machineStatus?.data?.state === MachineState.Running &&
+      enabledQueries.resourceNames,
+    refetchOnMount: false,
+    staleTime: Infinity,
+  }));
+
+  const debouncedRefetch = useDebounce(() => query.refetch(), 500);
+
+  $effect(() => {
+    const revision = machineStatus?.data?.config?.revision ?? '';
+    const lastRevision = revisions.get(partID());
+
+    revisions.set(partID(), revision);
+
+    if (lastRevision && revision !== lastRevision) {
+      debouncedRefetch();
+    }
+  });
+
+  const data = $derived(sortResourceNames(query.data ?? []));
 
   const subtype = $derived(
     typeof resourceSubtype === 'function' ? resourceSubtype() : resourceSubtype
@@ -213,20 +121,6 @@ export const useResourceNames = (
     get current() {
       return current;
     },
-    get error() {
-      return error;
-    },
-    get fetching() {
-      return fetching;
-    },
-    get loading() {
-      return loading;
-    },
-    get pending() {
-      return pending;
-    },
-    refetch() {
-      return query?.refetch() ?? Promise.resolve();
-    },
+    query,
   };
 };

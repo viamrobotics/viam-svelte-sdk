@@ -11,12 +11,9 @@ interface Props {
   children?: Snippet;
 }
 
-let {
-  client = new QueryClient(),
-  serviceHost,
-  credentials,
-  children,
-}: Props = $props();
+let { serviceHost, credentials, children }: Props = $props();
+
+export const client = new QueryClient();
 
 provideViamClient(() => ({ serviceHost, credentials }));
 </script>
