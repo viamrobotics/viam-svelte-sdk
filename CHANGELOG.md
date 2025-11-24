@@ -1,5 +1,12 @@
 # @viamrobotics/svelte-sdk
 
+## 0.7.3
+
+### Patch Changes
+
+- 59019a5: Persist query logging settings in local storage
+- b97b6ec: Only execute robot queries when connected
+
 ## 0.7.2
 
 ### Patch Changes
