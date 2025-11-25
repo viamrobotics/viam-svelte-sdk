@@ -5,7 +5,6 @@ import type {
   ArgumentsType,
   ResolvedReturnType,
 } from './create-resource-query.svelte';
-import { fromStore, toStore } from 'svelte/store';
 import { useQueryLogger } from '$lib/query-logger';
 
 export const createResourceMutation = <T extends Resource, K extends keyof T>(
@@ -56,5 +55,5 @@ export const createResourceMutation = <T extends Resource, K extends keyof T>(
     },
   } satisfies MutationOptions<MutReturn, Error, MutArgs>);
 
-  return fromStore(createMutation(toStore(() => mutationOptions)));
+  return createMutation(() => mutationOptions);
 };

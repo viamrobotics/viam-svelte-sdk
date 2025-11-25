@@ -22,6 +22,6 @@ const isMoving = createResourceQuery(client, 'isMoving', {
 const moveStraight = createResourceMutation(client, 'moveStraight');
 </script>
 
-Is moving: {isMoving.current.data ?? false}
+Is moving: {isMoving.data ?? false}
 
-<button onclick={() => moveStraight.current.mutate([100, 10])}>Move</button>
+<button onclick={() => moveStraight.mutate([100, 10])}>Move</button>

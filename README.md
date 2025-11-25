@@ -77,15 +77,15 @@ const version = createRobotQuery(client, 'getVersion');
 const stopAll = createRobotMutation(client, 'stopAll');
 </script>
 
-{#if version.current.error}
-  Error fetching version: {version.current.error.message}
-{:else if version.current.data}
-  <p>Platform: {version.current.data.platform}</p>
-  <p>API version: {version.current.data.apiVersion}</p>
-  <p>Version: {version.current.data.version}</p>
+{#if version.error}
+  Error fetching version: {version.error.message}
+{:else if version.data}
+  <p>Platform: {version.data.platform}</p>
+  <p>API version: {version.data.apiVersion}</p>
+  <p>Version: {version.data.version}</p>
 {/if}
 
-<button onclick={() => stopAll.current.mutate([])}> Stop All </button>
+<button onclick={() => stopAll.mutate([])}> Stop All </button>
 ```
 
 ### createResourceClient / createResourceQuery / createResourceMutation
@@ -118,9 +118,9 @@ const isMoving = createResourceQuery(client, 'isMoving');
 const moveStraight = createResourceMutation(client, 'moveStraight');
 </script>
 
-Is moving: {isMoving.current.data ?? false}
+Is moving: {isMoving.data ?? false}
 
-<button onclick={() => moveStraight.current.mutate([100, 10])}> Move </button>
+<button onclick={() => moveStraight.mutate([100, 10])}> Move </button>
 ```
 
 ### createStreamClient
@@ -186,8 +186,8 @@ let { partID }: Props = $props();
 const machineStatus = useMachineStatus(() => partID);
 
 $inspect(machineStatus.current);
-$inspect(machineStatus.error);
-$inspect(machineStatus.fetching);
+$inspect(machineStatus.query.error);
+$inspect(machineStatus.query.fetching);
 </script>
 ```
 
@@ -212,8 +212,8 @@ const arms = useResourceNames(
 );
 
 $inspect(resources.current);
-$inspect(resources.error);
-$inspect(resources.fetching);
+$inspect(resources.query.error);
+$inspect(resources.query.fetching);
 </script>
 ```
 

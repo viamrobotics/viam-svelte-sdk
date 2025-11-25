@@ -6,7 +6,6 @@ import {
   createQuery,
   queryOptions as createQueryOptions,
 } from '@tanstack/svelte-query';
-import { fromStore, toStore } from 'svelte/store';
 import { useQueryLogger } from '../query-logger';
 import { useEnabledQueries } from './use-enabled-queries.svelte';
 
@@ -14,6 +13,7 @@ export const createStreamClient = (
   partID: () => string,
   resourceName: () => string
 ) => {
+  const name = $derived(resourceName());
   const debug = useQueryLogger();
   const enabledQueries = useEnabledQueries();
   let mediaStream = $state.raw<MediaStream | null>(null);
@@ -27,10 +27,11 @@ export const createStreamClient = (
   const handleTrack = (event: unknown) => {
     const [stream] = (event as { streams: MediaStream[] }).streams;
 
-    if (!stream || stream.id !== resourceName()) {
+    if (!stream || stream.id !== name) {
       return;
     }
 
+    error = undefined;
     mediaStream = stream;
   };
 
@@ -41,14 +42,17 @@ export const createStreamClient = (
   });
 
   $effect(() => {
-    const name = resourceName();
     const client = streamClient;
+
     try {
       client?.getStream(name);
       error = undefined;
     } catch (nextError) {
       error = nextError as Error;
+      client?.remove(name);
+      client?.getStream(name);
     }
+
     return () => client?.remove(name);
   });
 
@@ -59,7 +63,7 @@ export const createStreamClient = (
         'partID',
         partID(),
         'resource',
-        resourceName(),
+        name,
         'stream',
         'getOptions',
       ],
@@ -68,21 +72,21 @@ export const createStreamClient = (
       refetchOnWindowFocus: false,
       queryFn: async () => {
         const logger = debug.createLogger();
-        logger('REQ', resourceName(), 'getOptions');
+        logger('REQ', name, 'getOptions');
 
         try {
-          const response = await streamClient?.getOptions(resourceName());
-          logger('RES', resourceName(), 'getOptions', response);
+          const response = await streamClient?.getOptions(name);
+          logger('RES', name, 'getOptions', response);
           return response;
         } catch (error) {
-          logger('ERR', resourceName(), 'getOptions', error);
+          logger('ERR', name, 'getOptions', error);
           throw error;
         }
       },
     })
   );
-  const query = fromStore(createQuery(toStore(() => queryOptions)));
-  const resolutions = $derived(query.current.data);
+  const query = createQuery(() => queryOptions);
+  const resolutions = $derived(query.data);
 
   const mutationOptions = $derived({
     mutationKey: [
@@ -90,43 +94,43 @@ export const createStreamClient = (
       'partID',
       partID(),
       'resource',
-      resourceName(),
+      name,
       'stream',
       'setOptions',
     ],
     mutationFn: async (resolution?: streamApi.Resolution) => {
       if (resolution) {
         const logger = debug.createLogger();
-        logger('REQ', resourceName(), 'setOptions', resolution);
+        logger('REQ', name, 'setOptions', resolution);
 
         try {
           const response = await streamClient?.setOptions(
-            resourceName(),
+            name,
             resolution.width,
             resolution.height
           );
-          logger('RES', resourceName(), 'setOptions', response);
+          logger('RES', name, 'setOptions', response);
           return response;
         } catch (error) {
-          logger('ERR', resourceName(), 'setOptions', error);
+          logger('ERR', name, 'setOptions', error);
+          throw error;
+        }
+      } else {
+        const logger = debug.createLogger();
+        logger('REQ', name, 'resetOptions');
+
+        try {
+          const response = await streamClient?.resetOptions(name);
+          logger('RES', name, 'resetOptions', response);
+          return response;
+        } catch (error) {
+          logger('ERR', name, 'resetOptions', error);
           throw error;
         }
       }
-
-      const logger = debug.createLogger();
-      logger('REQ', resourceName(), 'resetOptions');
-
-      try {
-        const response = await streamClient?.resetOptions(resourceName());
-        logger('RES', resourceName(), 'resetOptions', response);
-        return response;
-      } catch (error) {
-        logger('ERR', resourceName(), 'resetOptions', error);
-        throw error;
-      }
     },
   });
-  const mutation = fromStore(createMutation(toStore(() => mutationOptions)));
+  const mutation = createMutation(() => mutationOptions);
 
   return {
     get current() {
@@ -142,7 +146,7 @@ export const createStreamClient = (
       return resolutions;
     },
     setResolution(resolution?: streamApi.Resolution) {
-      return untrack(() => mutation.current).mutate(resolution);
+      return untrack(() => mutation.mutate(resolution));
     },
   };
 };
