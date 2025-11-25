@@ -1,5 +1,11 @@
 # @viamrobotics/svelte-sdk
 
+## 1.0.0
+
+### Major Changes
+
+- e342820: Upgrade to Tanstack 6
+
 ## 0.7.3
 
 ### Patch Changes
