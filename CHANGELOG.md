@@ -1,5 +1,11 @@
 # @viamrobotics/svelte-sdk
 
+## 1.0.1
+
+### Patch Changes
+
+- 32082dc: Allow passing in query configs
+
 ## 1.0.0
 
 ### Major Changes
