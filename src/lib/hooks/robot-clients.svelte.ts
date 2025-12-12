@@ -169,12 +169,7 @@ export const useDialConfigs = (): DialConfigsContext => {
 };
 
 export const useConnectionStatuses = () => {
-  const context = getContext<ConnectionStatusContext>(connectionKey);
-  return {
-    get current() {
-      return context.current;
-    },
-  };
+  return getContext<ConnectionStatusContext>(connectionKey);
 };
 
 export const useConnectionStatus = (partID: () => PartID) => {

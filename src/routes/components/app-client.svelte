@@ -5,19 +5,19 @@ const orgListQuery = createAppQuery('listOrganizations');
 const locationListQuery = createAppQuery('listLocations');
 const updateLocationMutation = createAppMutation('updateLocation');
 
-const location = $derived(locationListQuery.current.data?.[0]);
+const location = $derived(locationListQuery.data?.[0]);
 
-$inspect(orgListQuery.current);
+$inspect(orgListQuery);
 const update = async () => {
   const id = location?.id;
 
   if (id) {
-    updateLocationMutation.current.mutate([id, 'edited-location-name']);
+    updateLocationMutation.mutate([id, 'edited-location-name']);
   }
 };
 </script>
 
-{#if locationListQuery.current.isPending}
+{#if locationListQuery.isPending}
   Loading...
 {:else}
   Location name: {location?.name}

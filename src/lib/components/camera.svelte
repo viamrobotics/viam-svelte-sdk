@@ -30,9 +30,9 @@ const query = createResourceQuery(cameraClient, 'getImage', () => ({
 }));
 
 const src = $derived(
-  query.current.data
+  query.data
     ? URL.createObjectURL(
-        new Blob([query.current.data as Uint8Array<ArrayBuffer>], {
+        new Blob([query.data as Uint8Array<ArrayBuffer>], {
           type: mimeType,
         })
       )
@@ -40,8 +40,8 @@ const src = $derived(
 );
 </script>
 
-{#if query.current.error}
-  {query.current.error.message}
+{#if query.error}
+  {query.error.message}
 {:else}
   <img
     {src}

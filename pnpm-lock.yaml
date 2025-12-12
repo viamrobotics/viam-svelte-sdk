@@ -8,6 +8,12 @@ importers:
 
   .:
     dependencies:
+      '@tanstack/svelte-query':
+        specifier: ^6.0.8
+        version: 6.0.10(svelte@5.25.10)
+      '@tanstack/svelte-query-devtools':
+        specifier: ^6.0.1
+        version: 6.0.2(@tanstack/svelte-query@6.0.10(svelte@5.25.10))(svelte@5.25.10)
       runed:
         specifier: ^0.29.1
         version: 0.29.2(svelte@5.25.10)
@@ -39,12 +45,6 @@ importers:
       '@tailwindcss/vite':
         specifier: ^4.1.11
         version: 4.1.11(vite@6.4.1(jiti@2.5.1)(lightningcss@1.30.1))
-      '@tanstack/svelte-query':
-        specifier: 5.87.1
-        version: 5.87.1(svelte@5.25.10)
-      '@tanstack/svelte-query-devtools':
-        specifier: 5.87.3
-        version: 5.87.3(@tanstack/svelte-query@5.87.1(svelte@5.25.10))(svelte@5.25.10)
       '@testing-library/jest-dom':
         specifier: ^6.6.3
         version: 6.6.4
@@ -58,8 +58,8 @@ importers:
         specifier: ^1.1.0
         version: 1.1.0(prettier@3.6.2)(svelte@5.25.10)(tailwindcss@4.1.11)
       '@viamrobotics/sdk':
-        specifier: ^0.51.0
-        version: 0.51.0
+        specifier: ^0.57.0
+        version: 0.57.0
       '@viamrobotics/typescript-config':
         specifier: ^0.1.1
         version: 0.1.1(typescript@5.9.2)
@@ -759,22 +759,22 @@ packages:
     peerDependencies:
       vite: ^5.2.0 || ^6 || ^7
 
-  '@tanstack/query-core@5.87.1':
-    resolution: {integrity: sha512-HOFHVvhOCprrWvtccSzc7+RNqpnLlZ5R6lTmngb8aq7b4rc2/jDT0w+vLdQ4lD9bNtQ+/A4GsFXy030Gk4ollA==}
+  '@tanstack/query-core@5.90.12':
+    resolution: {integrity: sha512-T1/8t5DhV/SisWjDnaiU2drl6ySvsHj1bHBCWNXd+/T+Hh1cf6JodyEYMd5sgwm+b/mETT4EV3H+zCVczCU5hg==}
 
-  '@tanstack/query-devtools@5.87.3':
-    resolution: {integrity: sha512-LkzxzSr2HS1ALHTgDmJH5eGAVsSQiuwz//VhFW5OqNk0OQ+Fsqba0Tsf+NzWRtXYvpgUqwQr4b2zdFZwxHcGvg==}
+  '@tanstack/query-devtools@5.91.1':
+    resolution: {integrity: sha512-l8bxjk6BMsCaVQH6NzQEE/bEgFy1hAs5qbgXl0xhzezlaQbPk6Mgz9BqEg2vTLPOHD8N4k+w/gdgCbEzecGyNg==}
 
-  '@tanstack/svelte-query-devtools@5.87.3':
-    resolution: {integrity: sha512-taZZehVL9ksTfxdkJnifjntkf+13vXXoudBg2e8w00TcgjEDRqcYCkWbIt0jm6qoQFtIUaCF6+0RzK8XnhGR5w==}
+  '@tanstack/svelte-query-devtools@6.0.2':
+    resolution: {integrity: sha512-UQdtAPsdJQ2HijMVy+W+/CHyrUZmCkubfAi/sqWsx+1fdY+g7ONa5xroBLiaebC+5jJxvk9kij61QMUHzzJgQA==}
     peerDependencies:
-      '@tanstack/svelte-query': ^5.87.1
-      svelte: ^3.54.0 || ^4.0.0 || ^5.0.0
+      '@tanstack/svelte-query': ^6.0.8
+      svelte: ^5.25.0
 
-  '@tanstack/svelte-query@5.87.1':
-    resolution: {integrity: sha512-kQ3j+A6y+4SeF9rs8ww8K4Oq8/E0zRg5YRJ9RMWCEOzhnL3GrJAshjC9fhfho8uGm7a1SbsHbJ2C1PpvL8w2qQ==}
+  '@tanstack/svelte-query@6.0.10':
+    resolution: {integrity: sha512-J0kM3JNvRcRCM6cbHLeICs73aLp98N/nsihdVEtiNo3MEN4pAnO45qZ2yxX70MrEZ9vffXaCXMCChwgXs1lZ/Q==}
     peerDependencies:
-      svelte: ^3.54.0 || ^4.0.0 || ^5.0.0
+      svelte: ^5.25.0
 
   '@testing-library/dom@10.4.1':
     resolution: {integrity: sha512-o4PXJQidqJl82ckFaXUeoAW+XysPLauYI43Abki5hABd853iMhitooc6znOnczgbTYmEP6U6/y1ZyKAIsvMKGg==}
@@ -949,8 +949,8 @@ packages:
     peerDependencies:
       prettier: '>=3 <4'
 
-  '@viamrobotics/sdk@0.51.0':
-    resolution: {integrity: sha512-hflTrDGNRAbw2xGbJcFNqUNZoaKYAYiYgh2UyM1+De+7YtPf1eT6herRSslKCTch4cpZopOwJH2ZG+I2Q+39zw==}
+  '@viamrobotics/sdk@0.57.0':
+    resolution: {integrity: sha512-9mZS3Gf0Er7OYZDruiUR3KrWUaK29DVvLt9wj13UxtriDs7hOHGLSlT29CrCQP9L8ZPiHTmr5O3C+CZG3c42jg==}
 
   '@viamrobotics/typescript-config@0.1.1':
     resolution: {integrity: sha512-cIbEOlldP4r+F3/nESoXz3zXtYGnJNhRwPWtDjLRwswDJkz2i+moKO1DE2pRib/Z3+B1Qo+TzLYkkzEZJxevcw==}
@@ -1346,8 +1346,8 @@ packages:
     resolution: {integrity: sha512-JhFGDVJ7tmDJItKhYgJCGLOWjuK9vPxiXoUFLwLDc99NlmklilbiQJwoctZtt13+xMw91MCk/REan6MWHqDjyA==}
     engines: {node: '>=12.0.0'}
 
-  exponential-backoff@3.1.2:
-    resolution: {integrity: sha512-8QxYTVXUkuy7fIIoitQkPwGonB8F3Zj8eEO8Sqg9Zv/bkI7RJAzowee4gr81Hak/dUTpA2Z7VfQgoijjPNlUZA==}
+  exponential-backoff@3.1.3:
+    resolution: {integrity: sha512-ZgEeZXj30q+I0EN+CbSSpIyPaJ5HVQD18Z1m+u1FXbAeT94mr1zw50q4q6jiiC447Nl/YTcIYSAftiGqetwXCA==}
 
   extendable-error@0.1.7:
     resolution: {integrity: sha512-UOiS2in6/Q0FK0R0q6UY9vYpQ21mr/Qn1KOnte7vsACuNJf514WvCCUHSRCPcgjPT2bAhNIJdlE6bVap1GKmeg==}
@@ -3094,20 +3094,20 @@ snapshots:
       tailwindcss: 4.1.11
       vite: 6.4.1(jiti@2.5.1)(lightningcss@1.30.1)
 
-  '@tanstack/query-core@5.87.1': {}
+  '@tanstack/query-core@5.90.12': {}
 
-  '@tanstack/query-devtools@5.87.3': {}
+  '@tanstack/query-devtools@5.91.1': {}
 
-  '@tanstack/svelte-query-devtools@5.87.3(@tanstack/svelte-query@5.87.1(svelte@5.25.10))(svelte@5.25.10)':
+  '@tanstack/svelte-query-devtools@6.0.2(@tanstack/svelte-query@6.0.10(svelte@5.25.10))(svelte@5.25.10)':
     dependencies:
-      '@tanstack/query-devtools': 5.87.3
-      '@tanstack/svelte-query': 5.87.1(svelte@5.25.10)
+      '@tanstack/query-devtools': 5.91.1
+      '@tanstack/svelte-query': 6.0.10(svelte@5.25.10)
       esm-env: 1.2.2
       svelte: 5.25.10
 
-  '@tanstack/svelte-query@5.87.1(svelte@5.25.10)':
+  '@tanstack/svelte-query@6.0.10(svelte@5.25.10)':
     dependencies:
-      '@tanstack/query-core': 5.87.1
+      '@tanstack/query-core': 5.90.12
       svelte: 5.25.10
 
   '@testing-library/dom@10.4.1':
@@ -3375,13 +3375,13 @@ snapshots:
     dependencies:
       prettier: 3.6.2
 
-  '@viamrobotics/sdk@0.51.0':
+  '@viamrobotics/sdk@0.57.0':
     dependencies:
       '@bufbuild/protobuf': 1.10.1
       '@connectrpc/connect': 1.6.1(@bufbuild/protobuf@1.10.1)
       '@connectrpc/connect-web': 1.6.1(@bufbuild/protobuf@1.10.1)(@connectrpc/connect@1.6.1(@bufbuild/protobuf@1.10.1))
       bsonfy: 1.0.2
-      exponential-backoff: 3.1.2
+      exponential-backoff: 3.1.3
 
   '@viamrobotics/typescript-config@0.1.1(typescript@5.9.2)':
     dependencies:
@@ -3794,7 +3794,7 @@ snapshots:
 
   expect-type@1.2.2: {}
 
-  exponential-backoff@3.1.2: {}
+  exponential-backoff@3.1.3: {}
 
   extendable-error@0.1.7: {}
 

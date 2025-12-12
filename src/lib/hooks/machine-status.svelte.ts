@@ -1,28 +1,15 @@
-import { fromStore, toStore } from 'svelte/store';
-import { useRobotClients } from './robot-clients.svelte';
-import {
-  createQueries,
-  queryOptions,
-  type QueryObserverResult,
-} from '@tanstack/svelte-query';
-import { getContext, setContext } from 'svelte';
+import { useRobotClient } from './robot-clients.svelte';
 import type { PartID } from '$lib/part';
 import type { PlainMessage, robotApi } from '@viamrobotics/sdk';
-import { usePolling } from './use-polling.svelte';
-import { useQueryLogger } from '$lib/query-logger';
-import { useEnabledQueries } from './use-enabled-queries.svelte';
-
-const key = Symbol('machine-status-context');
+import {
+  createRobotQuery,
+  type QueryOptions,
+} from './create-robot-query.svelte';
 
 type MachineStatus = PlainMessage<robotApi.GetMachineStatusResponse>;
-type Query = QueryObserverResult<MachineStatus, Error>;
 
 // TODO: move to ts-sdk
 export type ResourceStatus = PlainMessage<robotApi.ResourceStatus>;
-
-interface Context {
-  current: Record<PartID, Query | undefined>;
-}
 
 /**
  * sorts machine status resources by local/remote -> type -> name (alphabetical)
@@ -80,104 +67,21 @@ const sortResourceStatuses = (machineStatus: MachineStatus) => {
   };
 };
 
-export const provideMachineStatusContext = (refetchInterval: () => number) => {
-  const clients = useRobotClients();
-  const debug = useQueryLogger();
-  const enabledQueries = useEnabledQueries();
+export const useMachineStatus = (
+  partID: () => PartID,
+  options?: (() => QueryOptions) | QueryOptions
+) => {
+  const client = useRobotClient(partID);
+  const query = createRobotQuery(client, 'getMachineStatus', options);
 
-  const options = $derived(
-    Object.entries(clients.current).map(([partID, client]) => {
-      return queryOptions({
-        enabled: client !== undefined && enabledQueries.machineStatus,
-        queryKey: [
-          'viam-svelte-sdk',
-          'partID',
-          partID,
-          'robotClient',
-          'getMachineStatus',
-        ],
-        refetchInterval: false,
-        queryFn: async (): Promise<MachineStatus> => {
-          if (!client) {
-            throw new Error('No client');
-          }
-
-          const logger = debug.createLogger();
-          logger('REQ', 'robot', 'getMachineStatus');
-
-          try {
-            const response = await client.getMachineStatus();
-            logger('RES', 'robot', 'getMachineStatus', response);
-            return sortResourceStatuses(response);
-          } catch (error) {
-            logger('ERR', 'robot', 'getMachineStatus', error);
-            throw error;
-          }
-        },
-      });
-    })
+  const current = $derived(
+    query.data ? sortResourceStatuses(query.data) : undefined
   );
-
-  const queries = fromStore(
-    createQueries({
-      queries: toStore(() => options),
-      combine: (results) => {
-        const partIDs = Object.keys(clients.current);
-        return Object.fromEntries(
-          results.map((result, index) => [partIDs[index], result])
-        );
-      },
-    })
-  );
-
-  $effect(() => {
-    for (const option of options) {
-      usePolling(
-        () => option.queryKey,
-        () => (option.enabled ? refetchInterval() : false)
-      );
-    }
-  });
-
-  setContext(key, {
-    get current() {
-      return queries.current;
-    },
-  });
-};
-
-export const useMachineStatuses = (): Context => {
-  const context = getContext<Context>(key);
-  return context;
-};
-
-export const useMachineStatus = (partID: () => PartID) => {
-  const context = useMachineStatuses();
-  const query = $derived(context.current[partID()]);
-  const data = $derived(query?.data);
-  const error = $derived(query?.error);
-  const fetching = $derived(query?.isFetching);
-  const loading = $derived(query?.isLoading);
-  const pending = $derived(query?.isPending ?? true);
 
   return {
     get current() {
-      return data;
+      return current;
     },
-    get error() {
-      return error;
-    },
-    get fetching() {
-      return fetching;
-    },
-    get loading() {
-      return loading;
-    },
-    get pending() {
-      return pending;
-    },
-    refetch() {
-      return query?.refetch() ?? Promise.resolve();
-    },
+    query,
   };
 };

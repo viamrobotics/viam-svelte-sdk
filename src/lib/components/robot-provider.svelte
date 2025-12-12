@@ -1,6 +1,10 @@
 <script lang="ts">
 import type { Snippet } from 'svelte';
-import { QueryClientProvider, QueryClient } from '@tanstack/svelte-query';
+import {
+  QueryClientProvider,
+  QueryClient,
+  type QueryClientConfig,
+} from '@tanstack/svelte-query';
 import type { DialConf } from '@viamrobotics/sdk';
 import InternalProvider from './internal-provider.svelte';
 import {
@@ -11,9 +15,8 @@ import {
 } from '../query-logger';
 
 interface Props {
+  config?: QueryClientConfig;
   dialConfigs: Record<string, DialConf>;
-  client?: QueryClient;
-  machineStatusRefetchInterval?: number;
   logQueries?:
     | boolean
     | {
@@ -23,13 +26,9 @@ interface Props {
   children: Snippet;
 }
 
-let {
-  dialConfigs,
-  client = new QueryClient(),
-  machineStatusRefetchInterval,
-  logQueries,
-  children,
-}: Props = $props();
+let { config, dialConfigs, logQueries, children }: Props = $props();
+
+export const client = new QueryClient(config);
 
 $effect(() => {
   if (typeof logQueries === 'boolean') {
@@ -57,10 +56,7 @@ $effect(() => {
 </script>
 
 <QueryClientProvider {client}>
-  <InternalProvider
-    {dialConfigs}
-    {machineStatusRefetchInterval}
-  >
+  <InternalProvider {dialConfigs}>
     {@render children()}
   </InternalProvider>
 </QueryClientProvider>
