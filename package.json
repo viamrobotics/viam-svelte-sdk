@@ -45,7 +45,7 @@
     "runed": "^0.29.1"
   },
   "peerDependencies": {
-    "@viamrobotics/sdk": ">=0.51",
+    "@viamrobotics/sdk": ">=0.57",
     "svelte": ">=5"
   },
   "devDependencies": {
@@ -62,7 +62,7 @@
     "@testing-library/svelte": "^5.2.8",
     "@viamrobotics/eslint-config": "^1.1.0",
     "@viamrobotics/prettier-config-svelte": "^1.1.0",
-    "@viamrobotics/sdk": "^0.56.0",
+    "@viamrobotics/sdk": "^0.57.0",
     "@viamrobotics/typescript-config": "^0.1.1",
     "eslint": "^9.30.0",
     "eslint-config-prettier": "^10.1.5",
