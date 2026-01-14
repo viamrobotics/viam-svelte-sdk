@@ -1,5 +1,11 @@
 # @viamrobotics/svelte-sdk
 
+## 1.0.2
+
+### Patch Changes
+
+- 084e9ed: Add abort controller to use polling and tests
+
 ## 1.0.1
 
 ### Patch Changes
