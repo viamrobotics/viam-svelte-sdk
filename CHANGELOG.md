@@ -1,5 +1,11 @@
 # @viamrobotics/svelte-sdk
 
+## 1.0.3
+
+### Patch Changes
+
+- 670a7fe: Update camera component to use getImages
+
 ## 1.0.2
 
 ### Patch Changes
