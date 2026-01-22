@@ -45,7 +45,7 @@ const src = $derived.by(() => {
 
   return URL.createObjectURL(
     new Blob([image.image as Uint8Array<ArrayBuffer>], {
-      type: image.mimeType,
+      type: mimeType ?? image.mimeType,
     })
   );
 });
