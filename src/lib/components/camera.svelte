@@ -25,19 +25,30 @@ const cameraClient = createResourceClient(
   () => name
 );
 
-const query = createResourceQuery(cameraClient, 'getImage', () => ({
+const query = createResourceQuery(cameraClient, 'getImages', () => ({
   refetchInterval,
 }));
 
-const src = $derived(
-  query.data
-    ? URL.createObjectURL(
-        new Blob([query.data as Uint8Array<ArrayBuffer>], {
-          type: mimeType,
-        })
-      )
-    : undefined
-);
+const src = $derived.by(() => {
+  if (!query.data) {
+    return undefined;
+  }
+
+  if (query.data.images.length === 0) {
+    return undefined;
+  }
+
+  const [image] = query.data.images;
+  if (!image) {
+    return undefined;
+  }
+
+  return URL.createObjectURL(
+    new Blob([image.image as Uint8Array<ArrayBuffer>], {
+      type: image.mimeType,
+    })
+  );
+});
 </script>
 
 {#if query.error}
