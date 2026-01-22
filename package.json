@@ -62,7 +62,7 @@
     "@testing-library/svelte": "^5.2.8",
     "@viamrobotics/eslint-config": "^1.1.0",
     "@viamrobotics/prettier-config-svelte": "^1.1.0",
-    "@viamrobotics/sdk": "^0.57.0",
+    "@viamrobotics/sdk": "^0.61.1",
     "@viamrobotics/typescript-config": "^0.1.1",
     "eslint": "^9.30.0",
     "eslint-config-prettier": "^10.1.5",
