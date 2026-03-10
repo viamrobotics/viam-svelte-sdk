@@ -1,4 +1,9 @@
-import { createMutation, type MutationOptions, type QueryOptions, useQueryClient } from '@tanstack/svelte-query';
+import {
+  createMutation,
+  type MutationOptions,
+  type QueryOptions,
+  useQueryClient,
+} from '@tanstack/svelte-query';
 import type { Resource } from '@viamrobotics/sdk';
 
 import type {
@@ -59,7 +64,6 @@ export const createResourceMutation = <T extends Resource, K extends keyof T>(
         return;
       }
 
-      
       await queryClient.cancelQueries({ queryKey });
       const previousData = await queryClient.getQueryData(queryKey);
 
@@ -79,7 +83,7 @@ export const createResourceMutation = <T extends Resource, K extends keyof T>(
       }
 
       queryClient.invalidateQueries({ queryKey });
-    }
+    },
   } satisfies MutationOptions<MutReturn, Error, MutArgs>);
 
   return createMutation(() => mutationOptions);
