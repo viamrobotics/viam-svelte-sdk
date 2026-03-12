@@ -35,7 +35,9 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
         args?: (() => ArgumentsType<T[K]>) | ArgumentsType<T[K]>,
         options?: (() => QueryOptions) | QueryOptions,
       ]
-): QueryObserverResult<ResolvedReturnType<T[K]>> & { queryKey: typeof queryKey } => {
+): QueryObserverResult<ResolvedReturnType<T[K]>> & {
+  queryKey: typeof queryKey;
+} => {
   const debug = useQueryLogger();
   const enabledQueries = useEnabledQueries();
 
@@ -108,7 +110,9 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
     () => enabled && (_options?.refetchInterval ?? false)
   );
 
-  const query = createQuery(() => queryOptions) as QueryObserverResult<ResolvedReturnType<T[K]>> & { queryKey: typeof queryKey };
+  const query = createQuery(() => queryOptions) as QueryObserverResult<
+    ResolvedReturnType<T[K]>
+  > & { queryKey: typeof queryKey };
   Object.defineProperty(query, 'queryKey', {
     get: () => queryKey,
     set: () => {
