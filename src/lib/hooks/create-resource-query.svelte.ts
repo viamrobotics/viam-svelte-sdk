@@ -35,7 +35,7 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
         args?: (() => ArgumentsType<T[K]>) | ArgumentsType<T[K]>,
         options?: (() => QueryOptions) | QueryOptions,
       ]
-): QueryObserverResult<ResolvedReturnType<T[K]>> => {
+): QueryObserverResult<ResolvedReturnType<T[K]>> & { queryKey: typeof queryKey } => {
   const debug = useQueryLogger();
   const enabledQueries = useEnabledQueries();
 
@@ -58,17 +58,19 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
       enabledQueries.resourceQueries
   );
 
+  const queryKey = [
+    'viam-svelte-sdk',
+    'partID',
+    (client.current as T & { partID: string })?.partID,
+    'resource',
+    name,
+    methodName,
+    ...(_args ? [_args] : []),
+  ];
+
   const queryOptions = $derived(
     createQueryOptions({
-      queryKey: [
-        'viam-svelte-sdk',
-        'partID',
-        (client.current as T & { partID: string })?.partID,
-        'resource',
-        name,
-        methodName,
-        ...(_args ? [_args] : []),
-      ],
+      queryKey,
       enabled,
       retry: false,
       queryFn: async () => {
@@ -106,5 +108,14 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
     () => enabled && (_options?.refetchInterval ?? false)
   );
 
-  return createQuery(() => queryOptions);
+  const query = createQuery(() => queryOptions) as QueryObserverResult<ResolvedReturnType<T[K]>> & { queryKey: typeof queryKey };
+  Object.defineProperty(query, 'queryKey', {
+    get: () => queryKey,
+    set: () => {
+      // do nothing
+    },
+    enumerable: true,
+    configurable: true,
+  });
+  return query;
 };

@@ -54,7 +54,7 @@ let streaming = true;
   {:else}
     <ul class="text-xs">
       {#each resources.current as resource (resource.name)}
-        <li>{resource.name}</li>
+        <li>{resource.name}: {resource.subtype}</li>
       {/each}
     </ul>
   {/if}
