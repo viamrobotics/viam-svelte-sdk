@@ -67,7 +67,7 @@ export const createResourceMutation = <T extends Resource, K extends keyof T>(
       await queryClient.cancelQueries({ queryKey: key });
       const previousData = await queryClient.getQueryData(key);
 
-      queryClient.setQueryData(key, request);
+      queryClient.setQueryData(key, request[0]);
 
       return { previousData };
     },
