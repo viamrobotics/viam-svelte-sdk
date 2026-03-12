@@ -6,6 +6,7 @@ import type { Snippet } from 'svelte';
 import { dialConfigs as c } from './configs';
 import Parts from './components/parts.svelte';
 import type { DialConf } from '@viamrobotics/sdk';
+import { SDKLogLevel } from '$lib/logger';
 
 interface Props {
   children: Snippet;
@@ -45,7 +46,7 @@ let { children }: Props = $props();
 
 <ViamProvider
   {dialConfigs}
-  logQueries
+  logLevel={SDKLogLevel.debug}
 >
   <Parts />
   {@render children()}

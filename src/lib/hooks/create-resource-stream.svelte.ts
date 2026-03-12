@@ -5,7 +5,7 @@ import {
   queryOptions as createQueryOptions,
 } from '@tanstack/svelte-query';
 import type { Resource } from '@viamrobotics/sdk';
-import { useQueryLogger } from '../query-logger';
+import { createQueryLogger } from '$lib/logger';
 import { useEnabledQueries } from './use-enabled-queries.svelte';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -53,7 +53,6 @@ export const createResourceStream = <T extends Resource, K extends keyof T>(
       ]
     | [options?: (() => QueryOptions) | QueryOptions]
 ): QueryResult<StreamItemType<T[K]>> => {
-  const debug = useQueryLogger();
   const enabledQueries = useEnabledQueries();
 
   let [args, options] = additional;
@@ -83,20 +82,19 @@ export const createResourceStream = <T extends Resource, K extends keyof T>(
       );
     }
 
-    const logger = debug.createLogger();
-    logger('REQ', name, methodName, _args);
+    const logger = createQueryLogger(name ?? 'unknown', methodName);
+    logger.request(_args);
 
     try {
       const response = clientFunc?.apply(
         client.current,
         _args
       ) as AsyncGenerator<StreamItemType<T[K]>>;
-      console.log('response', typeof response);
 
-      logger('RES', name, methodName, response);
+      logger.response(response);
       return response;
     } catch (error) {
-      logger('ERR', name, methodName, error);
+      logger.error(error);
       throw error;
     }
   }

@@ -2,7 +2,7 @@ import { createMutation, type MutationOptions } from '@tanstack/svelte-query';
 import type { DataClient } from '@viamrobotics/sdk';
 
 import type { ArgumentsType, ResolvedReturnType } from './types';
-import { useQueryLogger } from '$lib/query-logger';
+import { createQueryLogger } from '$lib/logger';
 import { useViamClient } from './use-app-client.svelte';
 
 export const createDataMutation = <T extends DataClient, K extends keyof T>(
@@ -13,7 +13,6 @@ export const createDataMutation = <T extends DataClient, K extends keyof T>(
 
   const viamClient = useViamClient();
   const dataClient = $derived(viamClient.current?.dataClient as T);
-  const debug = useQueryLogger();
 
   const methodName = $derived(String(method));
 
@@ -28,8 +27,8 @@ export const createDataMutation = <T extends DataClient, K extends keyof T>(
         );
       }
 
-      const logger = debug.createLogger();
-      logger('REQ', 'dataClient', methodName, request);
+      const logger = createQueryLogger('dataClient', methodName);
+      logger.request(request);
 
       try {
         const response = (await clientFunc.apply(
@@ -37,10 +36,10 @@ export const createDataMutation = <T extends DataClient, K extends keyof T>(
           request
         )) as Promise<MutReturn>;
 
-        logger('RES', 'dataClient', methodName, response);
+        logger.response(response);
         return response;
       } catch (error) {
-        logger('ERR', 'dataClient', methodName, error);
+        logger.error(error);
         throw error;
       }
     },

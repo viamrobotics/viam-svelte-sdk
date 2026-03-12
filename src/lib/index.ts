@@ -36,3 +36,6 @@ export { createAppQuery } from './hooks/app/create-app-query.svelte';
 export { createAppMutation } from './hooks/app/create-app-mutation.svelte';
 export { createDataQuery } from './hooks/app/create-data-query.svelte';
 export { createDataMutation } from './hooks/app/create-data-mutation.svelte';
+
+// Logger
+export { SDKLogLevel, type SDKLogLevelType } from './logger';

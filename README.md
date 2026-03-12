@@ -266,36 +266,41 @@ let { partID, name }: Props = $props();
 
 ## Debugging
 
-### Query Logger
+### Logger
 
-Enables query and mutation logs to the browser console. It can be set at with the `<ViamProvider />` or with `window` functions:
+The SDK uses a built-in logger that writes all messages (including query/mutation request, response, and error events) to the browser console and an in-memory buffer.
 
-```svelte
-<!-- enable query logging -->
-<ViamProvider
-  {dialConfigs}
-  logQueries
->
-  {@render children()}
-</ViamProvider>
+By default the console output is enabled at the `info` level. Use `setSDKLogLevel` to change the level or silence the console entirely. The log buffer always captures all levels regardless of the console setting.
 
-<!-- enable verbose query logging -->
-<ViamProvider
-  {dialConfigs}
-  logQueries={{ enabled: true, verbose: true }}
->
-  {@render children()}
-</ViamProvider>
+**Available log levels** (from `SDKLogLevel`): `trace`, `debug`, `info`, `warn`, `error`, `fatal`.
+
+#### In your application code
+
+```ts
+import { setSDKLogLevel, SDKLogLevel } from '@viamrobotics/svelte-sdk';
+
+// Show debug-level logs and above (includes query/mutation traces)
+setSDKLogLevel(SDKLogLevel.debug);
+
+// Silence the console (logs still accumulate in the buffer)
+setSDKLogLevel(false);
 ```
 
-```js
-// enable/disable query logging
-window.enableQueryLogging();
-window.disableQueryLogging();
+#### From the browser console
 
-// enable/disable verbose query logging
-window.enableVerboseQueryLogging();
-window.disableVerboseQueryLogging();
+```js
+// Change the log level
+window.setSDKLogLevel('debug');
+window.setSDKLogLevel('info');
+
+// Silence the console
+window.setSDKLogLevel(false);
+
+// Retrieve all buffered log entries (up to 1000)
+window.getSDKLogs();
+
+// Clear the log buffer
+window.clearSDKLogs();
 ```
 
 ## Developing

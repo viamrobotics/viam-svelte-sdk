@@ -4,6 +4,7 @@ import {
   type ViamClient,
 } from '@viamrobotics/sdk';
 import { getContext, setContext } from 'svelte';
+import { logger } from '$lib/logger';
 
 const key = Symbol('viam-app-context');
 
@@ -24,11 +25,20 @@ export const provideViamClient = (
   let connectionError = $state.raw<Error>();
 
   const connect = async (args: ViamAppClientOptions) => {
+    logger
+      .withMetadata({ serviceHost: args.serviceHost })
+      .info('connecting app client');
     try {
       client = await createViamClient(args);
+      logger
+        .withMetadata({ serviceHost: args.serviceHost })
+        .info('app client connected');
     } catch (error) {
-      console.error(error);
       connectionError = error as Error;
+      logger
+        .withMetadata({ serviceHost: args.serviceHost })
+        .withError(error)
+        .error('app client connection failed');
     }
   };
 

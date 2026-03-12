@@ -7,50 +7,27 @@ import {
 } from '@tanstack/svelte-query';
 import type { DialConf } from '@viamrobotics/sdk';
 import InternalProvider from './internal-provider.svelte';
-import {
-  enableQueryLogging,
-  disableQueryLogging,
-  enableVerboseQueryLogging,
-  disableVerboseQueryLogging,
-} from '../query-logger';
+import { setSDKLogLevel, SDKLogLevel, type SDKLogLevelType } from '$lib/logger';
 
 interface Props {
   config?: QueryClientConfig;
   dialConfigs: Record<string, DialConf>;
-  logQueries?:
-    | boolean
-    | {
-        enabled: boolean;
-        verbose?: boolean;
-      };
+  logLevel?: SDKLogLevelType;
   children: Snippet;
 }
 
-let { config, dialConfigs, logQueries, children }: Props = $props();
+let {
+  config,
+  dialConfigs,
+  logLevel = SDKLogLevel.info,
+  children,
+}: Props = $props();
 
 export const client = new QueryClient(config);
 
 $effect(() => {
-  if (typeof logQueries === 'boolean') {
-    logQueries = { enabled: logQueries };
-  }
-
-  if (logQueries?.enabled) {
-    enableQueryLogging();
-  } else {
-    disableQueryLogging();
-  }
-});
-
-$effect(() => {
-  if (typeof logQueries === 'boolean') {
-    return;
-  }
-
-  if (logQueries?.verbose) {
-    enableVerboseQueryLogging();
-  } else {
-    disableVerboseQueryLogging();
+  if (logLevel !== undefined) {
+    setSDKLogLevel(logLevel);
   }
 });
 </script>

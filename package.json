@@ -42,6 +42,7 @@
   "dependencies": {
     "@tanstack/svelte-query": "^6.0.8",
     "@tanstack/svelte-query-devtools": "^6.0.1",
+    "loglayer": "^9.1.0",
     "runed": "^0.29.1"
   },
   "peerDependencies": {
