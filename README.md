@@ -288,13 +288,18 @@ setSDKLogLevel(false);
 
 #### From the browser console
 
+The level set via `window.Viam.setSDKLogLevel` is persisted in `localStorage` and restored on every page load.
+
 ```js
-// Change the log level
+// Change the log level (persisted across refreshes)
 window.Viam.setSDKLogLevel('debug');
 window.Viam.setSDKLogLevel('info');
 
-// Silence the console
+// Silence the console (persisted across refreshes)
 window.Viam.setSDKLogLevel(false);
+
+// Reset to the default info level
+window.Viam.setSDKLogLevel('info');
 
 // Retrieve all buffered log entries (up to 1000)
 window.Viam.getSDKLogs();

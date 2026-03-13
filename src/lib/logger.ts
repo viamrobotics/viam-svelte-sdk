@@ -41,11 +41,29 @@ const CONSOLE_METHOD_MAP: Record<
   [LogLevel.fatal]: 'error',
 };
 
-const logBuffer: LogEntry[] = [];
-let consoleEnabled = true;
-let consoleLevel: LogLevelType = LogLevel.info;
-let _queryIndex = -1;
+const STORAGE_KEY = 'viam-sdk-log-level';
 
+export const getPersistedLogLevel = (): LogLevelType | false | null => {
+  if (typeof localStorage === 'undefined') return null;
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (stored === 'false') return false;
+  if (stored === null) return null;
+  if (LOG_LEVEL_ORDER.includes(stored as LogLevelType)) {
+    return stored as LogLevelType;
+  }
+  return null;
+};
+
+const persistedLevel = getPersistedLogLevel();
+
+const logBuffer: LogEntry[] = [];
+
+let consoleEnabled = !!persistedLevel;
+let consoleLevel: LogLevelType = persistedLevel
+  ? persistedLevel
+  : LogLevel.info;
+
+let _queryIndex = -1;
 const nextQueryId = (): number => {
   _queryIndex += 1;
   return _queryIndex;
@@ -134,6 +152,10 @@ export const setSDKLogLevel = (level: LogLevelType | false): void => {
   } else {
     consoleEnabled = true;
     consoleLevel = level;
+  }
+
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem(STORAGE_KEY, String(level));
   }
 };
 
