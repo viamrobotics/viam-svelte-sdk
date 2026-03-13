@@ -27,7 +27,7 @@ const LOG_LEVEL_ORDER: readonly LogLevelType[] = [
   LogLevel.fatal,
 ];
 
-const MAX_LOG_ENTRIES = 1000;
+const MAX_LOG_ENTRIES = 10_000;
 
 const CONSOLE_METHOD_MAP: Record<
   LogLevelType,
@@ -62,6 +62,11 @@ let consoleEnabled = !!persistedLevel;
 let consoleLevel: LogLevelType = persistedLevel
   ? persistedLevel
   : LogLevel.info;
+
+globalThis.VIAM = {
+  ...globalThis.VIAM,
+  GRPC_TRACE_LOGGING: consoleLevel === LogLevel.trace && consoleEnabled,
+};
 
 let _queryIndex = -1;
 const nextQueryId = (): number => {
@@ -146,6 +151,13 @@ export const createQueryLogger = (
   };
 };
 
+const syncGrpcTraceLogging = (level: LogLevelType | false): void => {
+  globalThis.VIAM = {
+    ...globalThis.VIAM,
+    GRPC_TRACE_LOGGING: level === LogLevel.trace,
+  };
+};
+
 export const setSDKLogLevel = (level: LogLevelType | false): void => {
   if (level === false) {
     consoleEnabled = false;
@@ -153,6 +165,8 @@ export const setSDKLogLevel = (level: LogLevelType | false): void => {
     consoleEnabled = true;
     consoleLevel = level;
   }
+
+  syncGrpcTraceLogging(level);
 
   if (typeof localStorage !== 'undefined') {
     localStorage.setItem(STORAGE_KEY, String(level));
@@ -164,11 +178,11 @@ const clearSDKLogs = (): void => {
   logBuffer.length = 0;
 };
 
-if (typeof window !== 'undefined') {
-  window.Viam ??= {};
-  window.Viam.setSDKLogLevel = setSDKLogLevel;
-  window.Viam.getSDKLogs = getSDKLogs;
-  window.Viam.clearSDKLogs = clearSDKLogs;
-}
+globalThis.VIAM = {
+  ...globalThis.VIAM,
+  setSDKLogLevel,
+  getSDKLogs,
+  clearSDKLogs,
+};
 
 export { LogLevel as SDKLogLevel, type LogLevelType as SDKLogLevelType };
