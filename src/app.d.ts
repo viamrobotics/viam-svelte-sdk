@@ -9,16 +9,17 @@ declare global {
     // interface Platform {}
   }
 
-  interface Window {
-    VIAM?: {
-      GRPC_TRACE_LOGGING?: boolean;
-      setSDKLogLevel?: (
-        level: import('$lib/logger').SDKLogLevelType | false
-      ) => void;
-      getSDKLogs?: () => import('$lib/logger').LogEntry[];
-      clearSDKLogs?: () => void;
-    };
-  }
+  var VIAM:
+    | {
+        // from the typescript sdk
+        GRPC_TRACE_LOGGING?: boolean;
+        setSDKLogLevel?: (
+          level: import('$lib/logger').SDKLogLevelType | false
+        ) => void;
+        getSDKLogs?: () => import('$lib/logger').LogEntry[];
+        clearSDKLogs?: () => void;
+      }
+    | undefined;
 }
 
 export {};

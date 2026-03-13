@@ -178,11 +178,11 @@ const clearSDKLogs = (): void => {
   logBuffer.length = 0;
 };
 
-if (typeof window !== 'undefined') {
-  window.VIAM ??= {};
-  window.VIAM.setSDKLogLevel = setSDKLogLevel;
-  window.VIAM.getSDKLogs = getSDKLogs;
-  window.VIAM.clearSDKLogs = clearSDKLogs;
-}
+globalThis.VIAM = {
+  ...globalThis.VIAM,
+  setSDKLogLevel,
+  getSDKLogs,
+  clearSDKLogs,
+};
 
 export { LogLevel as SDKLogLevel, type LogLevelType as SDKLogLevelType };

@@ -274,7 +274,7 @@ By default the console output is enabled at the `info` level. Use `setSDKLogLeve
 
 **Available log levels** (from `SDKLogLevel`): `trace`, `debug`, `info`, `warn`, `error`, `fatal`.
 
-Setting the level to `trace` also enables the TypeScript SDK's built-in gRPC trace logging, which logs every unary and streaming gRPC request/response to the console via `console.trace` and `console.debug`. You must refresh the page after setting the level to `trace` to see the trace output.
+Setting the level to `trace` also enables the TypeScript SDK's built-in gRPC trace logging, which logs every unary and streaming gRPC request/response to the console via `console.trace` and `console.debug`. You must refresh the page after setting the level to enable/disable the trace output.
 
 #### In your application code
 
