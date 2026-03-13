@@ -6,7 +6,7 @@ import {
 
 import { MachineConnectionEvent, type RobotClient } from '@viamrobotics/sdk';
 import { usePolling } from './use-polling.svelte';
-import { useQueryLogger } from '$lib/query-logger';
+import { createQueryLogger } from '$lib/logger';
 import { useEnabledQueries } from './use-enabled-queries.svelte';
 import { useConnectionStatus } from './robot-clients.svelte';
 
@@ -40,7 +40,6 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
 ): QueryObserverResult<ResolvedReturnType<T[K]>> => {
   const partID = $derived((client.current as T & { partID: string })?.partID);
   const connectionStatus = useConnectionStatus(() => partID);
-  const debug = useQueryLogger();
   const enabledQueries = useEnabledQueries();
   let [args, options] = additional;
 
@@ -82,8 +81,8 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
           );
         }
 
-        const logger = debug.createLogger();
-        logger('REQ', 'robot', methodName, _args);
+        const logger = createQueryLogger('robot', methodName);
+        logger.request(_args);
 
         try {
           const response = (await clientFunc?.apply(
@@ -91,10 +90,10 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
             _args
           )) as Promise<ResolvedReturnType<T[K]>>;
 
-          logger('RES', 'robot', methodName, response);
+          logger.response(response);
           return response;
         } catch (error) {
-          logger('ERR', 'robot', methodName, error);
+          logger.error(error);
           throw error;
         }
       },

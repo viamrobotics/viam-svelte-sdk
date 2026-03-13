@@ -10,10 +10,13 @@ declare global {
   }
 
   interface Window {
-    enableQueryLogging?: () => unknown;
-    disableQueryLogging?: () => unknown;
-    enableVerboseQueryLogging?: () => unknown;
-    disableVerboseQueryLogging?: () => unknown;
+    Viam?: {
+      setSDKLogLevel?: (
+        level: import('$lib/logger').SDKLogLevelType | false
+      ) => void;
+      getSDKLogs?: () => import('$lib/logger').LogEntry[];
+      clearSDKLogs?: () => void;
+    };
   }
 }
 

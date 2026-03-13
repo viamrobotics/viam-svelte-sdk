@@ -15,6 +15,11 @@ viamrobotics-svelte-sdk-*.tgz
 .DS_Store
 Thumbs.db
 
+# IDEs
+.vscode
+.idea
+.cursor
+
 # Env
 .env
 .env.*

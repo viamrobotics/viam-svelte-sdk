@@ -6,7 +6,7 @@ import {
   createQuery,
   queryOptions as createQueryOptions,
 } from '@tanstack/svelte-query';
-import { useQueryLogger } from '../query-logger';
+import { createQueryLogger } from '$lib/logger';
 import { useEnabledQueries } from './use-enabled-queries.svelte';
 
 export const createStreamClient = (
@@ -14,7 +14,6 @@ export const createStreamClient = (
   resourceName: () => string
 ) => {
   const name = $derived(resourceName());
-  const debug = useQueryLogger();
   const enabledQueries = useEnabledQueries();
   let mediaStream = $state.raw<MediaStream | null>(null);
   let error = $state.raw<Error>();
@@ -71,15 +70,15 @@ export const createStreamClient = (
       retry: false,
       refetchOnWindowFocus: false,
       queryFn: async () => {
-        const logger = debug.createLogger();
-        logger('REQ', name, 'getOptions');
+        const logger = createQueryLogger(name, 'getOptions');
+        logger.request(undefined);
 
         try {
           const response = await streamClient?.getOptions(name);
-          logger('RES', name, 'getOptions', response);
+          logger.response(response);
           return response;
         } catch (error) {
-          logger('ERR', name, 'getOptions', error);
+          logger.error(error);
           throw error;
         }
       },
@@ -100,8 +99,8 @@ export const createStreamClient = (
     ],
     mutationFn: async (resolution?: streamApi.Resolution) => {
       if (resolution) {
-        const logger = debug.createLogger();
-        logger('REQ', name, 'setOptions', resolution);
+        const logger = createQueryLogger(name, 'setOptions');
+        logger.request(resolution);
 
         try {
           const response = await streamClient?.setOptions(
@@ -109,22 +108,22 @@ export const createStreamClient = (
             resolution.width,
             resolution.height
           );
-          logger('RES', name, 'setOptions', response);
+          logger.response(response);
           return response;
         } catch (error) {
-          logger('ERR', name, 'setOptions', error);
+          logger.error(error);
           throw error;
         }
       } else {
-        const logger = debug.createLogger();
-        logger('REQ', name, 'resetOptions');
+        const logger = createQueryLogger(name, 'resetOptions');
+        logger.request(undefined);
 
         try {
           const response = await streamClient?.resetOptions(name);
-          logger('RES', name, 'resetOptions', response);
+          logger.response(response);
           return response;
         } catch (error) {
-          logger('ERR', name, 'resetOptions', error);
+          logger.error(error);
           throw error;
         }
       }
