@@ -10,7 +10,8 @@ declare global {
   }
 
   interface Window {
-    Viam?: {
+    VIAM?: {
+      GRPC_TRACE_LOGGING?: boolean;
       setSDKLogLevel?: (
         level: import('$lib/logger').SDKLogLevelType | false
       ) => void;
