@@ -1,5 +1,12 @@
 # @viamrobotics/svelte-sdk
 
+## 1.1.0
+
+### Minor Changes
+
+- 39bfff9: Use `loglevel` for logging interface, better logs, include connection logs
+- e3e7f09: feat: enable optimistic updates on resource mutations
+
 ## 1.0.3
 
 ### Patch Changes
