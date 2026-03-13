@@ -10,11 +10,13 @@ declare global {
   }
 
   interface Window {
-    setSDKLogLevel?: (
-      level: import('$lib/logger').SDKLogLevelType | false
-    ) => void;
-    getSDKLogs?: () => import('$lib/logger').LogEntry[];
-    clearSDKLogs?: () => void;
+    Viam?: {
+      setSDKLogLevel?: (
+        level: import('$lib/logger').SDKLogLevelType | false
+      ) => void;
+      getSDKLogs?: () => import('$lib/logger').LogEntry[];
+      clearSDKLogs?: () => void;
+    };
   }
 }
 

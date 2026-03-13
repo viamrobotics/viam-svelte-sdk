@@ -290,17 +290,17 @@ setSDKLogLevel(false);
 
 ```js
 // Change the log level
-window.setSDKLogLevel('debug');
-window.setSDKLogLevel('info');
+window.Viam.setSDKLogLevel('debug');
+window.Viam.setSDKLogLevel('info');
 
 // Silence the console
-window.setSDKLogLevel(false);
+window.Viam.setSDKLogLevel(false);
 
 // Retrieve all buffered log entries (up to 1000)
-window.getSDKLogs();
+window.Viam.getSDKLogs();
 
 // Clear the log buffer
-window.clearSDKLogs();
+window.Viam.clearSDKLogs();
 ```
 
 ## Developing

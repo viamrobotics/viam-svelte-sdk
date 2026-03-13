@@ -143,9 +143,10 @@ const clearSDKLogs = (): void => {
 };
 
 if (typeof window !== 'undefined') {
-  window.setSDKLogLevel = setSDKLogLevel;
-  window.getSDKLogs = getSDKLogs;
-  window.clearSDKLogs = clearSDKLogs;
+  window.Viam ??= {};
+  window.Viam.setSDKLogLevel = setSDKLogLevel;
+  window.Viam.getSDKLogs = getSDKLogs;
+  window.Viam.clearSDKLogs = clearSDKLogs;
 }
 
 export { LogLevel as SDKLogLevel, type LogLevelType as SDKLogLevelType };
