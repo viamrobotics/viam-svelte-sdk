@@ -12,7 +12,7 @@ export interface LogEntry {
   data?: Record<string, unknown>;
 }
 
-export interface QueryLogger {
+interface QueryLogger {
   request: (args: unknown) => void;
   response: (response: unknown) => void;
   error: (error: unknown) => void;
