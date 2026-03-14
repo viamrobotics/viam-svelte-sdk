@@ -36,8 +36,13 @@ export const provideRobotClientsContext = (
   const connectionStatus = $state<Record<PartID, MachineConnectionEvent>>({});
 
   let lastConfigs: Record<PartID, DialConf | undefined> = {};
+  const reconnectTimers = new Map<PartID, ReturnType<typeof setInterval>>();
+  const connectingParts = new Set<PartID>();
 
   const disconnect = async (partID: PartID) => {
+    clearInterval(reconnectTimers.get(partID));
+    reconnectTimers.delete(partID);
+
     const client = clients[partID];
 
     if (!client) {
@@ -63,6 +68,14 @@ export const provideRobotClientsContext = (
   const connect = async (partID: PartID, config: DialConf) => {
     connectionStatus[partID] ??= MachineConnectionEvent.DISCONNECTED;
 
+    if (connectingParts.has(partID)) {
+      logger.withMetadata({ partID }).info('connect already in progress, skipping');
+      return;
+    }
+    connectingParts.add(partID);
+    connectionStatus[partID] = MachineConnectionEvent.CONNECTING;
+    logger.withMetadata({ partID }).info('connecting');
+
     try {
       await disconnect(partID);
 
@@ -74,9 +87,6 @@ export const provideRobotClientsContext = (
 
       clients[partID] = client;
 
-      logger.withMetadata({ partID }).info('connecting');
-      connectionStatus[partID] = MachineConnectionEvent.CONNECTING;
-
       client.on('connectionstatechange', async (event) => {
         const newStatus = (event as { eventType: MachineConnectionEvent })
           .eventType;
@@ -86,7 +96,31 @@ export const provideRobotClientsContext = (
           .withMetadata({ partID, status: newStatus })
           .info('connection state changed');
 
+        if (connectionStatus[partID] === MachineConnectionEvent.CONNECTED) {
+          if (reconnectTimers.has(partID)) {
+            logger.withMetadata({ partID }).info('reconnect timer cleared, client recovered');
+          }
+          clearInterval(reconnectTimers.get(partID));
+          reconnectTimers.delete(partID);
+        }
+
         if (connectionStatus[partID] === MachineConnectionEvent.DISCONNECTED) {
+          if (!reconnectTimers.has(partID) && !connectingParts.has(partID)) {
+            logger.withMetadata({ partID }).info('starting reconnect timer');
+            const timer = setInterval(() => {
+              const currentConfig = dialConfigs()[partID];
+              if (!currentConfig) {
+                logger.withMetadata({ partID }).info('reconnect timer stopped, part removed from config');
+                clearInterval(timer);
+                reconnectTimers.delete(partID);
+                return;
+              }
+              logger.withMetadata({ partID }).info('reconnect timer fired, retrying');
+              connect(partID, currentConfig);
+            }, 2000);
+            reconnectTimers.set(partID, timer);
+          }
+
           await queryClient.cancelQueries({
             queryKey: ['viam-svelte-sdk', 'partID', partID],
           });
@@ -100,6 +134,9 @@ export const provideRobotClientsContext = (
       await client.dial(config);
       errors[partID] = undefined;
 
+      clearInterval(reconnectTimers.get(partID));
+      reconnectTimers.delete(partID);
+
       connectionStatus[partID] = MachineConnectionEvent.CONNECTED;
       logger.withMetadata({ partID }).info('connected');
     } catch (error) {
@@ -109,6 +146,8 @@ export const provideRobotClientsContext = (
         .withMetadata({ partID })
         .withError(error)
         .error('connection failed');
+    } finally {
+      connectingParts.delete(partID);
     }
   };
 
@@ -151,6 +190,10 @@ export const provideRobotClientsContext = (
       for (const partID of Object.keys(dialConfigs())) {
         clients[partID]?.disconnect();
       }
+      for (const [, timer] of reconnectTimers) {
+        clearInterval(timer);
+      }
+      reconnectTimers.clear();
     };
   });
 
