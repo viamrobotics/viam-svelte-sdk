@@ -80,13 +80,15 @@ export const provideRobotClientsContext = (
       client.on('connectionstatechange', async (event) => {
         const newStatus = (event as { eventType: MachineConnectionEvent })
           .eventType;
-        connectionStatus[partID] = newStatus;
-
         logger
           .withMetadata({ partID, status: newStatus })
           .info('connection state changed');
 
-        if (connectionStatus[partID] === MachineConnectionEvent.DISCONNECTED) {
+        // Only mirror DISCONNECTED from the TS SDK. The TS SDK emits CONNECTED
+        // when ICE connects, before the client is usable. connect() sets
+        // CONNECTING/CONNECTED at the Svelte SDK level once dial() resolves.
+        if (newStatus === MachineConnectionEvent.DISCONNECTED) {
+          connectionStatus[partID] = MachineConnectionEvent.DISCONNECTED;
           await queryClient.cancelQueries({
             queryKey: ['viam-svelte-sdk', 'partID', partID],
           });
