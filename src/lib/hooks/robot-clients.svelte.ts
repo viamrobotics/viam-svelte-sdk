@@ -10,6 +10,8 @@ import type { PartID } from '../part';
 import { comparePartIds, isJsonEqual } from '../compare';
 import { logger } from '$lib/logger';
 
+const RECONNECT_DELAY_MS = 500;
+
 const clientKey = Symbol('clients-context');
 const connectionKey = Symbol('connection-status-context');
 const dialKey = Symbol('dial-configs-context');
@@ -36,8 +38,17 @@ export const provideRobotClientsContext = (
   const connectionStatus = $state<Record<PartID, MachineConnectionEvent>>({});
 
   let lastConfigs: Record<PartID, DialConf | undefined> = {};
+  const reconnectTimeouts = new Map<PartID, ReturnType<typeof setTimeout>>();
+  const dialing = new Set<PartID>();
+
+  const clearReconnect = (partID: PartID) => {
+    clearTimeout(reconnectTimeouts.get(partID));
+    reconnectTimeouts.delete(partID);
+  };
 
   const disconnect = async (partID: PartID) => {
+    clearReconnect(partID);
+    dialing.delete(partID);
     const client = clients[partID];
 
     if (!client) {
@@ -62,6 +73,10 @@ export const provideRobotClientsContext = (
 
   const connect = async (partID: PartID, config: DialConf) => {
     connectionStatus[partID] ??= MachineConnectionEvent.DISCONNECTED;
+    const isReconnect = clients[partID] !== undefined;
+
+    const client = new RobotClient();
+    (client as RobotClient & { partID: string }).partID = partID;
 
     try {
       await disconnect(partID);
@@ -69,24 +84,48 @@ export const provideRobotClientsContext = (
       config.reconnectMaxAttempts ??= 1e9;
       config.reconnectMaxWait ??= 1000;
 
-      const client = new RobotClient();
-      (client as RobotClient & { partID: string }).partID = partID;
-
       clients[partID] = client;
-
-      logger.withMetadata({ partID }).info('connecting');
-      connectionStatus[partID] = MachineConnectionEvent.CONNECTING;
 
       client.on('connectionstatechange', async (event) => {
         const newStatus = (event as { eventType: MachineConnectionEvent })
           .eventType;
+        const meta = { partID, status: newStatus };
+
+        logger.withMetadata(meta).info('ts-sdk connection state changed');
+
         connectionStatus[partID] = newStatus;
 
-        logger
-          .withMetadata({ partID, status: newStatus })
-          .info('connection state changed');
+        if (newStatus === MachineConnectionEvent.CONNECTED) {
+          errors[partID] = undefined;
+          clearReconnect(partID);
 
-        if (connectionStatus[partID] === MachineConnectionEvent.DISCONNECTED) {
+          if (isReconnect) {
+            logger.withMetadata(meta).info('reconnected, invalidating queries');
+            await queryClient.invalidateQueries({
+              queryKey: ['viam-svelte-sdk', 'partID', partID],
+            });
+          }
+        }
+
+        if (newStatus === MachineConnectionEvent.DISCONNECTED) {
+          // Skip retry if dial() is in progress — the TS SDK handles its own retries.
+          // Retry continues as long as the dialConfig is present.
+          if (dialing.has(partID)) {
+            logger.withMetadata(meta).info('dial in progress, skipping retry');
+          } else {
+            const currentConfig = dialConfigs()[partID];
+            if (currentConfig && !reconnectTimeouts.has(partID)) {
+              logger.withMetadata(meta).info('scheduling reconnect');
+              const timeout = setTimeout(
+                () => connect(partID, currentConfig),
+                RECONNECT_DELAY_MS
+              );
+              reconnectTimeouts.set(partID, timeout);
+            } else if (!currentConfig) {
+              logger.withMetadata(meta).info('no dial config, skipping retry');
+            }
+          }
+
           await queryClient.cancelQueries({
             queryKey: ['viam-svelte-sdk', 'partID', partID],
           });
@@ -97,18 +136,37 @@ export const provideRobotClientsContext = (
         }
       });
 
-      await client.dial(config);
-      errors[partID] = undefined;
+      dialing.add(partID);
+      try {
+        await client.dial(config);
+      } finally {
+        dialing.delete(partID);
+      }
 
+      if (clients[partID] !== client) {
+        return;
+      }
+
+      errors[partID] = undefined;
       connectionStatus[partID] = MachineConnectionEvent.CONNECTED;
-      logger.withMetadata({ partID }).info('connected');
     } catch (error) {
+      if (clients[partID] !== client) {
+        return;
+      }
+
       errors[partID] = error as Error;
       connectionStatus[partID] = MachineConnectionEvent.DISCONNECTED;
       logger
         .withMetadata({ partID })
         .withError(error)
         .error('connection failed');
+
+      const currentConfig = dialConfigs()[partID];
+      if (currentConfig) {
+        clearReconnect(partID);
+        const timeout = setTimeout(() => connect(partID, currentConfig), RECONNECT_DELAY_MS);
+        reconnectTimeouts.set(partID, timeout);
+      }
     }
   };
 
@@ -148,6 +206,9 @@ export const provideRobotClientsContext = (
 
   onMount(() => {
     return () => {
+      for (const partID of reconnectTimeouts.keys()) {
+        clearReconnect(partID);
+      }
       for (const partID of Object.keys(dialConfigs())) {
         clients[partID]?.disconnect();
       }
