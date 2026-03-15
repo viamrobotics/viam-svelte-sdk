@@ -68,6 +68,7 @@ export const provideRobotClientsContext = (
 
       config.reconnectMaxAttempts ??= 1e9;
       config.reconnectMaxWait ??= 1000;
+      config.shouldRetryOnError ??= () => !!dialConfigs()[partID];
 
       const client = new RobotClient();
       (client as RobotClient & { partID: string }).partID = partID;
