@@ -86,9 +86,6 @@ export const provideRobotClientsContext = (
 
       clients[partID] = client;
 
-      logger.withMetadata({ partID }).info('connecting');
-      connectionStatus[partID] = MachineConnectionEvent.CONNECTING;
-
       client.on('connectionstatechange', async (event) => {
         const newStatus = (event as { eventType: MachineConnectionEvent })
           .eventType;
@@ -96,12 +93,20 @@ export const provideRobotClientsContext = (
           .withMetadata({ partID, status: newStatus })
           .info('connection state changed');
 
-        // Only mirror DISCONNECTED from the TS SDK. The TS SDK emits CONNECTED
-        // when ICE connects, before the client is usable. connect() sets
-        // CONNECTING/CONNECTED at the Svelte SDK level once dial() resolves.
-        if (newStatus === MachineConnectionEvent.DISCONNECTED) {
-          connectionStatus[partID] = MachineConnectionEvent.DISCONNECTED;
+        connectionStatus[partID] = newStatus;
 
+        if (newStatus === MachineConnectionEvent.CONNECTED) {
+          errors[partID] = undefined;
+          clearReconnect(partID);
+
+          if (isReconnect) {
+            await queryClient.invalidateQueries({
+              queryKey: ['viam-svelte-sdk', 'partID', partID],
+            });
+          }
+        }
+
+        if (newStatus === MachineConnectionEvent.DISCONNECTED) {
           // Skip retry if dial() is in progress — the TS SDK handles its own retries.
           // Retry continues as long as the dialConfig is present.
           if (!dialing.has(partID)) {
@@ -137,16 +142,7 @@ export const provideRobotClientsContext = (
       }
 
       errors[partID] = undefined;
-      clearReconnect(partID);
-
       connectionStatus[partID] = MachineConnectionEvent.CONNECTED;
-      logger.withMetadata({ partID }).info('connected');
-
-      if (isReconnect) {
-        await queryClient.invalidateQueries({
-          queryKey: ['viam-svelte-sdk', 'partID', partID],
-        });
-      }
     } catch (error) {
       if (clients[partID] !== client) {
         return;

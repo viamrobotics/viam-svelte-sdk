@@ -70,6 +70,11 @@ describe('robot-clients reconnect', () => {
     await vi.advanceTimersByTimeAsync(0);
     expect(mockDial).toHaveBeenCalledTimes(1);
 
+    // TS SDK emits CONNECTED after dial() resolves
+    onConnectionStateChange({
+      eventType: MachineConnectionEvent.CONNECTED,
+    });
+
     // TS SDK fires DISCONNECTED after giving up on non-retryable error
     onConnectionStateChange({
       eventType: MachineConnectionEvent.DISCONNECTED,
@@ -79,6 +84,13 @@ describe('robot-clients reconnect', () => {
     await vi.advanceTimersByTimeAsync(500);
 
     expect(mockDial).toHaveBeenCalledTimes(2);
+
+    // TS SDK emits CONNECTED after reconnect dial() resolves
+    onConnectionStateChange({
+      eventType: MachineConnectionEvent.CONNECTED,
+    });
+    await vi.advanceTimersByTimeAsync(0);
+
     expect(mockInvalidateQueries).toHaveBeenCalled();
   });
 
