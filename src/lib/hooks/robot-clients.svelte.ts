@@ -89,9 +89,9 @@ export const provideRobotClientsContext = (
       client.on('connectionstatechange', async (event) => {
         const newStatus = (event as { eventType: MachineConnectionEvent })
           .eventType;
-        logger
-          .withMetadata({ partID, status: newStatus })
-          .info('connection state changed');
+        const meta = { partID, status: newStatus };
+
+        logger.withMetadata(meta).info('ts-sdk connection state changed');
 
         connectionStatus[partID] = newStatus;
 
@@ -100,6 +100,7 @@ export const provideRobotClientsContext = (
           clearReconnect(partID);
 
           if (isReconnect) {
+            logger.withMetadata(meta).info('reconnected, invalidating queries');
             await queryClient.invalidateQueries({
               queryKey: ['viam-svelte-sdk', 'partID', partID],
             });
@@ -109,14 +110,19 @@ export const provideRobotClientsContext = (
         if (newStatus === MachineConnectionEvent.DISCONNECTED) {
           // Skip retry if dial() is in progress — the TS SDK handles its own retries.
           // Retry continues as long as the dialConfig is present.
-          if (!dialing.has(partID)) {
+          if (dialing.has(partID)) {
+            logger.withMetadata(meta).info('dial in progress, skipping retry');
+          } else {
             const currentConfig = dialConfigs()[partID];
             if (currentConfig && !reconnectTimeouts.has(partID)) {
+              logger.withMetadata(meta).info('scheduling reconnect');
               const timeout = setTimeout(
                 () => connect(partID, currentConfig),
                 RECONNECT_DELAY_MS
               );
               reconnectTimeouts.set(partID, timeout);
+            } else if (!currentConfig) {
+              logger.withMetadata(meta).info('no dial config, skipping retry');
             }
           }
 
