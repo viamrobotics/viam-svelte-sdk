@@ -71,7 +71,7 @@ export const createResourceMutation = <T extends Resource, K extends keyof T>(
       return { previousData };
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    onError: (_error: unknown, _request: unknown, context: any) => {
+    onError: (_error: Error, _request: unknown, context: any) => {
       if (context?.previousData && key) {
         queryClient.setQueryData(key, context.previousData);
       }
