@@ -1,5 +1,12 @@
 # @viamrobotics/svelte-sdk
 
+## 1.1.1
+
+### Patch Changes
+
+- 1a3eae2: Use VIAM as global scope to match viam-typescript-sdk, add trace logging
+- 995e957: Pass shouldRetryOnError to TS SDK dial config to keep retrying non-retryable errors while dial config exists
+
 ## 1.1.0
 
 ### Minor Changes
