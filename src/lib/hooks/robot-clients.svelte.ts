@@ -144,7 +144,7 @@ export const provideRobotClientsContext = (
       }
     }
 
-    lastConfigs = $state.snapshot(configs);
+    lastConfigs = $state.snapshot(configs) as typeof lastConfigs;
   });
 
   onMount(() => {
