@@ -1,5 +1,11 @@
 # @viamrobotics/svelte-sdk
 
+## 1.1.2
+
+### Patch Changes
+
+- 2a1acbb: Fix mutation `error` type
+
 ## 1.1.1
 
 ### Patch Changes
