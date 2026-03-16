@@ -61,8 +61,8 @@ importers:
         specifier: ^1.1.0
         version: 1.1.0(prettier@3.6.2)(svelte@5.25.10)(tailwindcss@4.1.11)
       '@viamrobotics/sdk':
-        specifier: ^0.61.1
-        version: 0.61.1
+        specifier: ^0.66.1
+        version: 0.66.1
       '@viamrobotics/typescript-config':
         specifier: ^0.1.1
         version: 0.1.1(typescript@5.9.2)
@@ -972,8 +972,8 @@ packages:
     peerDependencies:
       prettier: '>=3 <4'
 
-  '@viamrobotics/sdk@0.61.1':
-    resolution: {integrity: sha512-oV8Gn8sNc43Oiul2bFcSYZL+FW3K6uR1GqiW5v4fYDTy0lItqeaYjZgF8Yfsp1XuKK62fPWh+ypj7xGMtM2ndg==}
+  '@viamrobotics/sdk@0.66.1':
+    resolution: {integrity: sha512-FZ8GaNLNEoFNBChPp1KPnALRjnzYD/P6WhK/5EYfIuq4iS6H9fGMqyES2VxYS7chJTpPkenEmlbzl6zcXlSZZA==}
 
   '@viamrobotics/typescript-config@0.1.1':
     resolution: {integrity: sha512-cIbEOlldP4r+F3/nESoXz3zXtYGnJNhRwPWtDjLRwswDJkz2i+moKO1DE2pRib/Z3+B1Qo+TzLYkkzEZJxevcw==}
@@ -3420,7 +3420,7 @@ snapshots:
     dependencies:
       prettier: 3.6.2
 
-  '@viamrobotics/sdk@0.61.1':
+  '@viamrobotics/sdk@0.66.1':
     dependencies:
       '@bufbuild/protobuf': 1.10.1
       '@connectrpc/connect': 1.6.1(@bufbuild/protobuf@1.10.1)

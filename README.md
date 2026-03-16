@@ -274,6 +274,8 @@ By default the console output is enabled at the `info` level. Use `setSDKLogLeve
 
 **Available log levels** (from `SDKLogLevel`): `trace`, `debug`, `info`, `warn`, `error`, `fatal`.
 
+Setting the level to `trace` also enables the TypeScript SDK's built-in gRPC trace logging, which logs every unary and streaming gRPC request/response to the console via `console.trace` and `console.debug`. You must refresh the page after setting the level to enable/disable the trace output.
+
 #### In your application code
 
 ```ts
@@ -288,24 +290,24 @@ setSDKLogLevel(false);
 
 #### From the browser console
 
-The level set via `window.Viam.setSDKLogLevel` is persisted in `localStorage` and restored on every page load.
+The level set via `window.VIAM.setSDKLogLevel` is persisted in `localStorage` and restored on every page load.
 
 ```js
 // Change the log level (persisted across refreshes)
-window.Viam.setSDKLogLevel('debug');
-window.Viam.setSDKLogLevel('info');
+window.VIAM.setSDKLogLevel('debug');
+window.VIAM.setSDKLogLevel('info');
 
 // Silence the console (persisted across refreshes)
-window.Viam.setSDKLogLevel(false);
+window.VIAM.setSDKLogLevel(false);
 
 // Reset to the default info level
-window.Viam.setSDKLogLevel('info');
+window.VIAM.setSDKLogLevel('info');
 
-// Retrieve all buffered log entries (up to 1000)
-window.Viam.getSDKLogs();
+// Retrieve all buffered log entries (up to 10,000)
+window.VIAM.getSDKLogs();
 
 // Clear the log buffer
-window.Viam.clearSDKLogs();
+window.VIAM.clearSDKLogs();
 ```
 
 ## Developing
