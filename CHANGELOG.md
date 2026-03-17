@@ -1,5 +1,11 @@
 # @viamrobotics/svelte-sdk
 
+## 1.1.3
+
+### Patch Changes
+
+- 5323ccf: Remove `queueMicrotask` wrapper for logger
+
 ## 1.1.2
 
 ### Patch Changes
