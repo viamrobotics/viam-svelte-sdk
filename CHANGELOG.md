@@ -1,5 +1,25 @@
 # @viamrobotics/svelte-sdk
 
+## 1.1.2
+
+### Patch Changes
+
+- 2a1acbb: Fix mutation `error` type
+
+## 1.1.1
+
+### Patch Changes
+
+- 1a3eae2: Use VIAM as global scope to match viam-typescript-sdk, add trace logging
+- 995e957: Pass shouldRetryOnError to TS SDK dial config to keep retrying non-retryable errors while dial config exists
+
+## 1.1.0
+
+### Minor Changes
+
+- 39bfff9: Use `loglevel` for logging interface, better logs, include connection logs
+- e3e7f09: feat: enable optimistic updates on resource mutations
+
 ## 1.0.3
 
 ### Patch Changes

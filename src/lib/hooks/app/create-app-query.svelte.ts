@@ -5,7 +5,7 @@ import {
 } from '@tanstack/svelte-query';
 import type { AppClient } from '@viamrobotics/sdk';
 import { usePolling } from '../use-polling.svelte';
-import { useQueryLogger } from '../../query-logger';
+import { createQueryLogger } from '$lib/logger';
 import { useViamClient } from './use-app-client.svelte';
 import type { ArgumentsType, ResolvedReturnType } from './types';
 
@@ -27,7 +27,6 @@ export const createAppQuery = <T extends AppClient, K extends keyof T>(
 ): QueryObserverResult<ResolvedReturnType<T[K]>> => {
   const viamClient = useViamClient();
   const appClient = $derived(viamClient.current?.appClient as T);
-  const debug = useQueryLogger();
 
   let [args, options] = additional;
 
@@ -67,8 +66,8 @@ export const createAppQuery = <T extends AppClient, K extends keyof T>(
           );
         }
 
-        const logger = debug.createLogger();
-        logger('REQ', 'appClient', methodName, _args);
+        const logger = createQueryLogger('appClient', methodName);
+        logger.request(_args);
 
         try {
           const response = (await clientFunc.apply(
@@ -76,10 +75,10 @@ export const createAppQuery = <T extends AppClient, K extends keyof T>(
             _args
           )) as Promise<ResolvedReturnType<T[K]>>;
 
-          logger('RES', 'appClient', methodName, response);
+          logger.response(response);
           return response;
         } catch (error) {
-          logger('ERR', 'appClient', methodName, error);
+          logger.error(error);
           throw error;
         }
       },

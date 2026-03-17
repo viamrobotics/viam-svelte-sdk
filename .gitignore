@@ -15,6 +15,11 @@ viamrobotics-svelte-sdk-*.tgz
 .DS_Store
 Thumbs.db
 
+# IDEs
+.vscode
+.idea
+.cursor
+
 # Env
 .env
 .env.*
@@ -24,3 +29,7 @@ Thumbs.db
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Claude Code
+.claude/worktrees
+.claude/settings.local.json

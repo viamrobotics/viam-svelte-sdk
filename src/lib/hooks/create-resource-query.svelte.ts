@@ -5,7 +5,7 @@ import {
 } from '@tanstack/svelte-query';
 import type { Resource } from '@viamrobotics/sdk';
 import { usePolling } from './use-polling.svelte';
-import { useQueryLogger } from '../query-logger';
+import { createQueryLogger } from '$lib/logger';
 import { useEnabledQueries } from './use-enabled-queries.svelte';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -35,8 +35,9 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
         args?: (() => ArgumentsType<T[K]>) | ArgumentsType<T[K]>,
         options?: (() => QueryOptions) | QueryOptions,
       ]
-): QueryObserverResult<ResolvedReturnType<T[K]>> => {
-  const debug = useQueryLogger();
+): QueryObserverResult<ResolvedReturnType<T[K]>> & {
+  queryKey: typeof queryKey;
+} => {
   const enabledQueries = useEnabledQueries();
 
   let [args, options] = additional;
@@ -58,17 +59,19 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
       enabledQueries.resourceQueries
   );
 
+  const queryKey = [
+    'viam-svelte-sdk',
+    'partID',
+    (client.current as T & { partID: string })?.partID,
+    'resource',
+    name,
+    methodName,
+    ...(_args ? [_args] : []),
+  ];
+
   const queryOptions = $derived(
     createQueryOptions({
-      queryKey: [
-        'viam-svelte-sdk',
-        'partID',
-        (client.current as T & { partID: string })?.partID,
-        'resource',
-        name,
-        methodName,
-        ...(_args ? [_args] : []),
-      ],
+      queryKey,
       enabled,
       retry: false,
       queryFn: async () => {
@@ -80,8 +83,8 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
           );
         }
 
-        const logger = debug.createLogger();
-        logger('REQ', name, methodName, _args);
+        const logger = createQueryLogger(name ?? 'unknown', methodName);
+        logger.request(_args);
 
         try {
           const response = (await clientFunc?.apply(
@@ -89,10 +92,10 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
             _args
           )) as Promise<ResolvedReturnType<T[K]>>;
 
-          logger('RES', name, methodName, response);
+          logger.response(response);
           return response;
         } catch (error) {
-          logger('ERR', name, methodName, error);
+          logger.error(error);
           throw error;
         }
       },
@@ -106,5 +109,16 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
     () => enabled && (_options?.refetchInterval ?? false)
   );
 
-  return createQuery(() => queryOptions);
+  const query = createQuery(() => queryOptions) as QueryObserverResult<
+    ResolvedReturnType<T[K]>
+  > & { queryKey: typeof queryKey };
+  Object.defineProperty(query, 'queryKey', {
+    get: () => queryKey,
+    set: () => {
+      // do nothing
+    },
+    enumerable: true,
+    configurable: true,
+  });
+  return query;
 };

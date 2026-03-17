@@ -14,6 +14,9 @@ importers:
       '@tanstack/svelte-query-devtools':
         specifier: ^6.0.1
         version: 6.0.2(@tanstack/svelte-query@6.0.10(svelte@5.25.10))(svelte@5.25.10)
+      loglayer:
+        specifier: ^9.1.0
+        version: 9.1.0
       runed:
         specifier: ^0.29.1
         version: 0.29.2(svelte@5.25.10)
@@ -58,8 +61,8 @@ importers:
         specifier: ^1.1.0
         version: 1.1.0(prettier@3.6.2)(svelte@5.25.10)(tailwindcss@4.1.11)
       '@viamrobotics/sdk':
-        specifier: ^0.61.1
-        version: 0.61.1
+        specifier: ^0.67.0
+        version: 0.67.0
       '@viamrobotics/typescript-config':
         specifier: ^0.1.1
         version: 0.1.1(typescript@5.9.2)
@@ -487,6 +490,26 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.29':
     resolution: {integrity: sha512-uw6guiW/gcAGPDhLmd77/6lW8QLeiV5RUTsAX46Db6oLhGaVj4lhnPwb184s1bkc8kdVg/+h988dro8GRDpmYQ==}
+
+  '@loglayer/context-manager@2.0.2':
+    resolution: {integrity: sha512-IVt/iqACGw2GnucKOpyJ69MbGQSRzsArOwsTNMuOAfzm36zTphGIH4K7g7lhRvcd2jY0dZzvWA6tCqannpgXXg==}
+    engines: {node: '>=18'}
+
+  '@loglayer/log-level-manager@2.0.2':
+    resolution: {integrity: sha512-hq6hjkXzrYyz0DwYUqizP0hS3jhPl5S/7U33Cd0EPbfLmDjYWzzcM0mQKUdtBi6qNX4DAPpag3oBGytB2zmghg==}
+    engines: {node: '>=18'}
+
+  '@loglayer/plugin@3.0.2':
+    resolution: {integrity: sha512-ghIYpuPw/Q0jdlr7ErkaySfsSCsIigwIb1lvR5qhZrz3oEqGotDFZzhgU1YeO7BacA042ygv/xww3Ip3ROokeg==}
+    engines: {node: '>=18'}
+
+  '@loglayer/shared@4.1.0':
+    resolution: {integrity: sha512-hGSWhLhMF9L7sB0rXippvKhku9D9dT8imZ5OFpa4VHAVnclY0DQ+3wIPE37rzu0QAiBbyR3/HH03Q1Cgik8zYA==}
+    engines: {node: '>=18'}
+
+  '@loglayer/transport@3.0.2':
+    resolution: {integrity: sha512-5t0lj/ibQQxGPpghNta8u10zl8owU0my/i2fHF/LdcCAtpw/IHblmpKSgOzdH9XE19Ub/i0VYj0JrFrFv8/NXw==}
+    engines: {node: '>=18'}
 
   '@manypkg/find-root@1.1.0':
     resolution: {integrity: sha512-mki5uBvhHzO8kYYix/WRy2WX8S3B5wdVSc9D6KcU5lQNglP2yt58/VfLuAK49glRXChosY8ap2oJ1qgma3GUVA==}
@@ -964,8 +987,8 @@ packages:
     peerDependencies:
       prettier: '>=3 <4'
 
-  '@viamrobotics/sdk@0.61.1':
-    resolution: {integrity: sha512-oV8Gn8sNc43Oiul2bFcSYZL+FW3K6uR1GqiW5v4fYDTy0lItqeaYjZgF8Yfsp1XuKK62fPWh+ypj7xGMtM2ndg==}
+  '@viamrobotics/sdk@0.67.0':
+    resolution: {integrity: sha512-MrRfsQistcaVHzpBcOQxxssWAT2/6lvrnG4MAmuhbyLEHMAf6hSqyinG97hgmpIJDdNj9A9+HgZCtPCPouIF1g==}
 
   '@viamrobotics/typescript-config@0.1.1':
     resolution: {integrity: sha512-cIbEOlldP4r+F3/nESoXz3zXtYGnJNhRwPWtDjLRwswDJkz2i+moKO1DE2pRib/Z3+B1Qo+TzLYkkzEZJxevcw==}
@@ -1718,6 +1741,10 @@ packages:
 
   lodash@4.17.21:
     resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
+
+  loglayer@9.1.0:
+    resolution: {integrity: sha512-KFCtoydUtfshszDMIEMa180MMT4jDgBz7FkkO0r3mLDzOkfqGUCbtH9DRszK/pEPrG7999FXfBsyv4DNhvmrag==}
+    engines: {node: '>=18'}
 
   loupe@3.2.0:
     resolution: {integrity: sha512-2NCfZcT5VGVNX9mSZIxLRkEAegDGBpuQZBy13desuHeVORmBDyAET4TkJr4SjqQy3A8JDofMN6LpkK8Xcm/dlw==}
@@ -2880,6 +2907,24 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.4
 
+  '@loglayer/context-manager@2.0.2':
+    dependencies:
+      '@loglayer/shared': 4.1.0
+
+  '@loglayer/log-level-manager@2.0.2':
+    dependencies:
+      '@loglayer/shared': 4.1.0
+
+  '@loglayer/plugin@3.0.2':
+    dependencies:
+      '@loglayer/shared': 4.1.0
+
+  '@loglayer/shared@4.1.0': {}
+
+  '@loglayer/transport@3.0.2':
+    dependencies:
+      '@loglayer/shared': 4.1.0
+
   '@manypkg/find-root@1.1.0':
     dependencies:
       '@babel/runtime': 7.28.2
@@ -3402,7 +3447,7 @@ snapshots:
     dependencies:
       prettier: 3.6.2
 
-  '@viamrobotics/sdk@0.61.1':
+  '@viamrobotics/sdk@0.67.0':
     dependencies:
       '@bufbuild/protobuf': 1.10.1
       '@connectrpc/connect': 1.6.1(@bufbuild/protobuf@1.10.1)
@@ -4135,6 +4180,14 @@ snapshots:
   lodash.startcase@4.4.0: {}
 
   lodash@4.17.21: {}
+
+  loglayer@9.1.0:
+    dependencies:
+      '@loglayer/context-manager': 2.0.2
+      '@loglayer/log-level-manager': 2.0.2
+      '@loglayer/plugin': 3.0.2
+      '@loglayer/shared': 4.1.0
+      '@loglayer/transport': 3.0.2
 
   loupe@3.2.0: {}
 

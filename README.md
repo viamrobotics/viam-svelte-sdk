@@ -266,36 +266,48 @@ let { partID, name }: Props = $props();
 
 ## Debugging
 
-### Query Logger
+### Logger
 
-Enables query and mutation logs to the browser console. It can be set at with the `<ViamProvider />` or with `window` functions:
+The SDK uses a built-in logger that writes all messages (including query/mutation request, response, and error events) to the browser console and an in-memory buffer.
 
-```svelte
-<!-- enable query logging -->
-<ViamProvider
-  {dialConfigs}
-  logQueries
->
-  {@render children()}
-</ViamProvider>
+By default the console output is enabled at the `info` level. Use `setSDKLogLevel` to change the level or silence the console entirely. The log buffer always captures all levels regardless of the console setting.
 
-<!-- enable verbose query logging -->
-<ViamProvider
-  {dialConfigs}
-  logQueries={{ enabled: true, verbose: true }}
->
-  {@render children()}
-</ViamProvider>
+**Available log levels** (from `SDKLogLevel`): `trace`, `debug`, `info`, `warn`, `error`, `fatal`.
+
+Setting the level to `trace` also enables the TypeScript SDK's built-in gRPC trace logging, which logs every unary and streaming gRPC request/response to the console via `console.trace` and `console.debug`. You must refresh the page after setting the level to enable/disable the trace output.
+
+#### In your application code
+
+```ts
+import { setSDKLogLevel, SDKLogLevel } from '@viamrobotics/svelte-sdk';
+
+// Show debug-level logs and above (includes query/mutation traces)
+setSDKLogLevel(SDKLogLevel.debug);
+
+// Silence the console (logs still accumulate in the buffer)
+setSDKLogLevel(false);
 ```
 
-```js
-// enable/disable query logging
-window.enableQueryLogging();
-window.disableQueryLogging();
+#### From the browser console
 
-// enable/disable verbose query logging
-window.enableVerboseQueryLogging();
-window.disableVerboseQueryLogging();
+The level set via `window.VIAM.setSDKLogLevel` is persisted in `localStorage` and restored on every page load.
+
+```js
+// Change the log level (persisted across refreshes)
+window.VIAM.setSDKLogLevel('debug');
+window.VIAM.setSDKLogLevel('info');
+
+// Silence the console (persisted across refreshes)
+window.VIAM.setSDKLogLevel(false);
+
+// Reset to the default info level
+window.VIAM.setSDKLogLevel('info');
+
+// Retrieve all buffered log entries (up to 10,000)
+window.VIAM.getSDKLogs();
+
+// Clear the log buffer
+window.VIAM.clearSDKLogs();
 ```
 
 ## Developing

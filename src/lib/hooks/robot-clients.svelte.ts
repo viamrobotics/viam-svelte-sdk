@@ -8,6 +8,7 @@ import { getContext, onMount, setContext } from 'svelte';
 import { useQueryClient } from '@tanstack/svelte-query';
 import type { PartID } from '../part';
 import { comparePartIds, isJsonEqual } from '../compare';
+import { logger } from '$lib/logger';
 
 const clientKey = Symbol('clients-context');
 const connectionKey = Symbol('connection-status-context');
@@ -43,6 +44,7 @@ export const provideRobotClientsContext = (
       return;
     }
 
+    logger.withMetadata({ partID }).info('disconnecting');
     connectionStatus[partID] = MachineConnectionEvent.DISCONNECTING;
 
     await Promise.all([
@@ -55,6 +57,7 @@ export const provideRobotClientsContext = (
     client.listeners['connectionstatechange']?.clear();
     clients[partID] = undefined;
     connectionStatus[partID] = MachineConnectionEvent.DISCONNECTED;
+    logger.withMetadata({ partID }).info('disconnected');
   };
 
   const connect = async (partID: PartID, config: DialConf) => {
@@ -65,18 +68,24 @@ export const provideRobotClientsContext = (
 
       config.reconnectMaxAttempts ??= 1e9;
       config.reconnectMaxWait ??= 1000;
+      config.shouldRetryOnError ??= () => !!dialConfigs()[partID];
 
       const client = new RobotClient();
       (client as RobotClient & { partID: string }).partID = partID;
 
       clients[partID] = client;
 
+      logger.withMetadata({ partID }).info('connecting');
       connectionStatus[partID] = MachineConnectionEvent.CONNECTING;
 
       client.on('connectionstatechange', async (event) => {
-        connectionStatus[partID] = (
-          event as { eventType: MachineConnectionEvent }
-        ).eventType;
+        const newStatus = (event as { eventType: MachineConnectionEvent })
+          .eventType;
+        connectionStatus[partID] = newStatus;
+
+        logger
+          .withMetadata({ partID, status: newStatus })
+          .info('connection state changed');
 
         if (connectionStatus[partID] === MachineConnectionEvent.DISCONNECTED) {
           await queryClient.cancelQueries({
@@ -93,9 +102,14 @@ export const provideRobotClientsContext = (
       errors[partID] = undefined;
 
       connectionStatus[partID] = MachineConnectionEvent.CONNECTED;
+      logger.withMetadata({ partID }).info('connected');
     } catch (error) {
       errors[partID] = error as Error;
       connectionStatus[partID] = MachineConnectionEvent.DISCONNECTED;
+      logger
+        .withMetadata({ partID })
+        .withError(error)
+        .error('connection failed');
     }
   };
 
@@ -123,11 +137,14 @@ export const provideRobotClientsContext = (
       const lastConfig = lastConfigs[partID];
 
       if (config && lastConfig && !isJsonEqual(lastConfig, config)) {
+        logger
+          .withMetadata({ partID })
+          .info('dial config changed, reconnecting');
         connect(partID, config);
       }
     }
 
-    lastConfigs = $state.snapshot(configs);
+    lastConfigs = $state.snapshot(configs) as typeof lastConfigs;
   });
 
   onMount(() => {
