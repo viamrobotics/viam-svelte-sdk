@@ -92,9 +92,9 @@ const consoleTransport = new BlankTransport({
     const method = CONSOLE_METHOD_MAP[logLevel] ?? 'info';
 
     if (hasData && data) {
-      queueMicrotask(console[method].bind(console, ...messages, data));
+      console[method].bind(console, ...messages, data);
     } else {
-      queueMicrotask(console[method].bind(console, ...messages));
+      console[method].bind(console, ...messages);
     }
 
     return messages;
