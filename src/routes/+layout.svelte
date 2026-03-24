@@ -4,7 +4,6 @@ import { SvelteQueryDevtools } from '@tanstack/svelte-query-devtools';
 import { ViamProvider } from '$lib';
 import type { Snippet } from 'svelte';
 import { dialConfigs as c } from './configs';
-import Parts from './components/parts.svelte';
 import type { DialConf } from '@viamrobotics/sdk';
 import { SDKLogLevel } from '$lib/logger';
 
@@ -48,7 +47,6 @@ let { children }: Props = $props();
   {dialConfigs}
   logLevel={SDKLogLevel.debug}
 >
-  <Parts />
   {@render children()}
   <SvelteQueryDevtools />
 </ViamProvider>
