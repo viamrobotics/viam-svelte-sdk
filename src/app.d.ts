@@ -11,7 +11,7 @@ declare global {
 
   var VIAM:
     | {
-        // from the typescript sdk
+        GRPC_TRANSPORT_FACTORY?: (...args: unknown[]) => unknown;
         GRPC_TRACE_LOGGING?: boolean;
         setSDKLogLevel?: (
           level: import('$lib/logger').SDKLogLevelType | false

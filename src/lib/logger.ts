@@ -92,9 +92,9 @@ const consoleTransport = new BlankTransport({
     const method = CONSOLE_METHOD_MAP[logLevel] ?? 'info';
 
     if (hasData && data) {
-      console[method].bind(console, ...messages, data);
+      console[method].call(console, ...messages, data);
     } else {
-      console[method].bind(console, ...messages);
+      console[method].call(console, ...messages);
     }
 
     return messages;
@@ -183,6 +183,6 @@ globalThis.VIAM = {
   setSDKLogLevel,
   getSDKLogs,
   clearSDKLogs,
-};
+} as typeof globalThis.VIAM;
 
 export { LogLevel as SDKLogLevel, type LogLevelType as SDKLogLevelType };
