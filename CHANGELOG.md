@@ -1,5 +1,12 @@
 # @viamrobotics/svelte-sdk
 
+## 1.1.4
+
+### Patch Changes
+
+- d814e54: hotfix: fix polling on reactive options/args changes
+- 631b8ef: hotfix: fix logging
+
 ## 1.1.3
 
 ### Patch Changes
