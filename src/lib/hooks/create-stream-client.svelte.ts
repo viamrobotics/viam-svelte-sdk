@@ -16,7 +16,7 @@ export const createStreamClient = (
   const name = $derived(resourceName());
   const enabledQueries = useEnabledQueries();
 
-  let mediaStream = $state.raw<MediaStream>();
+  let mediaStream = $state.raw<MediaStream | null>(null);
   let error = $state.raw<Error>();
 
   const client = useRobotClient(partID);
@@ -33,7 +33,7 @@ export const createStreamClient = (
         const stream = await currentClient?.getStream(name);
 
         if (!abortController.signal.aborted) {
-          mediaStream = stream;
+          mediaStream = stream ?? null;
           error = undefined;
         }
       } catch (nextError) {
