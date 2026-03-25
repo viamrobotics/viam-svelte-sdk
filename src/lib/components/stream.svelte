@@ -18,7 +18,7 @@ const client = createStreamClient(
 
 $effect(() => {
   if (element) {
-  element.srcObject = client.mediaStream;
+    element.srcObject = client.mediaStream;
   }
 });
 
