@@ -1,5 +1,11 @@
 # @viamrobotics/svelte-sdk
 
+## 1.1.5
+
+### Patch Changes
+
+- b9c6c09: Attempt retries if streams timeout
+
 ## 1.1.4
 
 ### Patch Changes
