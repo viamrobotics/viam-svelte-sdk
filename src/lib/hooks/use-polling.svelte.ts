@@ -16,11 +16,11 @@ export function usePolling(
   interval: () => number | false
 ) {
   const queryClient = useQueryClient();
-  const abortController = new AbortController();
   let timeoutId: ReturnType<typeof setTimeout>;
   let active = true;
 
   $effect(() => {
+    const abortController = new AbortController();
     const key = queryKey();
     const currentInterval = interval();
     if (!currentInterval) return;
