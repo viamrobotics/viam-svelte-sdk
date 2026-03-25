@@ -1,107 +1,128 @@
-import {
-  createQueries,
-  queryOptions,
-  type QueryObserverResult,
-} from '@tanstack/svelte-query';
+import { type QueryObserverResult } from '@tanstack/svelte-query';
 import type { ResourceName } from '@viamrobotics/sdk';
-import { getContext, setContext } from 'svelte';
-import { fromStore, toStore } from 'svelte/store';
-import { useRobotClients } from './robot-clients.svelte';
+import { useRobotClient } from './robot-clients.svelte';
 import type { PartID } from '../part';
-import { useMachineStatuses } from './machine-status.svelte';
-
-const key = Symbol('resources-context');
+import { useDebounce } from 'runed';
+import { useEnabledQueries } from './use-enabled-queries.svelte';
+import { createRobotQuery } from './create-robot-query.svelte';
 
 type Query = QueryObserverResult<ResourceName[], Error>;
 
+/** @todo(mp) Expose in the ts-sdk and remove */
+const MachineState = {
+  Unspecified: 0,
+  Initializing: 1,
+  Running: 2,
+};
+
 interface QueryContext {
   current: ResourceName[];
-  error: Error | undefined;
-  fetching: boolean;
-  refetch: () => Promise<Query> | Promise<void>;
+  query: Query | undefined;
 }
 
-interface Context {
-  current: Record<PartID, Query | undefined>;
-}
+const revisions = new Map<string, string>();
 
-export const provideResourceNamesContext = () => {
-  const machineStatuses = useMachineStatuses();
-  const clients = useRobotClients();
+const areResourceNamesEqual = (
+  a: ResourceName[],
+  b: ResourceName[]
+): boolean => {
+  if (a.length !== b.length) {
+    return false;
+  }
 
-  const options = $derived(
-    Object.entries(clients.current).map(([partID, client]) => {
-      const revision =
-        machineStatuses.current[partID]?.data?.config?.revision ?? '';
+  for (let i = 0; i < a.length; i++) {
+    if (JSON.stringify(a[i]) !== JSON.stringify(b[i])) {
+      return false;
+    }
+  }
 
-      return queryOptions({
-        enabled: client !== undefined,
-        queryKey: [
-          'viam-svelte-sdk',
-          'partID',
-          partID,
-          'robotClient',
-          'resourceNames',
-          revision,
-        ],
-        queryFn: async () => {
-          if (!client) {
-            throw new Error('No client');
-          }
+  return true;
+};
 
-          return client.resourceNames();
-        },
-      });
-    })
-  );
+/**
+ * sorts resource names by local/remote -> type -> name (alphabetical)
+ * to produce a list like:
+ *
+ * component a
+ * component z
+ * service   b
+ * component remote:c
+ * service   remote:b
+ * @param resourceNames
+ */
+const sortResourceNames = (resourceNames: ResourceName[]) => {
+  resourceNames.sort(({ type, name }, { type: otherType, name: otherName }) => {
+    // sort all non-remote resources before remote resources
+    if (name.includes(':') !== otherName.includes(':')) {
+      return name.includes(':') ? 1 : -1;
+    }
 
-  const queries = fromStore(
-    createQueries({
-      queries: toStore(() => options),
-      combine: (results) => {
-        const partIDs = Object.keys(clients.current);
-        return Object.fromEntries(
-          results.map((result, index) => [partIDs[index], result])
-        );
-      },
-    })
-  );
-
-  setContext<Context>(key, {
-    get current() {
-      return queries.current;
-    },
+    // sort alphabetically within type
+    // sort components before services
+    return type === otherType
+      ? name.localeCompare(otherName)
+      : type.localeCompare(otherType);
   });
+
+  return resourceNames;
 };
 
 export const useResourceNames = (
   partID: () => PartID,
-  subtype?: string | (() => string)
+  resourceSubtype?: string | (() => string)
 ): QueryContext => {
-  const context = getContext<Context>(key);
-  const query = $derived(context.current[partID()]);
-  const data = $derived(query?.data ?? []);
-  const resourceSubtype = $derived(
-    typeof subtype === 'function' ? subtype() : subtype
+  const enabledQueries = useEnabledQueries();
+  const client = useRobotClient(partID);
+  const machineStatus = createRobotQuery(client, 'getMachineStatus', {
+    refetchInterval: 1000,
+  });
+
+  const query = createRobotQuery(client, 'resourceNames', () => ({
+    enabled:
+      client !== undefined &&
+      machineStatus?.data?.state === MachineState.Running &&
+      enabledQueries.resourceNames,
+    refetchOnMount: false,
+    staleTime: Infinity,
+  }));
+
+  const debouncedRefetch = useDebounce(() => query.refetch(), 500);
+
+  $effect(() => {
+    const revision = machineStatus?.data?.config?.revision ?? '';
+    const lastRevision = revisions.get(partID());
+
+    revisions.set(partID(), revision);
+
+    if (lastRevision && revision !== lastRevision) {
+      debouncedRefetch();
+    }
+  });
+
+  const data = $derived(sortResourceNames(query.data ?? []));
+
+  const subtype = $derived(
+    typeof resourceSubtype === 'function' ? resourceSubtype() : resourceSubtype
   );
   const filtered = $derived(
-    subtype ? data.filter((value) => value.subtype === resourceSubtype) : data
+    subtype ? data.filter((value) => value.subtype === subtype) : data
   );
-  const error = $derived(query?.error ?? undefined);
-  const fetching = $derived(query?.isFetching ?? true);
+
+  let last: ResourceName[] = filtered;
+
+  const current = $derived.by(() => {
+    if (areResourceNamesEqual(last, filtered)) {
+      return last;
+    }
+
+    last = filtered;
+    return filtered;
+  });
 
   return {
     get current() {
-      return filtered;
+      return current;
     },
-    get error() {
-      return error;
-    },
-    get fetching() {
-      return fetching;
-    },
-    refetch() {
-      return query?.refetch() ?? Promise.resolve();
-    },
+    query,
   };
 };

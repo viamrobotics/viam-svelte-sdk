@@ -8,6 +8,18 @@ declare global {
     // interface PageState {}
     // interface Platform {}
   }
+
+  var VIAM:
+    | {
+        GRPC_TRANSPORT_FACTORY?: (...args: unknown[]) => unknown;
+        GRPC_TRACE_LOGGING?: boolean;
+        setSDKLogLevel?: (
+          level: import('$lib/logger').SDKLogLevelType | false
+        ) => void;
+        getSDKLogs?: () => import('$lib/logger').LogEntry[];
+        clearSDKLogs?: () => void;
+      }
+    | undefined;
 }
 
 export {};

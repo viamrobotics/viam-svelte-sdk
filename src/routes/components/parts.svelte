@@ -1,4 +1,5 @@
 <script lang="ts">
+import { PersistedState } from 'runed';
 import {
   useConnectionStatus,
   useResourceNames,
@@ -6,17 +7,16 @@ import {
   CameraStream,
 } from '$lib';
 import { dialConfigs } from '../configs';
-import Base from './base.svelte';
+import Part from './part.svelte';
 import Version from './version.svelte';
 
 const partIDs = Object.keys(dialConfigs);
 
-let partID = $state(partIDs[0] ?? '');
+let partID = new PersistedState('selected-partID', partIDs[0] ?? '');
 
-const status = useConnectionStatus(() => partID);
-const resources = useResourceNames(() => partID);
-const cameras = useResourceNames(() => partID, 'camera');
-const bases = useResourceNames(() => partID, 'base');
+const status = useConnectionStatus(() => partID.current);
+const resources = useResourceNames(() => partID.current);
+const cameras = useResourceNames(() => partID.current, 'camera');
 
 let streaming = true;
 </script>
@@ -26,48 +26,49 @@ let streaming = true;
     {#each partIDs as id, index (id)}
       <button
         class="border p-2"
-        class:bg-blue-100={partID === id}
-        onclick={() => (partID = id)}
+        class:bg-blue-100={partID.current === id}
+        onclick={() => {
+          partID.current = id;
+        }}
       >
         part {index + 1}
       </button>
+
+      {#if id === partID.current}
+        <Version partID={id} />
+
+        <Part partID={id} />
+      {/if}
     {/each}
 
     {status.current}
   </div>
 
-  <Version {partID} />
-
   <h2 class="py-2">Resources</h2>
-  {#if resources.error}
-    Error fetching: {resources.error.message}
-  {:else if resources.fetching}
+  {#if resources.query?.error}
+    Error fetching: {resources.query.error.message}
+  {:else if resources.query?.isPending}
     <ul class="text-xs">Fetching...</ul>
+  {:else if !resources.query?.isPending && resources.current.length === 0}
+    No resources
   {:else}
     <ul class="text-xs">
       {#each resources.current as resource (resource.name)}
-        <li>{resource.name}</li>
+        <li>{resource.name}: {resource.subtype}</li>
       {/each}
     </ul>
   {/if}
-
-  {#each bases.current as { name } (name)}
-    <Base
-      {name}
-      {partID}
-    />
-  {/each}
 
   {#each cameras.current as { name } (name)}
     {#if streaming}
       <CameraStream
         {name}
-        {partID}
+        partID={partID.current}
       />
     {:else}
       <CameraImage
         {name}
-        {partID}
+        partID={partID.current}
       />
     {/if}
   {/each}

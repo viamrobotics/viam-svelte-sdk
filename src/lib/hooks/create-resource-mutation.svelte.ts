@@ -1,27 +1,37 @@
-import { createMutation, type MutationOptions } from '@tanstack/svelte-query';
+import {
+  createMutation,
+  type MutationOptions,
+  type QueryKey,
+  useQueryClient,
+} from '@tanstack/svelte-query';
 import type { Resource } from '@viamrobotics/sdk';
 
 import type {
   ArgumentsType,
   ResolvedReturnType,
 } from './create-resource-query.svelte';
-import { fromStore, toStore } from 'svelte/store';
+import { createQueryLogger } from '$lib/logger';
 
 export const createResourceMutation = <T extends Resource, K extends keyof T>(
   client: { current: T | undefined },
-  method: K
+  method: K,
+  queryKey?: () => QueryKey
 ) => {
   type MutArgs = ArgumentsType<T[K]>;
   type MutReturn = ResolvedReturnType<T[K]>;
 
+  const queryClient = useQueryClient();
+  const name = $derived(client.current?.name);
+  const methodName = $derived(String(method));
+  const key = $derived(queryKey?.());
   const mutationOptions = $derived({
     mutationKey: [
       'viam-svelte-sdk',
       'partID',
       (client.current as T & { partID: string })?.partID,
       'resource',
-      client.current?.name,
-      String(method),
+      name,
+      methodName,
     ],
     mutationFn: async (request) => {
       const clientFunc = client.current?.[method];
@@ -32,9 +42,48 @@ export const createResourceMutation = <T extends Resource, K extends keyof T>(
         );
       }
 
-      return clientFunc.apply(client.current, request) as Promise<MutReturn>;
+      const logger = createQueryLogger(name ?? 'unknown', methodName);
+      logger.request(request);
+
+      try {
+        const response = (await clientFunc.apply(
+          client.current,
+          request
+        )) as Promise<MutReturn>;
+
+        logger.response(response);
+        return response;
+      } catch (error) {
+        logger.error(error);
+        throw error;
+      }
+    },
+    onMutate: async (request) => {
+      if (!key) {
+        return;
+      }
+
+      await queryClient.cancelQueries({ queryKey: key });
+      const previousData = await queryClient.getQueryData(key);
+
+      queryClient.setQueryData(key, request[0]);
+
+      return { previousData };
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (_error: Error, _request: unknown, context: any) => {
+      if (context?.previousData && key) {
+        queryClient.setQueryData(key, context.previousData);
+      }
+    },
+    onSettled: () => {
+      if (!key) {
+        return;
+      }
+
+      queryClient.invalidateQueries({ queryKey: key });
     },
   } satisfies MutationOptions<MutReturn, Error, MutArgs>);
 
-  return fromStore(createMutation(toStore(() => mutationOptions)));
+  return createMutation(() => mutationOptions);
 };

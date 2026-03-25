@@ -3,44 +3,31 @@ import {
   queryOptions as createQueryOptions,
   type QueryObserverResult,
 } from '@tanstack/svelte-query';
-
-import { MachineConnectionEvent, type RobotClient } from '@viamrobotics/sdk';
-import { usePolling } from './use-polling.svelte';
+import type { AppClient } from '@viamrobotics/sdk';
+import { usePolling } from '../use-polling.svelte';
 import { createQueryLogger } from '$lib/logger';
-import { useEnabledQueries } from './use-enabled-queries.svelte';
-import { useConnectionStatus } from './robot-clients.svelte';
+import { useViamClient } from './use-app-client.svelte';
+import type { ArgumentsType, ResolvedReturnType } from './types';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ArgumentsType<T> = T extends (...args: infer U) => any ? U : never;
-
-export type ResolvedReturnType<T> = T extends (
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ...args: any[]
-) => Promise<infer R>
-  ? R
-  : never;
-
-export interface QueryOptions {
+interface QueryOptions {
+  // enabled defaults to true if unspecified
   enabled?: boolean;
-  staleTime?: number;
-  refetchOnMount?: boolean;
-  refetchInterval?: number | false;
+  refetchInterval: number | false;
   refetchIntervalInBackground?: boolean;
 }
 
-export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
-  client: { current: T | undefined },
+export const createAppQuery = <T extends AppClient, K extends keyof T>(
   method: K,
   ...additional:
-    | [options?: (() => QueryOptions) | QueryOptions | undefined]
     | [
         args?: (() => ArgumentsType<T[K]>) | ArgumentsType<T[K]>,
         options?: (() => QueryOptions) | QueryOptions,
       ]
+    | [options?: (() => QueryOptions) | QueryOptions]
 ): QueryObserverResult<ResolvedReturnType<T[K]>> => {
-  const partID = $derived((client.current as T & { partID: string })?.partID);
-  const connectionStatus = useConnectionStatus(() => partID);
-  const enabledQueries = useEnabledQueries();
+  const viamClient = useViamClient();
+  const appClient = $derived(viamClient.current?.appClient as T);
+
   let [args, options] = additional;
 
   if (options === undefined && args !== undefined) {
@@ -54,26 +41,24 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
   const _args = $derived(typeof args === 'function' ? args() : args);
   const methodName = $derived(String(method));
   const enabled = $derived(
-    connectionStatus.current === MachineConnectionEvent.CONNECTED &&
-      client.current !== undefined &&
-      _options?.enabled !== false &&
-      enabledQueries.robotQueries
+    appClient !== undefined && _options?.enabled !== false
   );
 
   const queryOptions = $derived(
     createQueryOptions({
       queryKey: [
-        'viam-svelte-sdk',
-        'partID',
-        partID,
-        'robotClient',
+        'viam-svelte-app-sdk',
+        'appClient',
         methodName,
         ...(_args ? [_args] : []),
       ],
       enabled,
-      retry: false,
       queryFn: async () => {
-        const clientFunc = client.current?.[method];
+        if (!appClient) {
+          throw new Error('appClient is undefined');
+        }
+
+        const clientFunc = appClient[method];
 
         if (typeof clientFunc !== 'function') {
           throw new TypeError(
@@ -81,12 +66,12 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
           );
         }
 
-        const logger = createQueryLogger('robot', methodName);
+        const logger = createQueryLogger('appClient', methodName);
         logger.request(_args);
 
         try {
-          const response = (await clientFunc?.apply(
-            client.current,
+          const response = (await clientFunc.apply(
+            appClient,
             _args
           )) as Promise<ResolvedReturnType<T[K]>>;
 

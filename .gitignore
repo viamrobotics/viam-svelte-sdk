@@ -9,10 +9,16 @@ node_modules
 /.svelte-kit
 /build
 /dist
+viamrobotics-svelte-sdk-*.tgz
 
 # OS
 .DS_Store
 Thumbs.db
+
+# IDEs
+.vscode
+.idea
+.cursor
 
 # Env
 .env
@@ -23,3 +29,7 @@ Thumbs.db
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Claude Code
+.claude/worktrees
+.claude/settings.local.json

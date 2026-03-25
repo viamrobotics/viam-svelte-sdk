@@ -1,31 +1,25 @@
 import { createMutation, type MutationOptions } from '@tanstack/svelte-query';
-import type { RobotClient } from '@viamrobotics/sdk';
+import type { DataClient } from '@viamrobotics/sdk';
 
-import type {
-  ArgumentsType,
-  ResolvedReturnType,
-} from './create-resource-query.svelte';
+import type { ArgumentsType, ResolvedReturnType } from './types';
 import { createQueryLogger } from '$lib/logger';
+import { useViamClient } from './use-app-client.svelte';
 
-export const createRobotMutation = <T extends RobotClient, K extends keyof T>(
-  client: { current: T | undefined },
+export const createDataMutation = <T extends DataClient, K extends keyof T>(
   method: K
 ) => {
   type MutArgs = ArgumentsType<T[K]>;
   type MutReturn = ResolvedReturnType<T[K]>;
 
+  const viamClient = useViamClient();
+  const dataClient = $derived(viamClient.current?.dataClient as T);
+
   const methodName = $derived(String(method));
 
   const mutationOptions = $derived({
-    mutationKey: [
-      'viam-svelte-sdk',
-      'partID',
-      (client.current as T & { partID: string })?.partID,
-      'robotClient',
-      methodName,
-    ],
+    mutationKey: ['viam-svelte-app-sdk', 'dataClient', methodName],
     mutationFn: async (request) => {
-      const clientFunc = client.current?.[method];
+      const clientFunc = dataClient?.[method];
 
       if (typeof clientFunc !== 'function') {
         throw new TypeError(
@@ -33,12 +27,12 @@ export const createRobotMutation = <T extends RobotClient, K extends keyof T>(
         );
       }
 
-      const logger = createQueryLogger('robot', methodName);
+      const logger = createQueryLogger('dataClient', methodName);
       logger.request(request);
 
       try {
         const response = (await clientFunc.apply(
-          client.current,
+          dataClient,
           request
         )) as Promise<MutReturn>;
 

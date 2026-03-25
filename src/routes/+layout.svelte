@@ -6,12 +6,13 @@ import type { Snippet } from 'svelte';
 import { dialConfigs as c } from './configs';
 import Parts from './components/parts.svelte';
 import type { DialConf } from '@viamrobotics/sdk';
+import { SDKLogLevel } from '$lib/logger';
 
 interface Props {
   children: Snippet;
 }
 
-let configs = $state.raw<Record<string, DialConf>>({});
+let configs = $state.raw<Record<string, DialConf>>(structuredClone(c));
 
 const id = setInterval(() => {
   configs = structuredClone(c);
@@ -21,12 +22,13 @@ $effect.pre(() => {
   return () => clearTimeout(id);
 });
 
-let enabled = $state<Record<string, boolean>>({});
+let enabled = $state<Record<string, boolean>>(
+  Object.fromEntries(Object.keys(configs).map((partID) => [partID, true]))
+);
 let dialConfigs = $derived(
   Object.fromEntries(Object.entries(configs).filter(([key]) => enabled[key]))
 );
 
-$inspect(dialConfigs);
 let { children }: Props = $props();
 </script>
 
@@ -42,7 +44,10 @@ let { children }: Props = $props();
   {/each}
 </div>
 
-<ViamProvider {dialConfigs}>
+<ViamProvider
+  {dialConfigs}
+  logLevel={SDKLogLevel.debug}
+>
   <Parts />
   {@render children()}
   <SvelteQueryDevtools />

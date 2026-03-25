@@ -1,5 +1,162 @@
 # @viamrobotics/svelte-sdk
 
+## 1.1.3
+
+### Patch Changes
+
+- 5323ccf: Remove `queueMicrotask` wrapper for logger
+
+## 1.1.2
+
+### Patch Changes
+
+- 2a1acbb: Fix mutation `error` type
+
+## 1.1.1
+
+### Patch Changes
+
+- 1a3eae2: Use VIAM as global scope to match viam-typescript-sdk, add trace logging
+- 995e957: Pass shouldRetryOnError to TS SDK dial config to keep retrying non-retryable errors while dial config exists
+
+## 1.1.0
+
+### Minor Changes
+
+- 39bfff9: Use `loglevel` for logging interface, better logs, include connection logs
+- e3e7f09: feat: enable optimistic updates on resource mutations
+
+## 1.0.3
+
+### Patch Changes
+
+- 670a7fe: Update camera component to use getImages
+
+## 1.0.2
+
+### Patch Changes
+
+- 084e9ed: Add abort controller to use polling and tests
+
+## 1.0.1
+
+### Patch Changes
+
+- 32082dc: Allow passing in query configs
+
+## 1.0.0
+
+### Major Changes
+
+- e342820: Upgrade to Tanstack 6
+
+## 0.7.3
+
+### Patch Changes
+
+- 59019a5: Persist query logging settings in local storage
+- b97b6ec: Only execute robot queries when connected
+
+## 0.7.2
+
+### Patch Changes
+
+- 530af6c: do not create resource clients until connected
+
+## 0.7.1
+
+### Patch Changes
+
+- 7712e9a: Don't poll when disabled, include errors in hooks
+- cb37189: Update machine status hook to include pending field and sort resource statuses by name.
+
+## 0.7.0
+
+### Minor Changes
+
+- 7e38d05: Export usePolling hook
+- cd4b20f: Add enable queries hook
+
+## 0.6.2
+
+### Patch Changes
+
+- 79604ac: Export streamQueryKey factory to help with query management
+- eb67d3d: Fix create-resource-stream params
+
+## 0.6.1
+
+### Patch Changes
+
+- 92cfb39: Fix tanstack stream query options
+- 5c0c4b4: Use new `robotClient.dial` method for connection
+
+## 0.6.0
+
+### Minor Changes
+
+- e4a8e83: Add createResourceStream hook
+
+## 0.5.0
+
+### Minor Changes
+
+- de190dc: Add app client hooks
+
+## 0.4.7
+
+### Patch Changes
+
+- c0ecc42: Add configurable query logging.
+- ea611c1: Only fetch resourceNames if machine status is 'Running'
+
+## 0.4.6
+
+### Patch Changes
+
+- 57fef62: Refetch resourceNames if list is empty and connection established
+
+## 0.4.5
+
+### Patch Changes
+
+- f96b59c: Remove throwOnError from usePolling
+
+## 0.4.4
+
+### Patch Changes
+
+- b08f0ae: Throw errors on polling refetch
+
+## 0.4.3
+
+### Patch Changes
+
+- ad0acfb: Cancel and reset queries on part disconnect
+
+## 0.4.2
+
+### Patch Changes
+
+- 8f5af82: Replace structuredClone call with state.snapshot
+- 2eaea47: Ensure consistent streamClient and resourceName in stream related effects
+
+## 0.4.1
+
+### Patch Changes
+
+- e5aaa88: Fix reactivity updates for useResourceNames
+
+## 0.4.0
+
+### Minor Changes
+
+- e7e2093: Only poll once request round trips have finished
+
+### Patch Changes
+
+- 5fb0fe4: Memoize useResourceNames results
+
 ## 0.3.3
 
 ### Patch Changes

@@ -77,15 +77,15 @@ const version = createRobotQuery(client, 'getVersion');
 const stopAll = createRobotMutation(client, 'stopAll');
 </script>
 
-{#if version.current.error}
-  Error fetching version: {version.current.error.message}
-{:else if version.current.data}
-  <p>Platform: {version.current.data.platform}</p>
-  <p>API version: {version.current.data.apiVersion}</p>
-  <p>Version: {version.current.data.version}</p>
+{#if version.error}
+  Error fetching version: {version.error.message}
+{:else if version.data}
+  <p>Platform: {version.data.platform}</p>
+  <p>API version: {version.data.apiVersion}</p>
+  <p>Version: {version.data.version}</p>
 {/if}
 
-<button onclick={() => stopAll.current.mutate([])}> Stop All </button>
+<button onclick={() => stopAll.mutate([])}> Stop All </button>
 ```
 
 ### createResourceClient / createResourceQuery / createResourceMutation
@@ -118,9 +118,9 @@ const isMoving = createResourceQuery(client, 'isMoving');
 const moveStraight = createResourceMutation(client, 'moveStraight');
 </script>
 
-Is moving: {isMoving.current.data ?? false}
+Is moving: {isMoving.data ?? false}
 
-<button onclick={() => moveStraight.current.mutate([100, 10])}> Move </button>
+<button onclick={() => moveStraight.mutate([100, 10])}> Move </button>
 ```
 
 ### createStreamClient
@@ -186,8 +186,8 @@ let { partID }: Props = $props();
 const machineStatus = useMachineStatus(() => partID);
 
 $inspect(machineStatus.current);
-$inspect(machineStatus.error);
-$inspect(machineStatus.fetching);
+$inspect(machineStatus.query.error);
+$inspect(machineStatus.query.fetching);
 </script>
 ```
 
@@ -212,8 +212,8 @@ const arms = useResourceNames(
 );
 
 $inspect(resources.current);
-$inspect(resources.error);
-$inspect(resources.fetching);
+$inspect(resources.query.error);
+$inspect(resources.query.fetching);
 </script>
 ```
 
@@ -262,6 +262,52 @@ let { partID, name }: Props = $props();
   {partID}
   {name}
 />
+```
+
+## Debugging
+
+### Logger
+
+The SDK uses a built-in logger that writes all messages (including query/mutation request, response, and error events) to the browser console and an in-memory buffer.
+
+By default the console output is enabled at the `info` level. Use `setSDKLogLevel` to change the level or silence the console entirely. The log buffer always captures all levels regardless of the console setting.
+
+**Available log levels** (from `SDKLogLevel`): `trace`, `debug`, `info`, `warn`, `error`, `fatal`.
+
+Setting the level to `trace` also enables the TypeScript SDK's built-in gRPC trace logging, which logs every unary and streaming gRPC request/response to the console via `console.trace` and `console.debug`. You must refresh the page after setting the level to enable/disable the trace output.
+
+#### In your application code
+
+```ts
+import { setSDKLogLevel, SDKLogLevel } from '@viamrobotics/svelte-sdk';
+
+// Show debug-level logs and above (includes query/mutation traces)
+setSDKLogLevel(SDKLogLevel.debug);
+
+// Silence the console (logs still accumulate in the buffer)
+setSDKLogLevel(false);
+```
+
+#### From the browser console
+
+The level set via `window.VIAM.setSDKLogLevel` is persisted in `localStorage` and restored on every page load.
+
+```js
+// Change the log level (persisted across refreshes)
+window.VIAM.setSDKLogLevel('debug');
+window.VIAM.setSDKLogLevel('info');
+
+// Silence the console (persisted across refreshes)
+window.VIAM.setSDKLogLevel(false);
+
+// Reset to the default info level
+window.VIAM.setSDKLogLevel('info');
+
+// Retrieve all buffered log entries (up to 10,000)
+window.VIAM.getSDKLogs();
+
+// Clear the log buffer
+window.VIAM.clearSDKLogs();
 ```
 
 ## Developing
