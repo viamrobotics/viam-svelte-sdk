@@ -15,6 +15,7 @@ export const createStreamClient = (
 ) => {
   const name = $derived(resourceName());
   const enabledQueries = useEnabledQueries();
+
   let mediaStream = $state.raw<MediaStream | null>(null);
   let error = $state.raw<Error>();
 
@@ -23,36 +24,31 @@ export const createStreamClient = (
     client.current ? new StreamClient(client.current) : undefined
   );
 
-  const handleTrack = (event: unknown) => {
-    const [stream] = (event as { streams: MediaStream[] }).streams;
-
-    if (!stream || stream.id !== name) {
-      return;
-    }
-
-    error = undefined;
-    mediaStream = stream;
-  };
-
   $effect(() => {
-    const client = streamClient;
-    client?.on('track', handleTrack);
-    return () => client?.off('track', handleTrack);
-  });
+    const abortController = new AbortController();
+    const currentClient = streamClient;
 
-  $effect(() => {
-    const client = streamClient;
+    const attemptGetStream = async () => {
+      try {
+        const stream = await currentClient?.getStream(name);
 
-    try {
-      client?.getStream(name);
-      error = undefined;
-    } catch (nextError) {
-      error = nextError as Error;
-      client?.remove(name);
-      client?.getStream(name);
-    }
+        if (!abortController.signal.aborted) {
+          mediaStream = stream ?? null;
+          error = undefined;
+        }
+      } catch (nextError) {
+        error = nextError as Error;
 
-    return () => client?.remove(name);
+        // Retry if a timeout occurs
+        attemptGetStream();
+      }
+    };
+
+    attemptGetStream();
+
+    return () => {
+      abortController.abort();
+    };
   });
 
   const queryOptions = $derived(
@@ -68,7 +64,14 @@ export const createStreamClient = (
       ],
       enabled: streamClient !== undefined && enabledQueries.streams,
       retry: false,
+
+      /**
+       * Resolution options are fairly static,
+       * so we don't refetch often.
+       */
       refetchOnWindowFocus: false,
+      refetchOnMount: false,
+
       queryFn: async () => {
         const logger = createQueryLogger(name, 'getOptions');
         logger.request(undefined);

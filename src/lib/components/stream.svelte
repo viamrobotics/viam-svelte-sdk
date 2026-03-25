@@ -9,7 +9,7 @@ interface Props extends HTMLVideoAttributes {
 
 let { partID, name, ...rest }: Props = $props();
 
-let element: HTMLVideoElement;
+let element = $state.raw<HTMLVideoElement>();
 
 const client = createStreamClient(
   () => partID,
@@ -17,7 +17,9 @@ const client = createStreamClient(
 );
 
 $effect(() => {
-  element.srcObject = client.mediaStream;
+  if (element) {
+    element.srcObject = client.mediaStream;
+  }
 });
 
 $effect(() => {
