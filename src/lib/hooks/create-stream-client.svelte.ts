@@ -1,5 +1,5 @@
 import { untrack } from 'svelte';
-import { streamApi, StreamClient } from '@viamrobotics/sdk';
+import { StreamClient, type streamApi } from '@viamrobotics/sdk';
 import { useRobotClient } from './robot-clients.svelte';
 import {
   createMutation,

@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { Snippet } from 'svelte';
+import { untrack, type Snippet } from 'svelte';
 import {
   QueryClientProvider,
   QueryClient,
@@ -28,7 +28,7 @@ let {
   children,
 }: Props = $props();
 
-export const client = new QueryClient(config);
+export const client = new QueryClient(untrack(() => config));
 
 $effect(() => {
   if (logLevel !== undefined) {
