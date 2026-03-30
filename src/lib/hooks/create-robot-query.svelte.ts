@@ -9,24 +9,11 @@ import { usePolling } from './use-polling.svelte';
 import { createQueryLogger } from '$lib/logger';
 import { useEnabledQueries } from './use-enabled-queries.svelte';
 import { useConnectionStatus } from './robot-clients.svelte';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ArgumentsType<T> = T extends (...args: infer U) => any ? U : never;
-
-export type ResolvedReturnType<T> = T extends (
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ...args: any[]
-) => Promise<infer R>
-  ? R
-  : never;
-
-export interface QueryOptions {
-  enabled?: boolean;
-  staleTime?: number;
-  refetchOnMount?: boolean;
-  refetchInterval?: number | false;
-  refetchIntervalInBackground?: boolean;
-}
+import type {
+  ArgumentsType,
+  ResolvedReturnType,
+  QueryOptions,
+} from './queries';
 
 export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
   client: { current: T | undefined },

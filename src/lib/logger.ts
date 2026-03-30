@@ -5,6 +5,10 @@ import {
   type LogLevelType,
 } from 'loglayer';
 
+/**
+ * The structure of a log entry. Can be exported using the `getSDKLogs` function.
+ * @public
+ */
 export interface LogEntry {
   timestamp: string;
   level: string;

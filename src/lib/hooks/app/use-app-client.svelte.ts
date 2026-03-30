@@ -13,7 +13,7 @@ interface Context {
   connectionError: Error | undefined;
 }
 
-export interface ViamAppClientOptions {
+interface ViamAppClientOptions {
   serviceHost: string;
   credentials: Credentials;
 }

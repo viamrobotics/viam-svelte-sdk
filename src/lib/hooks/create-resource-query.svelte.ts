@@ -7,24 +7,11 @@ import type { Resource } from '@viamrobotics/sdk';
 import { usePolling } from './use-polling.svelte';
 import { createQueryLogger } from '$lib/logger';
 import { useEnabledQueries } from './use-enabled-queries.svelte';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ArgumentsType<T> = T extends (...args: infer U) => any ? U : never;
-
-export type ResolvedReturnType<T> = T extends (
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ...args: any[]
-) => Promise<infer R>
-  ? R
-  : never;
-
-interface QueryOptions {
-  enabled?: boolean;
-  staleTime?: number;
-  refetchOnMount?: boolean;
-  refetchInterval?: number | false;
-  refetchIntervalInBackground?: boolean;
-}
+import type {
+  ArgumentsType,
+  ResolvedReturnType,
+  QueryOptions,
+} from './queries';
 
 export const createResourceQuery = <T extends Resource, K extends keyof T>(
   client: { current: T | undefined },

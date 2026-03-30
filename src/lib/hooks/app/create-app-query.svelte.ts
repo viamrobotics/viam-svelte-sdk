@@ -7,14 +7,11 @@ import type { AppClient } from '@viamrobotics/sdk';
 import { usePolling } from '../use-polling.svelte';
 import { createQueryLogger } from '$lib/logger';
 import { useViamClient } from './use-app-client.svelte';
-import type { ArgumentsType, ResolvedReturnType } from './types';
-
-interface QueryOptions {
-  // enabled defaults to true if unspecified
-  enabled?: boolean;
-  refetchInterval: number | false;
-  refetchIntervalInBackground?: boolean;
-}
+import type {
+  ArgumentsType,
+  ResolvedReturnType,
+  QueryOptions,
+} from '../queries';
 
 export const createAppQuery = <T extends AppClient, K extends keyof T>(
   method: K,

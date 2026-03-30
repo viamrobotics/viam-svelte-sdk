@@ -1,10 +1,7 @@
 import { createMutation, type MutationOptions } from '@tanstack/svelte-query';
 import type { RobotClient } from '@viamrobotics/sdk';
 
-import type {
-  ArgumentsType,
-  ResolvedReturnType,
-} from './create-resource-query.svelte';
+import type { ArgumentsType, ResolvedReturnType } from './queries';
 import { createQueryLogger } from '$lib/logger';
 
 export const createRobotMutation = <T extends RobotClient, K extends keyof T>(

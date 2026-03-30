@@ -1,7 +1,7 @@
 import { createMutation, type MutationOptions } from '@tanstack/svelte-query';
 import type { DataClient } from '@viamrobotics/sdk';
 
-import type { ArgumentsType, ResolvedReturnType } from './types';
+import type { ArgumentsType, ResolvedReturnType } from '../queries';
 import { createQueryLogger } from '$lib/logger';
 import { useViamClient } from './use-app-client.svelte';
 

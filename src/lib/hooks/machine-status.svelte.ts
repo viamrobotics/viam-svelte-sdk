@@ -1,10 +1,8 @@
 import { useRobotClient } from './robot-clients.svelte';
 import type { PartID } from '$lib/part';
 import type { PlainMessage, robotApi } from '@viamrobotics/sdk';
-import {
-  createRobotQuery,
-  type QueryOptions,
-} from './create-robot-query.svelte';
+import { createRobotQuery } from './create-robot-query.svelte';
+import type { QueryOptions } from './queries';
 
 type MachineStatus = PlainMessage<robotApi.GetMachineStatusResponse>;
 

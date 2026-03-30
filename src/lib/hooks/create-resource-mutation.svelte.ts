@@ -6,10 +6,7 @@ import {
 } from '@tanstack/svelte-query';
 import type { Resource } from '@viamrobotics/sdk';
 
-import type {
-  ArgumentsType,
-  ResolvedReturnType,
-} from './create-resource-query.svelte';
+import type { ArgumentsType, ResolvedReturnType } from './queries';
 import { createQueryLogger } from '$lib/logger';
 
 export const createResourceMutation = <T extends Resource, K extends keyof T>(
