@@ -177,18 +177,6 @@ export const provideRobotClientsContext = (
   });
 };
 
-export const useRobotClients = (): ClientContext => {
-  return getContext<ClientContext>(clientKey);
-};
-
-export const useDialConfigs = (): DialConfigsContext => {
-  return getContext<DialConfigsContext>(dialKey);
-};
-
-export const useConnectionStatuses = () => {
-  return getContext<ConnectionStatusContext>(connectionKey);
-};
-
 export const useConnectionStatus = (partID: () => PartID) => {
   const context = getContext<ConnectionStatusContext>(connectionKey);
   const status = $derived(context.current[partID()]);

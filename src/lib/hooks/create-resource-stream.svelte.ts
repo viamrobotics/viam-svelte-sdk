@@ -7,24 +7,11 @@ import {
 import type { Resource } from '@viamrobotics/sdk';
 import { createQueryLogger } from '$lib/logger';
 import { useEnabledQueries } from './use-enabled-queries.svelte';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ArgumentsType<T> = T extends (...args: infer U) => any ? U : never;
-
-export type StreamItemType<T> = T extends (
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ...args: any[]
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-) => AsyncGenerator<infer R, any, any>
-  ? R
-  : never;
-
-interface QueryOptions {
-  // enabled defaults to true if unspecified
-  enabled?: boolean;
-  // refetchMode defaults to 'reset' if unspecified
-  refetchMode?: 'append' | 'reset' | 'replace';
-}
+import type {
+  ArgumentsType,
+  StreamItemType,
+  StreamQueryOptions as QueryOptions,
+} from './queries';
 
 type QueryResult<U> = QueryObserverResult<U[], Error>;
 

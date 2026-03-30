@@ -6,7 +6,7 @@ import {
 
 import { useConnectionStatus, useRobotClient } from './robot-clients.svelte';
 
-export type Client<T> = new (part: RobotClient, name: string) => T;
+type Client<T> = new (part: RobotClient, name: string) => T;
 
 export const createResourceClient = <T extends Resource>(
   client: Client<T>,
