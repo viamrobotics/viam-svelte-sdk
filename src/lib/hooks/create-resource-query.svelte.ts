@@ -59,7 +59,7 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
       enabledQueries.resourceQueries
   );
 
-  const queryKey = [
+  const queryKey = $derived([
     'viam-svelte-sdk',
     'partID',
     (client.current as T & { partID: string })?.partID,
@@ -67,7 +67,7 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
     name,
     methodName,
     ...(_args ? [_args] : []),
-  ];
+  ]);
 
   const queryOptions = $derived(
     createQueryOptions({

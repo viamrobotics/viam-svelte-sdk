@@ -3,8 +3,7 @@ import '../app.css';
 import { SvelteQueryDevtools } from '@tanstack/svelte-query-devtools';
 import { ViamProvider } from '$lib';
 import type { Snippet } from 'svelte';
-import { dialConfigs as c } from './configs';
-import Parts from './components/parts.svelte';
+import { dialConfigs as envConfigs } from './configs';
 import type { DialConf } from '@viamrobotics/sdk';
 import { SDKLogLevel } from '$lib/logger';
 
@@ -12,24 +11,37 @@ interface Props {
   children: Snippet;
 }
 
-let configs = $state.raw<Record<string, DialConf>>(structuredClone(c));
+let { children }: Props = $props();
+
+let configs = $state.raw<Record<string, DialConf>>(structuredClone(envConfigs));
+let enabled = $state<Record<string, boolean>>({});
 
 const id = setInterval(() => {
-  configs = structuredClone(c);
+  configs = structuredClone(envConfigs);
 }, 1000);
 
-$effect.pre(() => {
-  return () => clearTimeout(id);
-});
-
-let enabled = $state<Record<string, boolean>>(
-  Object.fromEntries(Object.keys(configs).map((partID) => [partID, true]))
-);
 let dialConfigs = $derived(
   Object.fromEntries(Object.entries(configs).filter(([key]) => enabled[key]))
 );
 
-let { children }: Props = $props();
+$effect.pre(() => {
+  const partIDs = Object.keys(configs);
+  const toRemove = Object.keys(enabled).filter(
+    (partID) => !partIDs.includes(partID)
+  );
+
+  for (const partID of partIDs) {
+    if (!(partID in enabled)) {
+      enabled[partID] = true;
+    }
+  }
+
+  for (const partID of toRemove) {
+    delete enabled[partID];
+  }
+
+  return () => clearTimeout(id);
+});
 </script>
 
 <div class="flex gap-4 p-4">
@@ -48,7 +60,6 @@ let { children }: Props = $props();
   {dialConfigs}
   logLevel={SDKLogLevel.debug}
 >
-  <Parts />
   {@render children()}
   <SvelteQueryDevtools />
 </ViamProvider>
