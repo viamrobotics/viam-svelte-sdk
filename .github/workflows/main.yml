@@ -25,7 +25,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: "pnpm"
           registry-url: "https://registry.npmjs.org"
 
@@ -33,12 +33,6 @@ jobs:
         run: |
           pnpm i
           pnpm run build
-
-      # The changesets action creates its own .npmrc, overriding the one from
-      # setup-node that has OIDC auth. Copy it to ~/.npmrc so the action finds
-      # it instead of creating a blank one. See: https://github.com/changesets/action/issues/515
-      - name: Preserve .npmrc for OIDC publishing
-        run: cp "$NPM_CONFIG_USERCONFIG" ~/.npmrc
 
       - name: Create Release Pull Request or Publish to npm
         id: changesets
