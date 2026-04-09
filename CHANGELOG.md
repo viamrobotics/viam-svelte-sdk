@@ -1,5 +1,12 @@
 # @viamrobotics/svelte-sdk
 
+## 1.1.6
+
+### Patch Changes
+
+- 3322dfa: Add `knip` to linter
+- 794a917: Fix svelte reactivity warnings
+
 ## 1.1.5
 
 ### Patch Changes
