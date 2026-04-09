@@ -36,10 +36,11 @@ jobs:
 
       - name: Create Release Pull Request or Publish to npm
         id: changesets
-        uses: changesets/action@v1
+        # Pinned to v1.6.0 because v1.7.0 breaks OIDC trusted publishing:
+        # https://github.com/changesets/action/issues/515
+        uses: changesets/action@v1.6.0
         with:
           # This expects you to have a script called release which does a build for your packages and calls changeset publish
           publish: pnpm release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
