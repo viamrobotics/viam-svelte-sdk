@@ -1,7 +1,7 @@
 <script lang="ts">
 import { PersistedState } from 'runed';
 import {
-  useConnectionStatus,
+  useRobotClient,
   useResourceNames,
   CameraImage,
   CameraStream,
@@ -14,7 +14,7 @@ const partIDs = Object.keys(dialConfigs);
 
 let partID = new PersistedState('selected-partID', partIDs[0] ?? '');
 
-const status = useConnectionStatus(() => partID.current);
+const robotClient = useRobotClient(() => partID.current);
 const resources = useResourceNames(() => partID.current);
 const cameras = useResourceNames(() => partID.current, 'camera');
 
@@ -41,7 +41,7 @@ let streaming = true;
       {/if}
     {/each}
 
-    {status.current}
+    {robotClient.current?.connectionStatus}
   </div>
 
   <h2 class="py-2">Resources</h2>

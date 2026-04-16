@@ -8,7 +8,7 @@ import { MachineConnectionEvent, type RobotClient } from '@viamrobotics/sdk';
 import { usePolling } from './use-polling.svelte';
 import { createQueryLogger } from '$lib/logger';
 import { useEnabledQueries } from './use-enabled-queries.svelte';
-import { useConnectionStatus } from './robot-clients.svelte';
+import { useRobotClient } from './robot-clients.svelte';
 import type {
   ArgumentsType,
   ResolvedReturnType,
@@ -26,7 +26,7 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
       ]
 ): QueryObserverResult<ResolvedReturnType<T[K]>> => {
   const partID = $derived((client.current as T & { partID: string })?.partID);
-  const connectionStatus = useConnectionStatus(() => partID);
+  const robotClient = useRobotClient(() => partID);
   const enabledQueries = useEnabledQueries();
   let [args, options] = additional;
 
@@ -41,7 +41,7 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
   const _args = $derived(typeof args === 'function' ? args() : args);
   const methodName = $derived(String(method));
   const enabled = $derived(
-    connectionStatus.current === MachineConnectionEvent.CONNECTED &&
+    robotClient.current?.connectionStatus === MachineConnectionEvent.CONNECTED &&
       client.current !== undefined &&
       _options?.enabled !== false &&
       enabledQueries.robotQueries

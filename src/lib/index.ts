@@ -7,7 +7,7 @@ export { default as CameraStream } from './components/stream.svelte';
 
 // Robot hooks
 export {
-  useConnectionStatus,
+  useRobotClients,
   useRobotClient,
 } from './hooks/robot-clients.svelte';
 
