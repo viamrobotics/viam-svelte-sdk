@@ -1,5 +1,5 @@
-import { type QueryObserverResult } from '@tanstack/svelte-query';
-import { type ResourceName } from '@viamrobotics/sdk';
+import type { QueryObserverResult } from '@tanstack/svelte-query';
+import type { ResourceName } from '@viamrobotics/sdk';
 import { useRobotClient } from './robot-clients.svelte';
 import type { PartID } from '../part';
 import { useDebounce } from 'runed';
