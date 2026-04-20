@@ -9,14 +9,20 @@ import {
 import { dialConfigs } from '../configs';
 import Part from './part.svelte';
 import Version from './version.svelte';
+import { useRobotClients } from '$lib/hooks/robot-clients.svelte';
 
 const partIDs = Object.keys(dialConfigs);
+const { connect } = useRobotClients();
 
 let partID = new PersistedState('selected-partID', partIDs[0] ?? '');
 
 const robotClient = useRobotClient(() => partID.current);
 const resources = useResourceNames(() => partID.current);
 const cameras = useResourceNames(() => partID.current, 'camera');
+
+const reconnect = () => {
+  connect(partID.current, dialConfigs[partID.current]!);
+};
 
 let streaming = true;
 </script>
@@ -33,6 +39,15 @@ let streaming = true;
       >
         part {index + 1}
       </button>
+
+      <button
+        class="border border-red-300 bg-red-100 p-2 text-red-800"
+        onclick={robotClient.disconnect}>Disconnect</button
+      >
+      <button
+        class="border border-yellow-300 bg-yellow-100 p-2 text-yellow-800"
+        onclick={reconnect}>Reconnect</button
+      >
 
       {#if id === partID.current}
         <Version partID={id} />

@@ -1,5 +1,5 @@
 import { type QueryObserverResult } from '@tanstack/svelte-query';
-import type { ResourceName } from '@viamrobotics/sdk';
+import { type ResourceName } from '@viamrobotics/sdk';
 import { useRobotClient } from './robot-clients.svelte';
 import type { PartID } from '../part';
 import { useDebounce } from 'runed';
@@ -71,11 +71,8 @@ export const useResourceNames = (
   partID: () => PartID,
   resourceSubtype?: string | (() => string)
 ): QueryContext => {
-  console.log(`MATTHEW: partID`, partID());
-  console.log(`MATTHEW: resourceSubtype`, resourceSubtype);
   const enabledQueries = useEnabledQueries();
   const client = useRobotClient(partID);
-  console.log(`MATTHEW: client`, client);
   const machineStatus = createRobotQuery(client, 'getMachineStatus', {
     refetchInterval: 1000,
   });
