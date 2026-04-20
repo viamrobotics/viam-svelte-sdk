@@ -33,17 +33,13 @@ interface RobotClientContext {
 }
 
 export const provideRobotClientsContext = (
-  dialConfigs: () => Record<string, DialConf>
+  dialConfigs: () => Record<PartID, DialConf>
 ) => {
   const queryClient = useQueryClient();
   const robotClients = $state<Record<PartID, RobotConnection | undefined>>({});
   const errors = $state<Record<PartID, Error | undefined>>({});
 
   const disconnect = async (partID: PartID) => {
-    console.log(
-      `MATTHEW: disconnecting from ${partID} robotClient`,
-      robotClients[partID]
-    );
     if (!robotClients[partID]) {
       return;
     }
@@ -67,9 +63,8 @@ export const provideRobotClientsContext = (
   };
 
   const connect = async (partID: PartID, config: DialConf) => {
-    await disconnect(partID);
-
     try {
+      await disconnect(partID);
       const client = new RobotClient();
       (client as RobotClient & { partID: string }).partID = partID;
 
