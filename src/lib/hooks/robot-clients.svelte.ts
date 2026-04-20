@@ -33,7 +33,7 @@ interface RobotClientContext {
 }
 
 export const provideRobotClientsContext = (
-  dialConfigs: () => Record<PartID, DialConf>
+  dialConfigs?: () => Record<PartID, DialConf>
 ) => {
   const queryClient = useQueryClient();
   const robotClients = $state<Record<PartID, RobotConnection | undefined>>({});
@@ -123,7 +123,11 @@ export const provideRobotClientsContext = (
   };
 
   $effect(() => {
-    const configs = dialConfigs();
+    const configs = dialConfigs?.();
+    if (!configs) {
+      return;
+    }
+
     untrack(() => {
       for (const [partID, config] of Object.entries(configs)) {
         connect(partID, config);
