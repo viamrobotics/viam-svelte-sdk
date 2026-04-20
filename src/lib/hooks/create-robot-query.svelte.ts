@@ -41,7 +41,7 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
   const _args = $derived(typeof args === 'function' ? args() : args);
   const methodName = $derived(String(method));
   const enabled = $derived(
-    robotClient.current?.connectionStatus === MachineConnectionEvent.CONNECTED &&
+    robotClient.connectionStatus === MachineConnectionEvent.CONNECTED &&
       client.current !== undefined &&
       _options?.enabled !== false &&
       enabledQueries.robotQueries

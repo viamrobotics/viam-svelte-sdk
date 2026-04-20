@@ -8,54 +8,57 @@ import { getContext, setContext } from 'svelte';
 import { useQueryClient } from '@tanstack/svelte-query';
 import type { PartID } from '../part';
 import { logger } from '$lib/logger';
+import { untrack } from 'svelte';
 
 const clientKey = Symbol('clients-context');
 
-export type RobbotConnection = {
+export type RobotConnection = {
   client: Client | undefined;
   connectionStatus: MachineConnectionEvent;
   dialConfig: DialConf;
 }
 
+
 interface RobotClientsContext {
-  current: Record<PartID, RobbotConnection | undefined>;
+  current: Record<PartID, RobotConnection | undefined>;
   errors: Record<PartID, Error | undefined>;
   connect: (partID: PartID, config: DialConf) => Promise<void>;
   disconnect: (partID: PartID) => Promise<void>;
 }
 
 interface RobotClientContext {
-  current: RobbotConnection | undefined;
+  current: RobotClient | undefined;
   error: Error | undefined;
+  connectionStatus: MachineConnectionEvent;
   disconnect: () => Promise<void>;
 }
 
-export const provideRobotClientsContext = () => {
+export const provideRobotClientsContext = (dialConfigs: () => Record<string, DialConf>) => {
   const queryClient = useQueryClient();
-  const robotClients = $state<Record<PartID, RobbotConnection | undefined>>({});
+  const robotClients = $state<Record<PartID, RobotConnection | undefined>>({});
   const errors = $state<Record<PartID, Error | undefined>>({});
 
   const disconnect = async (partID: PartID) => {
-    const robotClient = robotClients[partID];
 
-    if (!robotClient) {
+    console.log(`MATTHEW: disconnecting from ${partID} robotClient`, robotClients[partID]);
+    if (!robotClients[partID]) {
       return;
     }
 
     logger.withMetadata({ partID }).info('disconnecting');
-    robotClient.connectionStatus = MachineConnectionEvent.DISCONNECTING;
+    robotClients[partID].connectionStatus = MachineConnectionEvent.DISCONNECTING;
 
     await Promise.all([
-      robotClient.client?.disconnect(),
+      robotClients[partID].client?.disconnect(),
       queryClient.cancelQueries({
         queryKey: ['viam-svelte-sdk', 'partID', partID],
       }),
     ]);
 
-    robotClient.client?.listeners['connectionstatechange']?.clear();
+    robotClients[partID].client?.listeners['connectionstatechange']?.clear();
     
-    robotClient.client = undefined;
-    robotClient.connectionStatus = MachineConnectionEvent.DISCONNECTED;
+    robotClients[partID].client = undefined;
+    robotClients[partID].connectionStatus = MachineConnectionEvent.DISCONNECTED;
     logger.withMetadata({ partID }).info('disconnected');
   };
 
@@ -67,25 +70,26 @@ export const provideRobotClientsContext = () => {
       (client as RobotClient & { partID: string }).partID = partID;
 
       logger.withMetadata({ partID }).info('connecting');
-      const robotClient: RobbotConnection = {
+      const robotClient: RobotConnection = {
         client,
         connectionStatus: MachineConnectionEvent.CONNECTING,
         dialConfig: config
       };
       robotClients[partID] = robotClient;
 
-      
-
       client.on('connectionstatechange', async (event) => {
+        if (!robotClients[partID]) {
+          return;
+        }
         const newStatus = (event as { eventType: MachineConnectionEvent })
           .eventType;
-        robotClient.connectionStatus = newStatus;
+        robotClients[partID].connectionStatus = newStatus;
 
         logger
           .withMetadata({ partID, status: newStatus })
           .info('connection state changed');
 
-        if (robotClient.connectionStatus === MachineConnectionEvent.DISCONNECTED) {
+        if (robotClients[partID].connectionStatus === MachineConnectionEvent.DISCONNECTED) {
           await queryClient.cancelQueries({
             queryKey: ['viam-svelte-sdk', 'partID', partID],
           });
@@ -99,7 +103,7 @@ export const provideRobotClientsContext = () => {
       await client.dial(config);
       errors[partID] = undefined;
 
-      robotClient.connectionStatus = MachineConnectionEvent.CONNECTED;
+      robotClients[partID].connectionStatus = MachineConnectionEvent.CONNECTED;
       logger.withMetadata({ partID }).info('connected');
     } catch (error) {
       logger
@@ -107,13 +111,22 @@ export const provideRobotClientsContext = () => {
         .withError(error)
         .error('connection failed');
       errors[partID] = error as Error;
-      const robotClient = robotClients[partID];
-      if (!robotClient) {
+
+      if (!robotClients[partID]) {
         return;
       }
-      robotClient.connectionStatus = MachineConnectionEvent.DISCONNECTED;
+      robotClients[partID].connectionStatus = MachineConnectionEvent.DISCONNECTED;
     }
   };
+
+  $effect(() => {
+    const configs = dialConfigs();
+    untrack(() => {
+      for (const [partID, config] of Object.entries(configs)) {
+        connect(partID, config);
+      }
+    });
+  });
 
   setContext<RobotClientsContext>(clientKey, {
     get current() {
@@ -143,7 +156,7 @@ export const useRobotClients = (): RobotClientsContext => {
 
 export const useRobotClient = (partID: () => PartID): RobotClientContext => {
   const context = getContext<RobotClientsContext>(clientKey);
-  const client = $derived(context.current[partID()]);
+  const client = $derived(context.current[partID()]?.client);
   const error = $derived(context.errors[partID()]);
   return {
     get current() {
@@ -151,6 +164,9 @@ export const useRobotClient = (partID: () => PartID): RobotClientContext => {
     },
     get error() {
       return error;
+    },
+    get connectionStatus() {
+      return context.current[partID()]?.connectionStatus ?? MachineConnectionEvent.DISCONNECTED;
     },
     disconnect: () => context.disconnect(partID()),
   };

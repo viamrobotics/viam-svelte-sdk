@@ -41,7 +41,7 @@ let streaming = true;
       {/if}
     {/each}
 
-    {robotClient.current?.connectionStatus}
+    {robotClient.connectionStatus}
   </div>
 
   <h2 class="py-2">Resources</h2>

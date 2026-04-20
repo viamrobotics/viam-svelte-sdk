@@ -71,8 +71,11 @@ export const useResourceNames = (
   partID: () => PartID,
   resourceSubtype?: string | (() => string)
 ): QueryContext => {
+  console.log(`MATTHEW: partID`, partID());
+  console.log(`MATTHEW: resourceSubtype`, resourceSubtype);
   const enabledQueries = useEnabledQueries();
   const client = useRobotClient(partID);
+  console.log(`MATTHEW: client`, client);
   const machineStatus = createRobotQuery(client, 'getMachineStatus', {
     refetchInterval: 1000,
   });

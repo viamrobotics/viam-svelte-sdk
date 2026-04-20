@@ -16,15 +16,15 @@ export const createResourceClient = <T extends Resource>(
   const robotClient = useRobotClient(partID);
 
   const resourceClient = $derived.by<T | undefined>(() => {
-    if (!robotClient.current || !robotClient.current.client) {
+    if (!robotClient.current) {
       return;
     }
 
-    if (robotClient.current?.connectionStatus !== MachineConnectionEvent.CONNECTED) {
+    if (robotClient.connectionStatus !== MachineConnectionEvent.CONNECTED) {
       return;
     }
 
-    const nextClient = new client(robotClient.current.client, resourceName());
+    const nextClient = new client(robotClient.current, resourceName());
 
     // PartIDs are used to invalidate queries for this client
     (nextClient as T & { partID: string }).partID = partID();
