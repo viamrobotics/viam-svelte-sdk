@@ -1,5 +1,11 @@
 # @viamrobotics/svelte-sdk
 
+## 1.1.7
+
+### Patch Changes
+
+- 539d56c: Fix usePolling stopping after deps change while a fetch is in-flight
+
 ## 1.1.6
 
 ### Patch Changes
