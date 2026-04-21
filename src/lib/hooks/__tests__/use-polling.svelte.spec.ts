@@ -251,6 +251,76 @@ describe('usePolling', () => {
     expect(mockRefetchQueries).toHaveBeenCalledTimes(2);
   });
 
+  it('continues polling when deps change while a fetch is in-flight', async () => {
+    // Arrange
+    let resolveRefetch: (() => void) | undefined;
+    mockRefetchQueries.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveRefetch = resolve;
+        })
+    );
+
+    const { rerender } = render(UsePollingTestWrapper, {
+      props: { queryKey: ['test'], interval: 1000 },
+    });
+
+    // Act - fire first poll, leave it pending
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(mockRefetchQueries).toHaveBeenCalledTimes(1);
+
+    // Act - rerender while fetch is in-flight
+    await rerender({ queryKey: ['test'], interval: 500 });
+
+    // Act - resolve the stale in-flight fetch (from R1)
+    resolveRefetch!();
+    await vi.advanceTimersByTimeAsync(0);
+
+    // Switch to resolved mock so the next poll doesn't hang
+    mockRefetchQueries.mockReset();
+    mockRefetchQueries.mockResolvedValue(undefined);
+
+    // Assert - polling from R2 continues at the new interval
+    await vi.advanceTimersByTimeAsync(500);
+    expect(mockRefetchQueries).toHaveBeenCalledTimes(1);
+
+    await vi.advanceTimersByTimeAsync(500);
+    expect(mockRefetchQueries).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not leak pollers across repeated mid-fetch dep changes', async () => {
+    // Arrange - every refetch hangs until manually resolved
+    const resolvers: Array<() => void> = [];
+    mockRefetchQueries.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          resolvers.push(resolve);
+        })
+    );
+
+    const { rerender } = render(UsePollingTestWrapper, {
+      props: { queryKey: ['test'], interval: 1000 },
+    });
+
+    // Fire poll, leave pending, rerender — repeat
+    for (let i = 0; i < 5; i++) {
+      await vi.advanceTimersByTimeAsync(1000);
+      await rerender({ queryKey: ['test'], interval: 1000 });
+    }
+
+    // Resolve every hung fetch; stale polls must not schedule new work
+    for (const resolve of resolvers) resolve();
+    await vi.advanceTimersByTimeAsync(0);
+
+    const callsBefore = mockRefetchQueries.mock.calls.length;
+
+    // Advance far enough that leaked pollers would fire many times
+    await vi.advanceTimersByTimeAsync(1000);
+
+    // Only one live poller should fire
+    expect(mockRefetchQueries.mock.calls.length - callsBefore).toBe(1);
+  });
+
   it('handles slow requests without stacking when request takes longer than interval', async () => {
     // Arrange
     const requestResolvers: Array<() => void> = [];
