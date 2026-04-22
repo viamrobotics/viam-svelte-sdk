@@ -1,10 +1,6 @@
 <script lang="ts">
 import { PersistedState } from 'runed';
-import {
-  useResourceNames,
-  CameraImage,
-  CameraStream,
-} from '$lib';
+import { useResourceNames, CameraImage, CameraStream } from '$lib';
 import { dialConfigs } from '../configs';
 import Part from './part.svelte';
 import Version from './version.svelte';

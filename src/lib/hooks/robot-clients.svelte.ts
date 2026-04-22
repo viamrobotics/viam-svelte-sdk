@@ -15,7 +15,6 @@ const clientKey = Symbol('clients-context');
 const connectionKey = Symbol('connection-status-context');
 const dialKey = Symbol('dial-configs-context');
 
-
 /**
  * @deprecated This context is deprecated and may be removed in a future release.
  */
@@ -173,18 +172,28 @@ export const provideRobotClientsContext = (
 
   setContext<ClientContext>(clientKey, {
     get current() {
-      return Object.fromEntries(Object.entries(robotClients)
-        .map(([partID, robotConnection]) => [partID, robotConnection?.client]));
+      return Object.fromEntries(
+        Object.entries(robotClients).map(([partID, robotConnection]) => [
+          partID,
+          robotConnection?.client,
+        ])
+      );
     },
     get errors() {
-      return Object.fromEntries(Object.entries(robotClients)
-        .map(([partID]) => [partID, errors[partID]]));
+      return Object.fromEntries(
+        Object.entries(robotClients).map(([partID]) => [partID, errors[partID]])
+      );
     },
   });
   setContext<ConnectionStatusContext>(connectionKey, {
     get current() {
-      return Object.fromEntries(Object.entries(robotClients)
-        .map(([partID, robotConnection]) => [partID, robotConnection?.connectionStatus ?? MachineConnectionEvent.DISCONNECTED]));
+      return Object.fromEntries(
+        Object.entries(robotClients).map(([partID, robotConnection]) => [
+          partID,
+          robotConnection?.connectionStatus ??
+            MachineConnectionEvent.DISCONNECTED,
+        ])
+      );
     },
   });
   setContext<DialConfigsContext>(dialKey, {
@@ -224,7 +233,9 @@ export const useRobotClient = (partID: () => PartID) => {
   };
 };
 
-export const useRobotConnection = (partID: () => PartID): RobotConnectionContext => {
+export const useRobotConnection = (
+  partID: () => PartID
+): RobotConnectionContext => {
   const context = getContext<RobotConnectionsContext>(robotConnectionsKey);
   const client = $derived(context.current[partID()]?.client);
   const error = $derived(context.errors[partID()]);
