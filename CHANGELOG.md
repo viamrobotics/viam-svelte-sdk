@@ -1,5 +1,11 @@
 # @viamrobotics/svelte-sdk
 
+## 1.2.0
+
+### Minor Changes
+
+- 79a26b4: feat: make robot connection provider expose explicit connect and disconnect functions for consumer
+
 ## 1.1.7
 
 ### Patch Changes
