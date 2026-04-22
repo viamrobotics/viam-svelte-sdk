@@ -12,11 +12,13 @@ import { useRobotConnection, useRobotConnections } from '$lib/hooks/robot-client
 import { onMount } from 'svelte';
 
 const partIDs = Object.keys(dialConfigs);
-const { connect } = useRobotConnections();
+const { current, connect } = useRobotConnections();
 
+$inspect(current, "current");
 let partID = new PersistedState('selected-partID', partIDs[0] ?? '');
 
 const robotConnection = useRobotConnection(() => partID.current);
+$inspect(robotConnection, "robotConnection");
 const resources = useResourceNames(() => partID.current);
 const cameras = useResourceNames(() => partID.current, 'camera');
 

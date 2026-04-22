@@ -4,7 +4,7 @@ import {
   MachineConnectionEvent,
 } from '@viamrobotics/sdk';
 
-import { useRobotConnection } from './robot-clients.svelte';
+import { useConnectionStatus, useRobotClient } from './robot-clients.svelte';
 
 type Client<T> = new (part: RobotClient, name: string) => T;
 
@@ -13,18 +13,19 @@ export const createResourceClient = <T extends Resource>(
   partID: () => string,
   resourceName: () => string
 ): { current: T | undefined } => {
-  const robotConnection = useRobotConnection(partID);
+  const robotClient = useRobotClient(partID);
+  const connectionStatus = useConnectionStatus(partID);
 
   const resourceClient = $derived.by<T | undefined>(() => {
-    if (!robotConnection.current) {
+    if (!robotClient.current) {
       return;
     }
 
-    if (robotConnection.connectionStatus !== MachineConnectionEvent.CONNECTED) {
+    if (connectionStatus.current !== MachineConnectionEvent.CONNECTED) {
       return;
     }
 
-    const nextClient = new client(robotConnection.current, resourceName());
+    const nextClient = new client(robotClient.current, resourceName());
 
     // PartIDs are used to invalidate queries for this client
     (nextClient as T & { partID: string }).partID = partID();

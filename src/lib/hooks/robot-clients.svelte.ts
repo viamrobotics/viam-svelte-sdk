@@ -240,7 +240,7 @@ export const useRobotConnections = () => {
 };
 
 export const useRobotConnection = (partID: () => PartID): RobotConnectionContext => {
-  const context = getContext<RobotConnectionsContext>(clientKey);
+  const context = getContext<RobotConnectionsContext>(robotConnectionsKey);
   const client = $derived(context.current[partID()]?.client);
   const error = $derived(context.errors[partID()]);
   return {
