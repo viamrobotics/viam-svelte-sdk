@@ -6,7 +6,7 @@ export { default as CameraImage } from './components/camera.svelte';
 export { default as CameraStream } from './components/stream.svelte';
 
 // Robot hooks
-export { useRobotConnections, useRobotConnection, useConnectionStatus, useRobotClient } from './hooks/robot-clients.svelte';
+export { useRobotConnection, useConnectionStatus, useRobotClient } from './hooks/robot-clients.svelte';
 
 export { createRobotQuery } from './hooks/create-robot-query.svelte';
 export { createRobotMutation } from './hooks/create-robot-mutation.svelte';

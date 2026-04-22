@@ -56,6 +56,7 @@ interface RobotConnectionContext {
   error: Error | undefined;
   connectionStatus: MachineConnectionEvent;
   disconnect: () => Promise<void>;
+  connect: (config: DialConf) => Promise<void>;
 }
 
 /**
@@ -170,17 +171,6 @@ export const provideRobotClientsContext = (
     };
   });
 
-  setContext<RobotConnectionsContext>(robotConnectionsKey, {
-    get current() {
-      return robotClients;
-    },
-    get errors() {
-      return errors;
-    },
-    connect,
-    disconnect,
-  });
-
   setContext<ClientContext>(clientKey, {
     get current() {
       return Object.fromEntries(Object.entries(robotClients)
@@ -197,11 +187,20 @@ export const provideRobotClientsContext = (
         .map(([partID, robotConnection]) => [partID, robotConnection?.connectionStatus ?? MachineConnectionEvent.DISCONNECTED]));
     },
   });
-
   setContext<DialConfigsContext>(dialKey, {
     get current() {
       return dialConfigs?.() ?? {};
     },
+  });
+  setContext<RobotConnectionsContext>(robotConnectionsKey, {
+    get current() {
+      return robotClients;
+    },
+    get errors() {
+      return errors;
+    },
+    connect,
+    disconnect,
   });
 };
 
@@ -225,20 +224,6 @@ export const useRobotClient = (partID: () => PartID) => {
   };
 };
 
-export const useRobotConnections = () => {
-  const context = getContext<RobotConnectionsContext>(robotConnectionsKey);
-  return {
-    get current() {
-      return context.current;
-    },
-    get errors() {
-      return context.errors;
-    },
-    connect: context.connect,
-    disconnect: context.disconnect,
-  };
-};
-
 export const useRobotConnection = (partID: () => PartID): RobotConnectionContext => {
   const context = getContext<RobotConnectionsContext>(robotConnectionsKey);
   const client = $derived(context.current[partID()]?.client);
@@ -257,5 +242,6 @@ export const useRobotConnection = (partID: () => PartID): RobotConnectionContext
       );
     },
     disconnect: () => context.disconnect(partID()),
+    connect: (config: DialConf) => context.connect(partID(), config),
   };
 };
