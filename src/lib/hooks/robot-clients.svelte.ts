@@ -239,6 +239,10 @@ export const useRobotConnection = (
   const context = getContext<RobotConnectionsContext>(robotConnectionsKey);
   const client = $derived(context.current[partID()]?.client);
   const error = $derived(context.errors[partID()]);
+  const connectionStatus = $derived(
+    context.current[partID()]?.connectionStatus ??
+      MachineConnectionEvent.DISCONNECTED
+  );
   return {
     get current() {
       return client;
@@ -247,10 +251,7 @@ export const useRobotConnection = (
       return error;
     },
     get connectionStatus() {
-      return (
-        context.current[partID()]?.connectionStatus ??
-        MachineConnectionEvent.DISCONNECTED
-      );
+      return connectionStatus;
     },
     disconnect: () => context.disconnect(partID()),
     connect: (config: DialConf) => context.connect(partID(), config),
