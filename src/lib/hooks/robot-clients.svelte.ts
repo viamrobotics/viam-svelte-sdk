@@ -10,7 +10,33 @@ import type { PartID } from '../part';
 import { logger } from '$lib/logger';
 import { untrack } from 'svelte';
 
+const robotConnectionsKey = Symbol('robot-connections-context');
 const clientKey = Symbol('clients-context');
+const connectionKey = Symbol('connection-status-context');
+const dialKey = Symbol('dial-configs-context');
+
+
+/**
+ * @deprecated This context is deprecated and may be removed in a future release.
+ */
+interface ClientContext {
+  current: Record<PartID, Client | undefined>;
+  errors: Record<PartID, Error | undefined>;
+}
+
+/**
+ * @deprecated This context is deprecated and may be removed in a future release.
+ */
+interface ConnectionStatusContext {
+  current: Record<PartID, MachineConnectionEvent>;
+}
+
+/**
+ * @deprecated This context is deprecated and may be removed in a future release.
+ */
+interface DialConfigsContext {
+  current: Record<PartID, DialConf>;
+}
 
 type RobotConnection = {
   client: Client | undefined;
@@ -18,20 +44,23 @@ type RobotConnection = {
   dialConfig: DialConf;
 };
 
-interface RobotClientsContext {
+interface RobotConnectionsContext {
   current: Record<PartID, RobotConnection | undefined>;
   errors: Record<PartID, Error | undefined>;
   connect: (partID: PartID, config: DialConf) => Promise<void>;
   disconnect: (partID: PartID) => Promise<void>;
 }
 
-interface RobotClientContext {
+interface RobotConnectionContext {
   current: RobotClient | undefined;
   error: Error | undefined;
   connectionStatus: MachineConnectionEvent;
   disconnect: () => Promise<void>;
 }
 
+/**
+ * @deprecated `dialConfigs` is deprecated and may be removed in a future release. Users can now explicilty connect and disconnect from robots using the `useRobotClient` and `useRobotClients` hooks.
+ */
 export const provideRobotClientsContext = (
   dialConfigs?: () => Record<PartID, DialConf>
 ) => {
@@ -133,9 +162,15 @@ export const provideRobotClientsContext = (
         connect(partID, config);
       }
     });
+
+    return () => {
+      for (const partID of Object.keys(configs)) {
+        disconnect(partID);
+      }
+    };
   });
 
-  setContext<RobotClientsContext>(clientKey, {
+  setContext<RobotConnectionsContext>(robotConnectionsKey, {
     get current() {
       return robotClients;
     },
@@ -145,10 +180,53 @@ export const provideRobotClientsContext = (
     connect,
     disconnect,
   });
+
+  setContext<ClientContext>(clientKey, {
+    get current() {
+      return Object.fromEntries(Object.entries(robotClients)
+        .map(([partID, robotConnection]) => [partID, robotConnection?.client]));
+    },
+    get errors() {
+      return Object.fromEntries(Object.entries(robotClients)
+        .map(([partID]) => [partID, errors[partID]]));
+    },
+  });
+  setContext<ConnectionStatusContext>(connectionKey, {
+    get current() {
+      return Object.fromEntries(Object.entries(robotClients)
+        .map(([partID, robotConnection]) => [partID, robotConnection?.connectionStatus ?? MachineConnectionEvent.DISCONNECTED]));
+    },
+  });
+
+  setContext<DialConfigsContext>(dialKey, {
+    get current() {
+      return dialConfigs?.() ?? {};
+    },
+  });
 };
 
-export const useRobotClients = (): RobotClientsContext => {
-  const context = getContext<RobotClientsContext>(clientKey);
+export const useConnectionStatus = (partID: () => PartID) => {
+  const context = getContext<ConnectionStatusContext>(connectionKey);
+  const status = $derived(context.current[partID()]);
+  return {
+    get current() {
+      return status;
+    },
+  };
+};
+
+export const useRobotClient = (partID: () => PartID) => {
+  const context = getContext<ClientContext>(clientKey);
+  const client = $derived(context.current[partID()]);
+  return {
+    get current() {
+      return client;
+    },
+  };
+};
+
+export const useRobotConnections = () => {
+  const context = getContext<RobotConnectionsContext>(robotConnectionsKey);
   return {
     get current() {
       return context.current;
@@ -161,8 +239,8 @@ export const useRobotClients = (): RobotClientsContext => {
   };
 };
 
-export const useRobotClient = (partID: () => PartID): RobotClientContext => {
-  const context = getContext<RobotClientsContext>(clientKey);
+export const useRobotConnection = (partID: () => PartID): RobotConnectionContext => {
+  const context = getContext<RobotConnectionsContext>(clientKey);
   const client = $derived(context.current[partID()]?.client);
   const error = $derived(context.errors[partID()]);
   return {

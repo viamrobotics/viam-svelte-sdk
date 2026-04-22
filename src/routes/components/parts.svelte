@@ -1,7 +1,6 @@
 <script lang="ts">
 import { PersistedState } from 'runed';
 import {
-  useRobotClient,
   useResourceNames,
   CameraImage,
   CameraStream,
@@ -9,15 +8,15 @@ import {
 import { dialConfigs } from '../configs';
 import Part from './part.svelte';
 import Version from './version.svelte';
-import { useRobotClients } from '$lib/hooks/robot-clients.svelte';
+import { useRobotConnection, useRobotConnections } from '$lib/hooks/robot-clients.svelte';
 import { onMount } from 'svelte';
 
 const partIDs = Object.keys(dialConfigs);
-const { connect } = useRobotClients();
+const { connect } = useRobotConnections();
 
 let partID = new PersistedState('selected-partID', partIDs[0] ?? '');
 
-const robotClient = useRobotClient(() => partID.current);
+const robotConnection = useRobotConnection(() => partID.current);
 const resources = useResourceNames(() => partID.current);
 const cameras = useResourceNames(() => partID.current, 'camera');
 
@@ -47,7 +46,7 @@ let streaming = true;
 
       <button
         class="border border-red-300 bg-red-100 p-2 text-red-800"
-        onclick={robotClient.disconnect}>Disconnect</button
+        onclick={robotConnection.disconnect}>Disconnect</button
       >
       <button
         class="border border-yellow-300 bg-yellow-100 p-2 text-yellow-800"
@@ -61,7 +60,7 @@ let streaming = true;
       {/if}
     {/each}
 
-    {robotClient.connectionStatus}
+    {robotConnection.connectionStatus}
   </div>
 
   <h2 class="py-2">Resources</h2>

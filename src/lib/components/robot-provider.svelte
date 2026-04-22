@@ -13,11 +13,10 @@ import {
   type SDKLogLevelType,
   getPersistedLogLevel,
 } from '$lib/logger';
-import type { PartID } from '$lib/part';
 
 interface Props {
   config?: QueryClientConfig;
-  dialConfigs: Record<PartID, DialConf>;
+  dialConfigs: Record<string, DialConf>;
   logLevel?: SDKLogLevelType;
   children: Snippet;
 }
