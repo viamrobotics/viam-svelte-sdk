@@ -16,8 +16,6 @@ export function usePolling(
   interval: () => number | false
 ) {
   const queryClient = useQueryClient();
-  let timeoutId: ReturnType<typeof setTimeout>;
-  let active = true;
 
   $effect(() => {
     const abortController = new AbortController();
@@ -25,17 +23,12 @@ export function usePolling(
     const currentInterval = interval();
     if (!currentInterval) return;
 
-    active = true;
+    let timeoutId: ReturnType<typeof setTimeout>;
 
     const poll = async () => {
-      if (!active) return;
-      if (abortController.signal.aborted) {
-        active = false;
-        clearTimeout(timeoutId);
-        return;
-      }
-
+      if (abortController.signal.aborted) return;
       await queryClient.refetchQueries({ queryKey: key });
+      if (abortController.signal.aborted) return;
       timeoutId = setTimeout(poll, currentInterval);
     };
 
@@ -43,7 +36,6 @@ export function usePolling(
 
     return () => {
       clearTimeout(timeoutId);
-      active = false;
       abortController.abort();
     };
   });

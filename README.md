@@ -10,6 +10,8 @@ To get started, Include the `ViamProvider` component. Any child component will h
 
 A map of `PartID`s to `DialConf`s must also be provided to connect to your machine(s).
 
+NOTE: Providing `DialConf` is on a deprecation path it is recommended to use the `useRobotConnection` hook to explicitly connect and disconnect from robots
+
 ```svelte
 <script lang="ts">
 import { ViamProvider } from '@viamrobotics/svelte-sdk';
@@ -36,7 +38,7 @@ const dialConfigs: Record<string, DialConf> = {
 </ViamProvider>
 ```
 
-### useRobotClient / useConnectionStatus
+### useRobotClient / useConnectionStatus (Deprecated)
 
 In any child component, you can access the `RobotClient` and `MachineConnectionStatus` of any connected machine with the `useRobotClient` and `useConnectionStatus` hooks.
 
@@ -55,6 +57,44 @@ const client = useRobotClient(() => partID);
 
 $inspect(status.current);
 $inspect(client.current);
+</script>
+```
+
+### useRobotConnection
+
+In any child component, you can access the `RobotConnection` of any connected machine with the `useRobotConnection` hook.
+
+```ts
+type RobotConnection = {
+  client: Client | undefined;
+  connectionStatus: MachineConnectionEvent;
+  dialConfig: DialConf;
+};
+```
+
+```svelte
+<script lang="ts">
+import { useRobotConnection } from '@viamrobotics/svelte-sdk';
+
+interface Props {
+  partID: string;
+}
+
+let { partID, dialConf }: Props = $props();
+
+const robotConnection = useRobotConnection(() => partID);
+
+onMount(() => {
+  robotConnection.connect(dialConf);
+
+  return () => {
+    robotConnection.disconnect();
+  };
+});
+
+$inspect(robotConnection.current); // the actual Client
+$inspect(robotConnection.connectionStatus);
+$inspect(robotConnection.error);
 </script>
 ```
 
