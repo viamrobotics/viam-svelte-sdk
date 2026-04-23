@@ -2,7 +2,7 @@
   "name": "@viamrobotics/svelte-sdk",
   "description": "Build Svelte apps with Viam",
   "license": "Apache-2.0",
-  "version": "1.1.6",
+  "version": "1.2.0",
   "scripts": {
     "dev": "vite dev",
     "build": "vite build && npm run prepack",
@@ -63,7 +63,7 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/svelte": "^5.2.8",
     "@viamrobotics/prettier-config-svelte": "^1.1.0",
-    "@viamrobotics/sdk": "^0.68.0",
+    "@viamrobotics/sdk": "^0.69.0",
     "@viamrobotics/typescript-config": "^0.1.1",
     "eslint": "^9.30.0",
     "eslint-config-prettier": "^10.1.5",
