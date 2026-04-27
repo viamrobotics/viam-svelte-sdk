@@ -60,7 +60,7 @@
     "@sveltejs/package": "^2.3.12",
     "@sveltejs/vite-plugin-svelte": "^5.1.0",
     "@tailwindcss/vite": "^4.1.11",
-    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/jest-dom": "^6.7.0",
     "@testing-library/svelte": "^5.2.8",
     "@viamrobotics/prettier-config-svelte": "^1.1.0",
     "@viamrobotics/sdk": "^0.69.0",
