@@ -19,22 +19,22 @@ Run on every commit:
 Test pure functions, business logic, and utilities in isolation. Use real implementations for pure functions — mock only I/O boundaries.
 
 ```typescript
-import { describe, expect, it } from 'vitest'
-import * as Subject from '../calculate'
+import { describe, expect, it } from 'vitest';
+import * as Subject from '../calculate';
 
 describe('calculateTotal', () => {
-	it('returns 0 for empty input', () => {
-		expect(Subject.calculateTotal([])).toBe(0)
-	})
+  it('returns 0 for empty input', () => {
+    expect(Subject.calculateTotal([])).toBe(0);
+  });
 
-	it.each([
-		{ input: [1, 2], expected: 3 },
-		{ input: [-1, 1], expected: 0 },
-		{ input: [10], expected: 10 },
-	])('returns $expected for $input', ({ input, expected }) => {
-		expect(Subject.calculateTotal(input)).toBe(expected)
-	})
-})
+  it.each([
+    { input: [1, 2], expected: 3 },
+    { input: [-1, 1], expected: 0 },
+    { input: [10], expected: 10 },
+  ])('returns $expected for $input', ({ input, expected }) => {
+    expect(Subject.calculateTotal(input)).toBe(expected);
+  });
+});
 ```
 
 ## TypeScript Integration Tests
@@ -42,47 +42,51 @@ describe('calculateTotal', () => {
 Integration tests verify multiple modules working together. Use real implementations; mock only external I/O boundaries (network, file system, time).
 
 ```typescript
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createApiClient } from '../api-client'
-import { userStore } from '../user-store'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { createApiClient } from '../api-client';
+import { userStore } from '../user-store';
 
 describe('login flow', () => {
-	beforeEach(() => {
-		userStore.reset()
-		vi.spyOn(globalThis, 'fetch')
-	})
+  beforeEach(() => {
+    userStore.reset();
+    vi.spyOn(globalThis, 'fetch');
+  });
 
-	afterEach(() => {
-		vi.restoreAllMocks()
-	})
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
 
-	it('populates the user store after a successful login', async () => {
-		vi.mocked(fetch).mockResolvedValue(
-			new Response(JSON.stringify({ id: '123', name: 'Alice' }), { status: 200 })
-		)
+  it('populates the user store after a successful login', async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(JSON.stringify({ id: '123', name: 'Alice' }), {
+        status: 200,
+      })
+    );
 
-		await createApiClient().login('alice@example.com', 'password')
+    await createApiClient().login('alice@example.com', 'password');
 
-		expect(userStore.get()).toEqual({ id: '123', name: 'Alice' })
-	})
+    expect(userStore.get()).toEqual({ id: '123', name: 'Alice' });
+  });
 
-	it('leaves the user store empty on auth failure', async () => {
-		vi.mocked(fetch).mockResolvedValue(new Response(null, { status: 401 }))
+  it('leaves the user store empty on auth failure', async () => {
+    vi.mocked(fetch).mockResolvedValue(new Response(null, { status: 401 }));
 
-		await expect(createApiClient().login('alice@example.com', 'wrong')).rejects.toThrow()
-		expect(userStore.get()).toBeNull()
-	})
-})
+    await expect(
+      createApiClient().login('alice@example.com', 'wrong')
+    ).rejects.toThrow();
+    expect(userStore.get()).toBeNull();
+  });
+});
 ```
 
 ### Mocking
 
 ```typescript
-vi.mock('../api-client', () => ({ fetchUser: vi.fn() }))
-vi.spyOn(object, 'method').mockReturnValue('result')
-vi.useFakeTimers()
-vi.advanceTimersByTime(1000)
-vi.useRealTimers()
+vi.mock('../api-client', () => ({ fetchUser: vi.fn() }));
+vi.spyOn(object, 'method').mockReturnValue('result');
+vi.useFakeTimers();
+vi.advanceTimersByTime(1000);
+vi.useRealTimers();
 ```
 
 Reset mocks between tests with `vi.clearAllMocks()` in `beforeEach`, or configure `clearMocks: true` in `vitest.config.ts`.
@@ -92,28 +96,28 @@ Reset mocks between tests with `vi.clearAllMocks()` in `beforeEach`, or configur
 Use [@testing-library/svelte](https://testing-library.com/docs/svelte-testing-library/intro) for component testing.
 
 ```typescript
-import { render, screen } from '@testing-library/svelte'
-import userEvent from '@testing-library/user-event'
-import { expect, it, vi } from 'vitest'
-import Counter from '../Counter.svelte'
-import MyForm from '../MyForm.svelte'
+import { render, screen } from '@testing-library/svelte';
+import userEvent from '@testing-library/user-event';
+import { expect, it, vi } from 'vitest';
+import Counter from '../Counter.svelte';
+import MyForm from '../MyForm.svelte';
 
 it('increments count on click', async () => {
-	const user = userEvent.setup()
-	render(Counter)
+  const user = userEvent.setup();
+  render(Counter);
 
-	await user.click(screen.getByRole('button', { name: /increment/i }))
-	expect(screen.getByText('1')).toBeInTheDocument()
-})
+  await user.click(screen.getByRole('button', { name: /increment/i }));
+  expect(screen.getByText('1')).toBeInTheDocument();
+});
 
 it('calls onSubmit when the form is submitted', async () => {
-	const onSubmit = vi.fn()
-	const user = userEvent.setup()
-	render(MyForm, { props: { onSubmit } })
+  const onSubmit = vi.fn();
+  const user = userEvent.setup();
+  render(MyForm, { props: { onSubmit } });
 
-	await user.click(screen.getByRole('button', { name: /submit/i }))
-	expect(onSubmit).toHaveBeenCalledOnce()
-})
+  await user.click(screen.getByRole('button', { name: /submit/i }));
+  expect(onSubmit).toHaveBeenCalledOnce();
+});
 ```
 
 ### Query Priority
@@ -129,13 +133,13 @@ it('calls onSubmit when the form is submitted', async () => {
 Pass a `context` map when the component under test depends on Svelte context:
 
 ```typescript
-import { render } from '@testing-library/svelte'
-import UserProfile from '../UserProfile.svelte'
-import { USER_CONTEXT_KEY } from '../user-context.svelte'
+import { render } from '@testing-library/svelte';
+import UserProfile from '../UserProfile.svelte';
+import { USER_CONTEXT_KEY } from '../user-context.svelte';
 
 render(UserProfile, {
-	context: new Map([[USER_CONTEXT_KEY, { name: 'Alice', role: 'admin' }]]),
-})
+  context: new Map([[USER_CONTEXT_KEY, { name: 'Alice', role: 'admin' }]]),
+});
 ```
 
 For complex context trees, create a `__fixtures__/` wrapper component that provides all required contexts and accepts the component under test as a snippet.

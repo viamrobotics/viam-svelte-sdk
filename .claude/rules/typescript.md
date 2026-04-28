@@ -13,11 +13,11 @@ Prefer `interface` for object shapes (extendable), `type` for unions and compute
 
 ```typescript
 interface ResourceOptions {
-	name: string
-	type: string
+  name: string;
+  type: string;
 }
 
-type ConnectionStatus = 'connected' | 'disconnected' | 'connecting'
+type ConnectionStatus = 'connected' | 'disconnected' | 'connecting';
 ```
 
 ## NEVER Use `any` — Use `unknown`
@@ -26,12 +26,12 @@ type ConnectionStatus = 'connected' | 'disconnected' | 'connecting'
 
 ```typescript
 // BAD
-const data: any = JSON.parse(raw)
+const data: any = JSON.parse(raw);
 
 // GOOD
-const data: unknown = JSON.parse(raw)
+const data: unknown = JSON.parse(raw);
 if (isResourceResponse(data)) {
-	console.log(data.name) // safely typed
+  console.log(data.name); // safely typed
 }
 ```
 
@@ -47,9 +47,9 @@ Write pure functions with JSDoc `@param`, `@returns`, and `@example` for non-obv
  * @example safeParseInt('42') // 42
  */
 export const safeParseInt = (value: string): number | undefined => {
-	const parsed = Number.parseInt(value, 10)
-	return Number.isNaN(parsed) ? undefined : parsed
-}
+  const parsed = Number.parseInt(value, 10);
+  return Number.isNaN(parsed) ? undefined : parsed;
+};
 ```
 
 ## Verify Your Work
