@@ -1,5 +1,11 @@
 # @viamrobotics/svelte-sdk
 
+## 1.2.1
+
+### Patch Changes
+
+- 1457689: Security updates
+
 ## 1.2.0
 
 ### Minor Changes
