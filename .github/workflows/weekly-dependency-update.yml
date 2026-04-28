@@ -46,7 +46,7 @@ jobs:
           [ -s /tmp/outdated.json ] || echo '[]' > /tmp/outdated.json
 
       - name: Upgrade dependencies
-        run: pnpm upgrade
+        run: npx --yes npm-check-updates --target minor -u && pnpm install
 
       - name: Create PR for dependency updates
         env:
