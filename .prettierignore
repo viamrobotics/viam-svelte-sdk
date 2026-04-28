@@ -3,3 +3,7 @@ package-lock.json
 pnpm-lock.yaml
 yarn.lock
 .changeset/*.md
+
+# CI tooling (embedded git repos — not part of this package)
+.ci-prompts/
+.claude-pr/
