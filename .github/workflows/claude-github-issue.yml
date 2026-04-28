@@ -23,7 +23,8 @@ jobs:
           contains(github.event.issue.body, '@claude') &&
           (
             contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association) ||
-            github.event.issue.user.login == 'github-actions[bot]'
+            github.event.issue.user.login == 'github-actions[bot]' ||
+            github.event.issue.user.login == 'claude[bot]'
           )
         ) ||
         (
