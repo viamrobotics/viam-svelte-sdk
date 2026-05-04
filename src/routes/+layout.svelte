@@ -23,7 +23,6 @@ onMount(() => {
   const interval = setInterval(refreshDialConfigs, 1000);
   return () => clearInterval(interval);
 });
-
 </script>
 
 <ViamProvider
