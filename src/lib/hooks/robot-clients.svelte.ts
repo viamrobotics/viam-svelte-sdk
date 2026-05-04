@@ -163,10 +163,6 @@ export const provideRobotClientsContext = (
       disconnect(partID);
     }
 
-    for (const partID of removed) {
-      disconnect(partID);
-    }
-
     for (const partID of added) {
       const config = configs[partID];
       if (config) {
