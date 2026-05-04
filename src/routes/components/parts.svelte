@@ -5,7 +5,7 @@ import {
   dialConfigs as configsStore,
   isEnvConfig,
   removeUserConfig,
-} from '../configs.svelte';
+} from '../configs';
 import Part from './part.svelte';
 import Version from './version.svelte';
 import ConnectionConfigForm from './connection-config-form.svelte';

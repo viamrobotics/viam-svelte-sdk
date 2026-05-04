@@ -1,6 +1,6 @@
 <script lang="ts">
 import type { DialConf } from '@viamrobotics/sdk';
-import { addUserConfig } from '../configs.svelte';
+import { addUserConfig } from '../configs';
 
 interface Props {
   onadd?: (partID: string) => void;

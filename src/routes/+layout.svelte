@@ -3,7 +3,7 @@ import '../app.css';
 import { SvelteQueryDevtools } from '@tanstack/svelte-query-devtools';
 import { ViamProvider } from '$lib';
 import type { Snippet } from 'svelte';
-import { dialConfigs as configsStore } from './configs.svelte';
+import { dialConfigs as configsStore } from './configs';
 import { SDKLogLevel } from '$lib/logger';
 
 interface Props {
