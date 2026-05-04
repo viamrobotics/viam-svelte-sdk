@@ -4,11 +4,11 @@ import {
   MachineConnectionEvent,
   RobotClient,
 } from '@viamrobotics/sdk';
-import { getContext, setContext } from 'svelte';
+import { getContext, onMount, setContext } from 'svelte';
 import { useQueryClient } from '@tanstack/svelte-query';
 import type { PartID } from '../part';
 import { logger } from '$lib/logger';
-import { untrack } from 'svelte';
+import { comparePartIds, isJsonEqual } from '../compare';
 
 const robotConnectionsKey = Symbol('robot-connections-context');
 const clientKey = Symbol('clients-context');
@@ -67,6 +67,7 @@ export const provideRobotClientsContext = (
   const queryClient = useQueryClient();
   const robotClients = $state<Record<PartID, RobotConnection | undefined>>({});
   const errors = $state<Record<PartID, Error | undefined>>({});
+  let lastConfigs: Record<PartID, DialConf | undefined> = {};
 
   const disconnect = async (partID: PartID) => {
     if (!robotClients[partID]) {
@@ -152,19 +153,41 @@ export const provideRobotClientsContext = (
   };
 
   $effect(() => {
-    const configs = dialConfigs?.();
-    if (!configs) {
-      return;
+    const configs = dialConfigs?.() ?? {};
+    const { added, removed, unchanged } = comparePartIds(
+      Object.keys(configs),
+      Object.keys(lastConfigs)
+    );
+
+    for (const partID of removed) {
+      disconnect(partID);
     }
 
-    untrack(() => {
-      for (const [partID, config] of Object.entries(configs)) {
+    for (const partID of added) {
+      const config = configs[partID];
+      if (config) {
         connect(partID, config);
       }
-    });
+    }
 
+    for (const partID of unchanged) {
+      const config = configs[partID];
+      const lastConfig = lastConfigs[partID];
+
+      if (config && lastConfig && !isJsonEqual(lastConfig, config)) {
+        logger
+          .withMetadata({ partID })
+          .info('dial config changed, reconnecting');
+        connect(partID, config);
+      }
+    }
+
+    lastConfigs = $state.snapshot(configs) as typeof lastConfigs;
+  });
+
+  onMount(() => {
     return () => {
-      for (const partID of Object.keys(configs)) {
+      for (const partID of Object.keys(dialConfigs?.() ?? {})) {
         disconnect(partID);
       }
     };
