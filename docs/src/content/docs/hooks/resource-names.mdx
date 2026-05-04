@@ -1,0 +1,28 @@
+---
+title: useResourceNames
+description: Reactive query for resource names, optionally filtered by subtype.
+---
+
+Wraps `robotClient.resourceNames()` in a reactive query at the [`ViamProvider`](../../guides/getting-started/) level. Supports optional filtering by resource subtype.
+
+```svelte
+<script lang="ts">
+import { useResourceNames } from '@viamrobotics/svelte-sdk';
+
+interface Props {
+  partID: string;
+}
+
+let { partID }: Props = $props();
+
+const resources = useResourceNames(() => partID);
+const arms = useResourceNames(
+  () => partID,
+  () => 'arm'
+);
+
+$inspect(resources.current);
+$inspect(resources.query.error);
+$inspect(resources.query.isFetching);
+</script>
+```

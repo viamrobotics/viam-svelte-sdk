@@ -1,0 +1,37 @@
+---
+title: createResourceClient / createResourceQuery / createResourceMutation
+description: Convenience hooks for queries and mutations on resource (component / service) clients.
+---
+
+To create and execute queries / mutations on resource (component / service) clients, use the following convenience hooks.
+
+```svelte
+<script lang="ts">
+import { BaseClient } from '@viamrobotics/sdk';
+import {
+  createResourceClient,
+  createResourceQuery,
+  createResourceMutation,
+} from '@viamrobotics/svelte-sdk';
+
+interface Props {
+  partID: string;
+  name: string;
+}
+
+let { partID, name }: Props = $props();
+
+const client = createResourceClient(
+  BaseClient,
+  () => partID,
+  () => name
+);
+
+const isMoving = createResourceQuery(client, 'isMoving');
+const moveStraight = createResourceMutation(client, 'moveStraight');
+</script>
+
+Is moving: {isMoving.data ?? false}
+
+<button onclick={() => moveStraight.mutate([100, 10])}> Move </button>
+```

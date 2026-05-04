@@ -1,0 +1,72 @@
+name: Deploy Docs
+
+on:
+  push:
+    branches: [main]
+  # Allow manual redeploys (e.g. after tweaking workflow itself).
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: docs-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10.18.0
+          run_install: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Install root deps
+        run: pnpm install
+
+      - name: Build SvelteKit playground
+        # SvelteKit's `paths.base` is read from BASE_PATH at build time.
+        # No trailing slash. Mirrors the deployed playground subpath.
+        env:
+          BASE_PATH: /viam-svelte-sdk/playground
+        run: pnpm vite build
+
+      - name: Install docs deps
+        working-directory: docs
+        run: pnpm install
+
+      - name: Stage playground into docs
+        run: |
+          mkdir -p docs/public/playground
+          rsync -a build/ docs/public/playground/
+
+      - name: Build docs site
+        working-directory: docs
+        env:
+          DOCS_BASE: /viam-svelte-sdk/
+          DOCS_SITE: https://viamrobotics.github.io
+        run: pnpm build
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: docs/dist
+          publish_branch: gh-pages
+          # Preserves pr-preview/* directories deployed by pr-preview.yml.
+          keep_files: true
+          user_name: github-actions[bot]
+          user_email: github-actions[bot]@users.noreply.github.com
+          commit_message: 'docs: deploy ${{ github.sha }}'

@@ -3,7 +3,7 @@ import '../app.css';
 import { SvelteQueryDevtools } from '@tanstack/svelte-query-devtools';
 import { ViamProvider } from '$lib';
 import type { Snippet } from 'svelte';
-import { dialConfigs as envConfigs } from './configs';
+import { dialConfigs as configsStore } from './configs.svelte';
 import { SDKLogLevel } from '$lib/logger';
 
 interface Props {
@@ -12,7 +12,7 @@ interface Props {
 
 let { children }: Props = $props();
 
-const dialConfigs = $derived(envConfigs);
+const dialConfigs = $derived(configsStore.current);
 </script>
 
 <ViamProvider

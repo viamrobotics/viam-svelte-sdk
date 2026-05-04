@@ -1,0 +1,48 @@
+---
+title: Viam Svelte SDK
+description: Reactive Svelte 5 hooks and components for building Viam-powered apps.
+template: splash
+hero:
+  tagline: Reactive Svelte 5 hooks and components for building apps with Viam-powered machines. Wraps `@viamrobotics/sdk` with TanStack Query, runes, and provider components.
+  actions:
+    - text: Get started
+      link: ./guides/getting-started/
+      icon: right-arrow
+    - text: Try the playground
+      link: ./playground/
+      icon: right-arrow
+      variant: minimal
+    - text: View on GitHub
+      link: https://github.com/viamrobotics/viam-svelte-sdk
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components'
+
+<CardGrid>
+	<Card
+		title="Hooks"
+		icon="seti:typescript"
+	>
+		Connect, query, and stream from machines with [reactive hooks](./hooks/use-robot-connection/).
+	</Card>
+	<Card
+		title="Camera Components"
+		icon="seti:html"
+	>
+		Drop-in [image](./components/camera-image/) and [video stream](./components/camera-stream/) components for camera resources.
+	</Card>
+	<Card
+		title="Debugging"
+		icon="magnifier"
+	>
+		Inspect SDK activity with the [built-in logger](./guides/debugging/) — toggle log levels live from the console.
+	</Card>
+	<Card
+		title="Playground"
+		icon="puzzle"
+	>
+		Explore the SDK against a real machine in the [embedded demo app](./playground/).
+	</Card>
+</CardGrid>

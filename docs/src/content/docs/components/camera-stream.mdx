@@ -1,0 +1,24 @@
+---
+title: <CameraStream>
+description: Opens a camera stream and renders it in a <video> tag.
+---
+
+Opens a camera stream and renders it in `<video>` tag.
+
+```svelte
+<script lang="ts">
+import { CameraStream } from '@viamrobotics/svelte-sdk';
+
+interface Props {
+  partID: string;
+  name: string;
+}
+
+let { partID, name }: Props = $props();
+</script>
+
+<CameraStream
+  {partID}
+  {name}
+/>
+```

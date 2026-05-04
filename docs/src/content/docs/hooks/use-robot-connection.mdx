@@ -1,0 +1,45 @@
+---
+title: useRobotConnection
+description: Reactively access a machine's RobotClient and explicitly control its connection.
+---
+
+In any child of [`ViamProvider`](../../guides/getting-started/), `useRobotConnection` returns a reactive view of a machine's `RobotClient` along with `connect` / `disconnect` controls and the latest connection error.
+
+```ts
+interface RobotConnectionContext {
+  current: RobotClient | undefined;
+  error: Error | undefined;
+  connectionStatus: MachineConnectionEvent;
+  connect: (config: DialConf) => Promise<void>;
+  disconnect: () => Promise<void>;
+}
+```
+
+```svelte
+<script lang="ts">
+import { onMount } from 'svelte';
+import { useRobotConnection } from '@viamrobotics/svelte-sdk';
+import type { DialConf } from '@viamrobotics/sdk';
+
+interface Props {
+  partID: string;
+  dialConf: DialConf;
+}
+
+let { partID, dialConf }: Props = $props();
+
+const robotConnection = useRobotConnection(() => partID);
+
+onMount(() => {
+  robotConnection.connect(dialConf);
+
+  return () => {
+    robotConnection.disconnect();
+  };
+});
+
+$inspect(robotConnection.current); // RobotClient | undefined
+$inspect(robotConnection.connectionStatus);
+$inspect(robotConnection.error);
+</script>
+```

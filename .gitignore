@@ -33,3 +33,9 @@ vite.config.ts.timestamp-*
 # Claude Code
 .claude/worktrees
 .claude/settings.local.json
+
+# Docs site
+docs/dist
+docs/.astro
+docs/node_modules
+docs/public/playground

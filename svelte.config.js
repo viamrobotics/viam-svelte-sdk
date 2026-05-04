@@ -9,6 +9,11 @@ const config = {
 
   kit: {
     adapter: adapter(),
+    paths: {
+      // Set by the docs and pr-preview workflows so the static demo build
+      // resolves assets under the deployed subpath (no trailing slash).
+      base: process.env.BASE_PATH ?? '',
+    },
   },
 };
 

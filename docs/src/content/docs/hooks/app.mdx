@@ -1,0 +1,94 @@
+---
+title: App hooks
+description: Hooks for the Viam App and Data APIs via ViamAppProvider.
+---
+
+The app hooks let you query and mutate the Viam App APIs (organizations, locations, parts, configs, etc.) and the Viam Data APIs (binary data, tabular data, datasets, etc.) from inside Svelte components.
+
+## Provider
+
+Wrap the relevant subtree in `ViamAppProvider`. It connects to `app.viam.com` (or whichever host you provide) using the supplied credentials.
+
+```svelte
+<script lang="ts">
+import { ViamAppProvider } from '@viamrobotics/svelte-sdk';
+import type { Credentials } from '@viamrobotics/sdk';
+
+let { children } = $props();
+
+const credentials: Credentials = {
+  type: 'api-key',
+  authEntity: 'my-api-key-id',
+  payload: 'my-api-key-value',
+};
+</script>
+
+<ViamAppProvider
+  serviceHost="https://app.viam.com:443"
+  {credentials}
+>
+  {@render children()}
+</ViamAppProvider>
+```
+
+## useViamClient
+
+Reactively access the underlying `ViamClient` from any descendant of `ViamAppProvider`.
+
+```svelte
+<script lang="ts">
+import { useViamClient } from '@viamrobotics/svelte-sdk';
+
+const viam = useViamClient();
+
+$inspect(viam.current); // ViamClient | undefined
+</script>
+```
+
+## createAppQuery / createAppMutation
+
+Convenience hooks for any method on `ViamClient.appClient`. The first argument is the method name; queries take optional reactive arguments and TanStack Query options. The example below uses `listLocations` and `createLocation` for illustration — refer to the [`@viamrobotics/sdk` docs](https://github.com/viamrobotics/viam-typescript-sdk) for the full method list.
+
+```svelte
+<script lang="ts">
+import {
+  createAppQuery,
+  createAppMutation,
+} from '@viamrobotics/svelte-sdk';
+
+interface Props {
+  organizationId: string;
+}
+
+let { organizationId }: Props = $props();
+
+const locations = createAppQuery('listLocations', () => [organizationId]);
+const createLocation = createAppMutation('createLocation');
+</script>
+
+{#if locations.data}
+  <ul>
+    {#each locations.data as location}
+      <li>{location.name}</li>
+    {/each}
+  </ul>
+{/if}
+
+<button onclick={() => createLocation.mutate([organizationId, 'New location'])}>
+  Create location
+</button>
+```
+
+## createDataQuery / createDataMutation
+
+Same shape, but bound to `ViamClient.dataClient`.
+
+```svelte
+<script lang="ts">
+import { createDataQuery } from '@viamrobotics/svelte-sdk';
+
+const tabular = createDataQuery('tabularDataByFilter', () => [
+  { /* filter */ },
+]);
+</script>
+```
