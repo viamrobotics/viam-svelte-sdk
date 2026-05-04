@@ -4,9 +4,10 @@ import {
   type QueryObserverResult,
   queryOptions as createQueryOptions,
 } from '@tanstack/svelte-query';
-import type { Resource } from '@viamrobotics/sdk';
+import { MachineConnectionEvent, type Resource } from '@viamrobotics/sdk';
 import { createQueryLogger } from '$lib/logger';
 import { useEnabledQueries } from './use-enabled-queries.svelte';
+import { useConnectionStatus } from './robot-clients.svelte';
 import type {
   ArgumentsType,
   StreamItemType,
@@ -58,6 +59,7 @@ export const createResourceStream = <T extends Resource, K extends keyof T>(
   const methodName = $derived(String(method));
   const refetchMode = $derived(_options?.refetchMode ?? 'reset');
   const partID = $derived((client.current as T & { partID: string })?.partID);
+  const connectionStatus = useConnectionStatus(() => partID);
   const queryKey = $derived(streamQueryKey(partID, name, methodName, _args));
 
   function processStream() {
@@ -90,6 +92,7 @@ export const createResourceStream = <T extends Resource, K extends keyof T>(
     createQueryOptions({
       queryKey,
       enabled:
+        connectionStatus.current === MachineConnectionEvent.CONNECTED &&
         client.current !== undefined &&
         _options?.enabled !== false &&
         enabledQueries.resourceQueries,
