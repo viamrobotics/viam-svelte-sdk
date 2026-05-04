@@ -5,6 +5,7 @@ import { ViamProvider } from '$lib';
 import type { Snippet } from 'svelte';
 import { dialConfigs as envConfigs } from './configs';
 import { SDKLogLevel } from '$lib/logger';
+import { onMount } from 'svelte';
 
 interface Props {
   children: Snippet;
@@ -12,7 +13,17 @@ interface Props {
 
 let { children }: Props = $props();
 
-const dialConfigs = $derived(envConfigs);
+let dialConfigs = $state(envConfigs);
+
+onMount(() => {
+  // repro app setup by refreshing dial configs every 1 second
+  const refreshDialConfigs = async () => {
+    dialConfigs = envConfigs;
+  };
+  const interval = setInterval(refreshDialConfigs, 1000);
+  return () => clearInterval(interval);
+});
+
 </script>
 
 <ViamProvider
