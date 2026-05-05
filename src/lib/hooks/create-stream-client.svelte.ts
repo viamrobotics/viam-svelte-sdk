@@ -1,6 +1,10 @@
 import { untrack } from 'svelte';
-import { StreamClient, type streamApi } from '@viamrobotics/sdk';
-import { useRobotClient } from './robot-clients.svelte';
+import {
+  MachineConnectionEvent,
+  StreamClient,
+  type streamApi,
+} from '@viamrobotics/sdk';
+import { useConnectionStatus, useRobotClient } from './robot-clients.svelte';
 import {
   createMutation,
   createQuery,
@@ -20,8 +24,12 @@ export const createStreamClient = (
   let error = $state.raw<Error>();
 
   const client = useRobotClient(partID);
+  const connectionStatus = useConnectionStatus(partID);
   const streamClient = $derived(
-    client.current ? new StreamClient(client.current) : undefined
+    connectionStatus.current === MachineConnectionEvent.CONNECTED &&
+      client.current
+      ? new StreamClient(client.current)
+      : undefined
   );
 
   $effect(() => {
