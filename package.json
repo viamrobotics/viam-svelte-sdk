@@ -44,7 +44,7 @@
     "@tanstack/svelte-query": "^6.1.28",
     "@tanstack/svelte-query-devtools": "^6.1.28",
     "loglayer": "^9.1.0",
-    "runed": "^0.29.2"
+    "runed": "^0.37.1"
   },
   "peerDependencies": {
     "@viamrobotics/sdk": ">=0.57",
