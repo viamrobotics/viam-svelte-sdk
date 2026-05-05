@@ -1,5 +1,12 @@
 # @viamrobotics/svelte-sdk
 
+## 1.2.2
+
+### Patch Changes
+
+- a7c9afd: fix: issue with config refreshing connections"
+- 2dae805: Do not enable queries until machine has connected
+
 ## 1.2.1
 
 ### Patch Changes
