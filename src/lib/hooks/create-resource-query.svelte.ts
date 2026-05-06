@@ -3,10 +3,11 @@ import {
   queryOptions as createQueryOptions,
   type QueryObserverResult,
 } from '@tanstack/svelte-query';
-import type { Resource } from '@viamrobotics/sdk';
+import { MachineConnectionEvent, type Resource } from '@viamrobotics/sdk';
 import { usePolling } from './use-polling.svelte';
 import { createQueryLogger } from '$lib/logger';
 import { useEnabledQueries } from './use-enabled-queries.svelte';
+import { useConnectionStatus } from './robot-clients.svelte';
 import type {
   ArgumentsType,
   ResolvedReturnType,
@@ -40,8 +41,11 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
   const _args = $derived(typeof args === 'function' ? args() : args);
   const name = $derived(client.current?.name);
   const methodName = $derived(String(method));
+  const partID = $derived((client.current as T & { partID: string })?.partID);
+  const connectionStatus = useConnectionStatus(() => partID);
   const enabled = $derived(
-    client.current !== undefined &&
+    connectionStatus.current === MachineConnectionEvent.CONNECTED &&
+      client.current !== undefined &&
       _options?.enabled !== false &&
       enabledQueries.resourceQueries
   );
@@ -49,7 +53,7 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
   const queryKey = $derived([
     'viam-svelte-sdk',
     'partID',
-    (client.current as T & { partID: string })?.partID,
+    partID,
     'resource',
     name,
     methodName,
