@@ -38,10 +38,10 @@ Public exports live in `src/lib/index.ts`. Hooks go in `src/lib/hooks/`, compone
 
 Detailed guidance lives in `.claude/rules/`. Path-scoped rules load when Claude reads matching files; rules without `paths` load every session.
 
-| Rule                  | Loads when                                          |
-| --------------------- | --------------------------------------------------- |
-| `svelte.md`           | editing `.svelte`, `.svelte.ts`, `.svelte.js`       |
-| `typescript.md`       | editing `.ts`                                       |
-| `testing-frontend.md` | editing frontend test files (`src/**/*.spec.ts`)    |
-| `pr-description.md`   | editing files under `.changeset/`                   |
-| `changesets.md`       | editing files under `.changeset/` or `CHANGELOG.md` |
+| Rule                | Loads when                                          |
+| ------------------- | --------------------------------------------------- |
+| `svelte.md`         | editing `.svelte`, `.svelte.ts`, `.svelte.js`       |
+| `typescript.md`     | editing `.ts`                                       |
+| `testing.md`        | editing frontend test files (`src/**/*.spec.ts`)    |
+| `pr-description.md` | editing files under `.changeset/`                   |
+| `changesets.md`     | editing files under `.changeset/` or `CHANGELOG.md` |
