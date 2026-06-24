@@ -91,7 +91,8 @@ export const provideRobotClientsContext = (
     generations[partID] === generation;
 
   const disconnect = async (partID: PartID) => {
-    if (!robotClients[partID]) {
+    const connection = robotClients[partID];
+    if (!connection) {
       return;
     }
 
@@ -99,18 +100,23 @@ export const provideRobotClientsContext = (
     // events from the client we are about to tear down.
     const generation = nextGeneration(partID);
 
+    // Capture the client we are tearing down *before* awaiting. robotClients[partID]
+    // can be reassigned to a newer client while we await (a resuming connect()),
+    // and disconnecting or clearing the listener off the post-await reference would
+    // wipe that newer connection's client instead of ours.
+    const client = connection.client;
+
     logger.withMetadata({ partID }).info('disconnecting');
-    robotClients[partID].connectionStatus =
-      MachineConnectionEvent.DISCONNECTING;
+    connection.connectionStatus = MachineConnectionEvent.DISCONNECTING;
 
     await Promise.all([
-      robotClients[partID].client?.disconnect(),
+      client?.disconnect(),
       queryClient.cancelQueries({
         queryKey: ['viam-svelte-sdk', 'partID', partID],
       }),
     ]);
 
-    robotClients[partID].client?.listeners['connectionstatechange']?.clear();
+    client?.listeners['connectionstatechange']?.clear();
 
     // A newer connect()/disconnect() may have superseded us while we awaited the
     // teardown — if so, leave its state untouched (do not null its client).
@@ -124,12 +130,16 @@ export const provideRobotClientsContext = (
   };
 
   const connect = async (partID: PartID, config: DialConf) => {
-    let generation = 0;
+    // Claim a generation immediately, before disconnect(), so this attempt
+    // supersedes any in-flight connect()/disconnect() right away and the catch
+    // below always has a real generation to check — even if disconnect() throws.
+    let generation = nextGeneration(partID);
     try {
       await disconnect(partID);
 
-      // Claim this attempt's generation once the prior connection is fully torn
-      // down. Every mutation below is gated on it still being current.
+      // disconnect() superseded us with its own generation while tearing the
+      // prior connection down; re-claim before we start mutating state so every
+      // gate below is keyed to this attempt.
       generation = nextGeneration(partID);
 
       const client = new RobotClient();
@@ -200,8 +210,10 @@ export const provideRobotClientsContext = (
         .error('connection failed');
 
       // A superseded attempt's failure must not record an error or flip a newer
-      // connection to DISCONNECTED.
-      if (generation !== 0 && !isCurrentGeneration(partID, generation)) {
+      // connection to DISCONNECTED. If disconnect() threw, our top-of-function
+      // generation was already superseded by disconnect()'s own bump, so this
+      // returns rather than clobbering whatever connection is now current.
+      if (!isCurrentGeneration(partID, generation)) {
         return;
       }
       errors[partID] = error as Error;
