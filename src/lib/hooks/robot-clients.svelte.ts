@@ -69,10 +69,30 @@ export const provideRobotClientsContext = (
   const errors = $state<Record<PartID, Error | undefined>>({});
   let lastConfigs: Record<PartID, DialConf | undefined> = {};
 
+  /**
+   * Monotonic per-part "generation" token. Both connect() and disconnect() are
+   * async and run interleaved with the SDK's own auto-reconnect, so an older
+   * attempt's awaited continuation (a dial resolving, a fire-and-forget reset
+   * from a DISCONNECTED event) can otherwise land after a newer attempt has
+   * already moved the connection on. Claiming a generation at the start of each
+   * attempt and gating every subsequent state mutation on it still being current
+   * ensures a superseded attempt — or events from a client being torn down —
+   * can never clobber the live connection or its query cache.
+   */
+  const generations: Record<PartID, number> = {};
+  const nextGeneration = (partID: PartID) =>
+    (generations[partID] = (generations[partID] ?? 0) + 1);
+  const isCurrentGeneration = (partID: PartID, generation: number) =>
+    generations[partID] === generation;
+
   const disconnect = async (partID: PartID) => {
     if (!robotClients[partID]) {
       return;
     }
+
+    // Supersede any in-flight connect()/disconnect() for this part, and any
+    // events from the client we are about to tear down.
+    const generation = nextGeneration(partID);
 
     logger.withMetadata({ partID }).info('disconnecting');
     robotClients[partID].connectionStatus =
@@ -87,14 +107,26 @@ export const provideRobotClientsContext = (
 
     robotClients[partID].client?.listeners['connectionstatechange']?.clear();
 
+    // A newer connect()/disconnect() may have superseded us while we awaited the
+    // teardown — if so, leave its state untouched (do not null its client).
+    if (!isCurrentGeneration(partID, generation) || !robotClients[partID]) {
+      return;
+    }
+
     robotClients[partID].client = undefined;
     robotClients[partID].connectionStatus = MachineConnectionEvent.DISCONNECTED;
     logger.withMetadata({ partID }).info('disconnected');
   };
 
   const connect = async (partID: PartID, config: DialConf) => {
+    let generation = 0;
     try {
       await disconnect(partID);
+
+      // Claim this attempt's generation once the prior connection is fully torn
+      // down. Every mutation below is gated on it still being current.
+      generation = nextGeneration(partID);
+
       const client = new RobotClient();
       (client as RobotClient & { partID: string }).partID = partID;
 
@@ -107,9 +139,13 @@ export const provideRobotClientsContext = (
       robotClients[partID] = robotClient;
 
       client.on('connectionstatechange', async (event) => {
-        if (!robotClients[partID]) {
+        // Ignore events from a client whose connect attempt has been superseded
+        // — a stale client must not flip a healthy connection to DISCONNECTED
+        // nor wipe its freshly-fetched query data.
+        if (!isCurrentGeneration(partID, generation) || !robotClients[partID]) {
           return;
         }
+
         const newStatus = (event as { eventType: MachineConnectionEvent })
           .eventType;
         robotClients[partID].connectionStatus = newStatus;
@@ -118,13 +154,22 @@ export const provideRobotClientsContext = (
           .withMetadata({ partID, status: newStatus })
           .info('connection state changed');
 
-        if (
-          robotClients[partID].connectionStatus ===
-          MachineConnectionEvent.DISCONNECTED
-        ) {
+        if (newStatus === MachineConnectionEvent.DISCONNECTED) {
           await queryClient.cancelQueries({
             queryKey: ['viam-svelte-sdk', 'partID', partID],
           });
+
+          // Re-check after the await: only clear the cache if this connection
+          // is still current AND still disconnected. Otherwise a reset could
+          // land after the connection was superseded or already recovered to
+          // CONNECTED, blanking the UI while the status reads connected.
+          if (
+            !isCurrentGeneration(partID, generation) ||
+            robotClients[partID]?.connectionStatus !==
+              MachineConnectionEvent.DISCONNECTED
+          ) {
+            return;
+          }
 
           await queryClient.resetQueries({
             queryKey: ['viam-svelte-sdk', 'partID', partID],
@@ -133,8 +178,14 @@ export const provideRobotClientsContext = (
       });
 
       await client.dial(config);
-      errors[partID] = undefined;
 
+      // A newer connect()/disconnect() may have superseded this attempt while we
+      // awaited the dial — if so, do not mark it connected.
+      if (!isCurrentGeneration(partID, generation) || !robotClients[partID]) {
+        return;
+      }
+
+      errors[partID] = undefined;
       robotClients[partID].connectionStatus = MachineConnectionEvent.CONNECTED;
       logger.withMetadata({ partID }).info('connected');
     } catch (error) {
@@ -142,6 +193,12 @@ export const provideRobotClientsContext = (
         .withMetadata({ partID })
         .withError(error)
         .error('connection failed');
+
+      // A superseded attempt's failure must not record an error or flip a newer
+      // connection to DISCONNECTED.
+      if (generation !== 0 && !isCurrentGeneration(partID, generation)) {
+        return;
+      }
       errors[partID] = error as Error;
 
       if (!robotClients[partID]) {
