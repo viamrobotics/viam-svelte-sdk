@@ -80,8 +80,13 @@ export const provideRobotClientsContext = (
    * can never clobber the live connection or its query cache.
    */
   const generations: Record<PartID, number> = {};
-  const nextGeneration = (partID: PartID) =>
-    (generations[partID] = (generations[partID] ?? 0) + 1);
+
+  const nextGeneration = (partID: PartID) => {
+    const result = (generations[partID] ?? 0) + 1;
+    generations[partID] = result;
+    return result;
+  };
+
   const isCurrentGeneration = (partID: PartID, generation: number) =>
     generations[partID] === generation;
 
