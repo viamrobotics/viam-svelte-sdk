@@ -58,16 +58,23 @@ interface RobotConnectionContext {
   connect: (config: DialConf) => Promise<void>;
 }
 
+export interface RobotClientsOptions {
+  resetQueriesOnDisconnect?: boolean;
+}
+
 /**
  * @deprecated `dialConfigs` is deprecated and may be removed in a future release. Users can now explicilty connect and disconnect from robots using the `useRobotClient` and `useRobotClients` hooks.
  */
 export const provideRobotClientsContext = (
-  dialConfigs?: () => Record<PartID, DialConf>
+  dialConfigs?: () => Record<PartID, DialConf>,
+  options?: () => RobotClientsOptions | undefined
 ) => {
   const queryClient = useQueryClient();
   const robotClients = $state<Record<PartID, RobotConnection | undefined>>({});
   const errors = $state<Record<PartID, Error | undefined>>({});
   let lastConfigs: Record<PartID, DialConf | undefined> = {};
+
+  const { resetQueriesOnDisconnect = true } = $derived(options?.() ?? {});
 
   /**
    * Monotonic per-part "generation" token. Both connect() and disconnect() are
@@ -169,23 +176,18 @@ export const provideRobotClientsContext = (
           .withMetadata({ partID, status: newStatus })
           .info('connection state changed');
 
-        if (newStatus === MachineConnectionEvent.DISCONNECTED) {
-          await queryClient.cancelQueries({
-            queryKey: ['viam-svelte-sdk', 'partID', partID],
-          });
-
-          // Re-check after the await: only clear the cache if this connection
-          // is still current AND still disconnected. Otherwise a reset could
-          // land after the connection was superseded or already recovered to
-          // CONNECTED, blanking the UI while the status reads connected.
-          if (
-            !isCurrentGeneration(partID, generation) ||
-            robotClients[partID]?.connectionStatus !==
-              MachineConnectionEvent.DISCONNECTED
-          ) {
-            return;
-          }
-
+        if (
+          newStatus === MachineConnectionEvent.DISCONNECTED &&
+          resetQueriesOnDisconnect
+        ) {
+          // resetQueries() resets each matched query to its initial state, which
+          // synchronously cancels any in-flight fetch (reset -> destroy ->
+          // cancel({ silent: true })) — so a separate cancelQueries() is
+          // redundant. The wipe also runs synchronously at the call site: there
+          // is no await between the generation guard at the top of this listener
+          // and this reset, so the attempt cannot be superseded (nor the
+          // connection recover) in between, and no post-await re-check is needed.
+          // If an await is ever introduced before this reset, restore that check.
           await queryClient.resetQueries({
             queryKey: ['viam-svelte-sdk', 'partID', partID],
           });
