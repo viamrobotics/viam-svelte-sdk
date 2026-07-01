@@ -13,9 +13,11 @@ import {
   type SDKLogLevelType,
   getPersistedLogLevel,
 } from '$lib/logger';
+import type { RobotClientsOptions } from '$lib/hooks/robot-clients.svelte';
 
 interface Props {
   config?: QueryClientConfig;
+  options?: RobotClientsOptions;
   dialConfigs: Record<string, DialConf>;
   logLevel?: SDKLogLevelType;
   children: Snippet;
@@ -25,6 +27,7 @@ let {
   config,
   dialConfigs,
   logLevel = SDKLogLevel.info,
+  options,
   children,
 }: Props = $props();
 
@@ -43,7 +46,10 @@ $effect(() => {
 </script>
 
 <QueryClientProvider {client}>
-  <InternalProvider {dialConfigs}>
+  <InternalProvider
+    {dialConfigs}
+    {options}
+  >
     {@render children()}
   </InternalProvider>
 </QueryClientProvider>
