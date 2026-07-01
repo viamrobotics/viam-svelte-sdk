@@ -1,5 +1,11 @@
 # @viamrobotics/svelte-sdk
 
+## 1.2.3
+
+### Patch Changes
+
+- 96bffeb: Fix reconnect race where robot data could be wiped while status still reported CONNECTED, by gating connect/disconnect state mutations and the query reset on a per-part connection generation.
+
 ## 1.2.2
 
 ### Patch Changes
