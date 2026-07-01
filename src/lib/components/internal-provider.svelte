@@ -1,16 +1,23 @@
 <script lang="ts">
 import type { Snippet } from 'svelte';
 import type { DialConf } from '@viamrobotics/sdk';
-import { provideRobotClientsContext } from '$lib/hooks/robot-clients.svelte';
+import {
+  provideRobotClientsContext,
+  type RobotClientsOptions,
+} from '$lib/hooks/robot-clients.svelte';
 
 interface Props {
   dialConfigs: Record<string, DialConf>;
+  options?: RobotClientsOptions | undefined;
   children: Snippet;
 }
 
-let { dialConfigs, children }: Props = $props();
+let { dialConfigs, options, children }: Props = $props();
 
-provideRobotClientsContext(() => dialConfigs);
+provideRobotClientsContext(
+  () => dialConfigs,
+  () => options
+);
 </script>
 
 {@render children()}
