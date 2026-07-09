@@ -50,9 +50,7 @@ export const createStreamClient = (
           error = undefined;
         }
       } catch (nextError) {
-        // Stop retrying once this effect has been torn down, otherwise the
-        // retry loop outlives the component and keeps calling getStream (and
-        // therefore AddStream) forever.
+        // Don't retry after teardown, or the loop outlives the component.
         if (abortController.signal.aborted) {
           return;
         }
@@ -69,10 +67,7 @@ export const createStreamClient = (
     return () => {
       abortController.abort();
 
-      // Tear down the server-side stream on unmount. Without this the stream
-      // stays registered on the peer connection, so the next mount's AddStream
-      // is rejected as "stream already active", no track is emitted, and
-      // getStream times out on every retry (blank feed + AddStream spam).
+      // Remove the stream server-side so a later remount can re-add it.
       void currentClient?.remove(currentName).catch(() => {});
     };
   });
