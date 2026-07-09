@@ -35,16 +35,28 @@ export const createStreamClient = (
   $effect(() => {
     const abortController = new AbortController();
     const currentClient = streamClient;
+    const currentName = name;
 
     const attemptGetStream = async () => {
+      if (abortController.signal.aborted) {
+        return;
+      }
+
       try {
-        const stream = await currentClient?.getStream(name);
+        const stream = await currentClient?.getStream(currentName);
 
         if (!abortController.signal.aborted) {
           mediaStream = stream ?? null;
           error = undefined;
         }
       } catch (nextError) {
+        // Stop retrying once this effect has been torn down, otherwise the
+        // retry loop outlives the component and keeps calling getStream (and
+        // therefore AddStream) forever.
+        if (abortController.signal.aborted) {
+          return;
+        }
+
         error = nextError as Error;
 
         // Retry if a timeout occurs
@@ -56,6 +68,12 @@ export const createStreamClient = (
 
     return () => {
       abortController.abort();
+
+      // Tear down the server-side stream on unmount. Without this the stream
+      // stays registered on the peer connection, so the next mount's AddStream
+      // is rejected as "stream already active", no track is emitted, and
+      // getStream times out on every retry (blank feed + AddStream spam).
+      void currentClient?.remove(currentName).catch(() => {});
     };
   });
 
