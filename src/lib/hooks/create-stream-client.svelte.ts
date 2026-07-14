@@ -35,16 +35,26 @@ export const createStreamClient = (
   $effect(() => {
     const abortController = new AbortController();
     const currentClient = streamClient;
+    const currentName = name;
 
     const attemptGetStream = async () => {
+      if (abortController.signal.aborted) {
+        return;
+      }
+
       try {
-        const stream = await currentClient?.getStream(name);
+        const stream = await currentClient?.getStream(currentName);
 
         if (!abortController.signal.aborted) {
           mediaStream = stream ?? null;
           error = undefined;
         }
       } catch (nextError) {
+        // Don't retry after teardown, or the loop outlives the component.
+        if (abortController.signal.aborted) {
+          return;
+        }
+
         error = nextError as Error;
 
         // Retry if a timeout occurs
@@ -56,6 +66,9 @@ export const createStreamClient = (
 
     return () => {
       abortController.abort();
+
+      // Remove the stream server-side so a later remount can re-add it.
+      void currentClient?.remove(currentName).catch(() => {});
     };
   });
 
