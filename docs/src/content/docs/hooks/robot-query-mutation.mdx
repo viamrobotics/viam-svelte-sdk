@@ -1,0 +1,32 @@
+---
+title: createRobotQuery / createRobotMutation
+description: Convenience hooks for queries and mutations directly on the robot client.
+---
+
+To execute queries / mutations directly on the robot client, use the following convenience hooks.
+
+```svelte
+<script lang="ts">
+import {
+  createRobotMutation,
+  createRobotQuery,
+  useRobotClient,
+} from '@viamrobotics/svelte-sdk';
+
+let { partID } = $props();
+
+const client = useRobotClient(() => partID);
+const version = createRobotQuery(client, 'getVersion');
+const stopAll = createRobotMutation(client, 'stopAll');
+</script>
+
+{#if version.error}
+  Error fetching version: {version.error.message}
+{:else if version.data}
+  <p>Platform: {version.data.platform}</p>
+  <p>API version: {version.data.apiVersion}</p>
+  <p>Version: {version.data.version}</p>
+{/if}
+
+<button onclick={() => stopAll.mutate([])}> Stop All </button>
+```

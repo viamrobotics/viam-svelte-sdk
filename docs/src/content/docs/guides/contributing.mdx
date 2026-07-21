@@ -1,0 +1,90 @@
+---
+title: Contributing
+description: Run the SDK locally, build, test, and prepare a release.
+---
+
+## Developing
+
+Install dependencies and start the dev server:
+
+```bash
+pnpm install
+pnpm dev
+
+# or open the demo in a new browser tab
+pnpm dev -- --open
+```
+
+## Connecting the playground to a machine
+
+The demo at `src/routes/` reads machine configs from two sources, merged at runtime:
+
+1. **`VITE_CONFIGS` env var** — for configs you want available every session.
+2. **Add config form** — typed in-browser and stored in `localStorage`. Useful for quick experiments without editing files.
+
+For env-level configs, add a `.env.local` at the repo root (already gitignored):
+
+```bash
+# .env.local
+VITE_CONFIGS='{
+  "my-part-id":{
+    "host":"my-host",
+    "credentials":{
+      "type":"api-key",
+      "authEntity":"my-api-key-id",
+      "payload":"my-api-key-value"
+    },
+    "signalingAddress":"https://app.viam.com:443"
+  }
+}'
+```
+
+The value is a JSON-encoded `Record<string, DialConf>` — keys are part IDs, values match the [`DialConf`](../getting-started/) shape. Grab the host, part ID, and API key from your machine's **CONNECT** tab in app.viam.com.
+
+Restart `pnpm dev` after editing `.env.local`.
+
+## Verifying your changes
+
+Before opening a pull request, run:
+
+```bash
+pnpm check       # svelte-check (type checking)
+pnpm test        # vitest unit tests
+pnpm test:e2e    # Playwright end-to-end tests
+pnpm lint        # prettier check + eslint + knip
+pnpm format      # prettier --write (auto-format)
+```
+
+## Adding a changeset
+
+:::caution
+Every pull request that changes shipped code must include a changeset. CI will block merges without one.
+:::
+
+Run the changesets CLI and follow the prompts to describe your change and pick a semver bump (`patch`, `minor`, `major`):
+
+```bash
+npx @changesets/cli
+```
+
+Commit the generated `.changeset/*.md` file alongside your code. The release bot opens a "Version Packages" PR that aggregates pending changesets — merging it cuts a release.
+
+## Building the library
+
+```bash
+pnpm build
+```
+
+This runs `vite build` followed by `svelte-package` and `publint`, producing the published artifact in `dist/`.
+
+## Working on the docs
+
+The docs site lives in [`docs/`](https://github.com/viamrobotics/viam-svelte-sdk/tree/main/docs) and uses Astro + Starlight.
+
+```bash
+pnpm docs:dev      # build the playground app and start the docs dev server
+pnpm docs:build    # production build
+pnpm docs:preview  # preview the production build
+```
+
+The docs site embeds the SvelteKit demo at [`/playground/`](../../playground/). When you edit the demo, re-run `pnpm docs:dev` to rebuild the playground.

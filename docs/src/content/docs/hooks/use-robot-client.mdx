@@ -1,0 +1,26 @@
+---
+title: useRobotClient / useConnectionStatus
+description: Reactively access a machine's RobotClient and connection status.
+---
+
+:::caution[Legacy pattern]
+These hooks pair with the legacy flow that passes a static `dialConfigs` map to `ViamProvider`. The `dialConfigs` prop is `@deprecated`; for new code, use [`useRobotConnection`](../use-robot-connection/), which exposes explicit `connect` / `disconnect` and surfaces connection errors.
+:::
+
+```svelte
+<script lang="ts">
+import { useConnectionStatus, useRobotClient } from '@viamrobotics/svelte-sdk';
+
+interface Props {
+  partID: string;
+}
+
+let { partID }: Props = $props();
+
+const status = useConnectionStatus(() => partID);
+const client = useRobotClient(() => partID);
+
+$inspect(status.current); // MachineConnectionEvent
+$inspect(client.current); // RobotClient | undefined
+</script>
+```

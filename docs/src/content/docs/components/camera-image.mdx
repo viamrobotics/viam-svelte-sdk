@@ -1,0 +1,25 @@
+---
+title: <CameraImage>
+description: Fetches a camera image at a fixed interval and renders it in an <img> tag.
+---
+
+Fetches a camera image at a constant interval and displays it in an `<img>` tag.
+
+```svelte
+<script lang="ts">
+import { CameraImage } from '@viamrobotics/svelte-sdk';
+
+interface Props {
+  partID: string;
+  name: string;
+}
+
+let { partID, name }: Props = $props();
+</script>
+
+<CameraImage
+  {partID}
+  {name}
+  refetchInterval={2000}
+/>
+```

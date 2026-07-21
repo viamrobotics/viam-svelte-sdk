@@ -1,0 +1,65 @@
+name: PR Preview
+
+# Builds the SvelteKit demo app from the PR branch and publishes it as a
+# static site under gh-pages:pr-preview/pr-<N>/. Contributors get a public URL
+# they can open to test their SDK changes against the same static-deploy path
+# our users would.
+#
+# This is intentionally NOT the docs site — docs PRs are reviewed via the
+# markdown diff. The preview is the actual demo app.
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, closed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: pr-preview-${{ github.event.number }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    if: ${{ !startsWith(github.event.pull_request.title, 'Version Packages') }}
+
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        if: github.event.action != 'closed'
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10.18.0
+          run_install: false
+
+      - name: Setup Node
+        if: github.event.action != 'closed'
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Install root deps
+        if: github.event.action != 'closed'
+        run: pnpm install
+
+      - name: Build SvelteKit demo
+        if: github.event.action != 'closed'
+        # SvelteKit's `paths.base` is read from BASE_PATH at build time.
+        # No trailing slash. The deploy step below mirrors this subpath.
+        env:
+          BASE_PATH: /viam-svelte-sdk/pr-preview/pr-${{ github.event.number }}
+        run: pnpm vite build
+
+      - name: Deploy / cleanup preview
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: build
+          preview-branch: gh-pages
+          umbrella-dir: pr-preview
+          action: auto
