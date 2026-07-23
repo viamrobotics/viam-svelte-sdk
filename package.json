@@ -5,19 +5,173 @@
   "version": "1.2.3",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build && npm run prepack",
+    "build": "wireit",
+    "vite-build": "wireit",
+    "package": "wireit",
+    "svelte-sync": "wireit",
     "preview": "vite preview",
     "prepare": "svelte-kit sync || echo ''",
-    "prepack": "svelte-kit sync && svelte-package && publint",
-    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "prepack": "wireit",
+    "check": "wireit",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "format": "prettier --write . && eslint . --fix",
-    "lint": "prettier --check . && eslint . && knip",
+    "lint": "wireit",
+    "lint:prettier": "wireit",
+    "lint:eslint": "wireit",
     "test:unit": "vitest",
-    "test": "npm run test:unit -- --run",
+    "test": "wireit",
     "test:e2e": "playwright test",
-    "knip": "knip",
+    "knip": "wireit",
     "release": "changeset publish"
+  },
+  "wireit": {
+    "build": {
+      "dependencies": [
+        "vite-build",
+        "package"
+      ]
+    },
+    "svelte-sync": {
+      "command": "svelte-kit sync",
+      "files": [
+        "svelte.config.js",
+        "tsconfig.json",
+        "package.json",
+        "src/**",
+        "!src/**/*.{test,spec}.{js,ts}",
+        "!src/**/*.svelte.{test,spec}.{js,ts}"
+      ],
+      "output": [
+        ".svelte-kit/generated/**",
+        ".svelte-kit/types/**",
+        ".svelte-kit/ambient.d.ts",
+        ".svelte-kit/non-ambient.d.ts",
+        ".svelte-kit/tsconfig.json"
+      ],
+      "packageLocks": [
+        "pnpm-lock.yaml"
+      ]
+    },
+    "package": {
+      "command": "svelte-package && publint",
+      "dependencies": [
+        "svelte-sync"
+      ],
+      "files": [
+        "src/lib/**",
+        "svelte.config.js",
+        "tsconfig.json",
+        "package.json"
+      ],
+      "output": [
+        "dist/**"
+      ],
+      "packageLocks": [
+        "pnpm-lock.yaml"
+      ]
+    },
+    "vite-build": {
+      "command": "vite build",
+      "dependencies": [
+        "svelte-sync",
+        "package"
+      ],
+      "files": [
+        "src/**",
+        "static/**",
+        "vite.config.ts",
+        "svelte.config.js",
+        "tsconfig.json",
+        "package.json",
+        "!src/**/*.{test,spec}.{js,ts}",
+        "!src/**/*.svelte.{test,spec}.{js,ts}"
+      ],
+      "output": [
+        "build/**",
+        ".svelte-kit/output/**"
+      ],
+      "packageLocks": [
+        "pnpm-lock.yaml"
+      ]
+    },
+    "prepack": {
+      "dependencies": [
+        "package"
+      ]
+    },
+    "check": {
+      "command": "svelte-check --tsconfig ./tsconfig.json",
+      "dependencies": [
+        "svelte-sync"
+      ],
+      "files": [
+        "src/**",
+        "tsconfig.json",
+        "svelte.config.js",
+        "package.json"
+      ],
+      "output": [],
+      "packageLocks": [
+        "pnpm-lock.yaml"
+      ]
+    },
+    "lint": {
+      "dependencies": [
+        "lint:prettier",
+        "lint:eslint",
+        "knip"
+      ]
+    },
+    "lint:prettier": {
+      "command": "prettier --check .",
+      "output": [],
+      "packageLocks": [
+        "pnpm-lock.yaml"
+      ]
+    },
+    "lint:eslint": {
+      "command": "eslint .",
+      "dependencies": [
+        "svelte-sync"
+      ],
+      "files": [
+        "src/**",
+        "eslint.config.js",
+        "svelte.config.js",
+        "tsconfig.json",
+        "package.json",
+        ".gitignore"
+      ],
+      "output": [],
+      "packageLocks": [
+        "pnpm-lock.yaml"
+      ]
+    },
+    "knip": {
+      "command": "knip",
+      "dependencies": [
+        "svelte-sync"
+      ],
+      "output": [],
+      "packageLocks": [
+        "pnpm-lock.yaml"
+      ]
+    },
+    "test": {
+      "command": "vitest --run",
+      "files": [
+        "src/**",
+        "vite.config.ts",
+        "svelte.config.js",
+        "vitest-setup-client.ts",
+        "tsconfig.json",
+        "package.json"
+      ],
+      "output": [],
+      "packageLocks": [
+        "pnpm-lock.yaml"
+      ]
+    }
   },
   "files": [
     "dist",
@@ -81,7 +235,8 @@
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.59.2",
     "vite": "^8.0.10",
-    "vitest": "^4.1.5"
+    "vitest": "^4.1.5",
+    "wireit": "^0.14.13"
   },
   "keywords": [
     "svelte"
