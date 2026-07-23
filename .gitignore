@@ -30,6 +30,9 @@ Thumbs.db
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
+# wireit
+.wireit
+
 # Claude Code
 .claude/worktrees
 .claude/settings.local.json

@@ -20,25 +20,17 @@ jobs:
       - name: Checkout 🛎️
         uses: actions/checkout@v6
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v6
-        with:
-          run_install: false
-
-      - name: Setup Node
-        uses: actions/setup-node@v6
+      - name: Setup 🔧
+        uses: ./.github/actions/setup
         with:
           node-version: 24
-          cache: 'pnpm'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Update npm
         run: npm install -g npm@latest
 
-      - name: Install and Build 🔧
-        run: |
-          pnpm i
-          pnpm build
+      - name: Build 🔧
+        run: pnpm build
 
       - name: Create Release Pull Request or Publish to npm
         id: changesets
