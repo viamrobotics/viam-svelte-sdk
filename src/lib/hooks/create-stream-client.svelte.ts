@@ -13,6 +13,55 @@ import {
 import { createQueryLogger } from '$lib/logger';
 import { useEnabledQueries } from './use-enabled-queries.svelte';
 
+// Shared cache of active stream subscriptions per (robot client, camera name).
+// Multiple UI components subscribing to the same camera share the underlying
+// MediaStream instead of each opening a fresh WebRTC subscription — which
+// previously hit the server's "stream already active" error and hung the
+// second subscriber indefinitely.
+type SharedStreamEntry = {
+  streamClient: StreamClient;
+  robotClient: unknown; // used to detect reconnect and invalidate the entry
+  mediaStream: MediaStream | null;
+  error: Error | undefined;
+  refCount: number;
+  listeners: Set<() => void>;
+};
+
+const sharedStreams = new Map<string, SharedStreamEntry>();
+
+const STREAM_RETRY_ATTEMPTS = 3;
+const STREAM_RETRY_BASE_DELAY_MS = 250;
+
+const notifyListeners = (entry: SharedStreamEntry) => {
+  for (const listener of entry.listeners) {
+    listener();
+  }
+};
+
+const fetchStreamWithBoundedRetry = async (
+  streamClient: StreamClient,
+  name: string
+): Promise<MediaStream> => {
+  let lastError: Error | undefined;
+  for (let attempt = 0; attempt < STREAM_RETRY_ATTEMPTS; attempt++) {
+    try {
+      return await streamClient.getStream(name);
+    } catch (err) {
+      lastError = err as Error;
+      // Only retry timeouts; other errors are unlikely to succeed on retry.
+      if (!/Did not receive a stream/.test(lastError.message)) {
+        throw lastError;
+      }
+      if (attempt < STREAM_RETRY_ATTEMPTS - 1) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, STREAM_RETRY_BASE_DELAY_MS * 2 ** attempt)
+        );
+      }
+    }
+  }
+  throw lastError ?? new Error('Failed to acquire stream');
+};
+
 export const createStreamClient = (
   partID: () => string,
   resourceName: () => string
@@ -33,42 +82,74 @@ export const createStreamClient = (
   );
 
   $effect(() => {
-    const abortController = new AbortController();
-    const currentClient = streamClient;
     const currentName = name;
+    const currentPartID = partID();
+    const currentRobotClient = client.current;
+    const currentConnected =
+      connectionStatus.current === MachineConnectionEvent.CONNECTED;
 
-    const attemptGetStream = async () => {
-      if (abortController.signal.aborted) {
-        return;
-      }
+    if (!currentConnected || !currentRobotClient) {
+      return;
+    }
 
-      try {
-        const stream = await currentClient?.getStream(currentName);
+    const key = `${currentPartID}:${currentName}`;
+    let entry = sharedStreams.get(key);
 
-        if (!abortController.signal.aborted) {
-          mediaStream = stream ?? null;
-          error = undefined;
+    // If the underlying robot client changed (e.g. reconnect), the cached
+    // subscription is stale — invalidate and recreate.
+    if (entry && entry.robotClient !== currentRobotClient) {
+      sharedStreams.delete(key);
+      entry = undefined;
+    }
+
+    if (!entry) {
+      const sc = new StreamClient(currentRobotClient);
+      const newEntry: SharedStreamEntry = {
+        streamClient: sc,
+        robotClient: currentRobotClient,
+        mediaStream: null,
+        error: undefined,
+        refCount: 0,
+        listeners: new Set(),
+      };
+      sharedStreams.set(key, newEntry);
+      entry = newEntry;
+
+      void fetchStreamWithBoundedRetry(sc, currentName).then(
+        (stream) => {
+          // Guard against races: entry may have been invalidated meanwhile.
+          if (sharedStreams.get(key) === newEntry) {
+            newEntry.mediaStream = stream;
+            notifyListeners(newEntry);
+          }
+        },
+        (err) => {
+          if (sharedStreams.get(key) === newEntry) {
+            newEntry.error = err as Error;
+            notifyListeners(newEntry);
+          }
         }
-      } catch (nextError) {
-        // Don't retry after teardown, or the loop outlives the component.
-        if (abortController.signal.aborted) {
-          return;
-        }
+      );
+    }
 
-        error = nextError as Error;
+    entry.refCount += 1;
 
-        // Retry if a timeout occurs
-        attemptGetStream();
-      }
+    const listener = () => {
+      mediaStream = entry!.mediaStream;
+      error = entry!.error;
     };
-
-    attemptGetStream();
+    // Publish current state immediately for late subscribers.
+    listener();
+    entry.listeners.add(listener);
 
     return () => {
-      abortController.abort();
-
-      // Remove the stream server-side so a later remount can re-add it.
-      void currentClient?.remove(currentName).catch(() => {});
+      entry!.listeners.delete(listener);
+      entry!.refCount -= 1;
+      if (entry!.refCount === 0 && sharedStreams.get(key) === entry) {
+        sharedStreams.delete(key);
+        // Server-side remove so a later remount can re-add cleanly.
+        void entry!.streamClient.remove(currentName).catch(() => {});
+      }
     };
   });
 
