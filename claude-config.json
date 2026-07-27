@@ -12,10 +12,18 @@
   "rules": {
     "modules": {
       "svelte": true,
+      "frontendAesthetics": true,
       "typescript": true,
       "testingFrontend": true,
       "changesets": true,
-      "prDescription": true
+      "prDescription": true,
+      "viamContext": true
+    }
+  },
+  "viamContext": {
+    "sources": {
+      "api": true,
+      "typescriptSdk": true
     }
   },
   "mcp": {
