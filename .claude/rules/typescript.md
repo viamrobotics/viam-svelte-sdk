@@ -1,6 +1,6 @@
 ---
 paths:
-  - '**/*.ts'
+  - "**/*.ts"
 ---
 
 # TypeScript Best Practices
@@ -12,12 +12,12 @@ Use TypeScript with `strict: true`. See the [TypeScript Handbook](https://www.ty
 Prefer `interface` for object shapes (extendable), `type` for unions and computed types:
 
 ```typescript
-interface ResourceOptions {
-  name: string;
-  type: string;
+interface ButtonOptions {
+  variant: "primary" | "secondary" | "danger";
+  disabled?: boolean;
 }
 
-type ConnectionStatus = 'connected' | 'disconnected' | 'connecting';
+type ConnectionStatus = "connected" | "disconnected" | "connecting";
 ```
 
 ## NEVER Use `any` — Use `unknown`
@@ -30,7 +30,7 @@ const data: any = JSON.parse(raw);
 
 // GOOD
 const data: unknown = JSON.parse(raw);
-if (isResourceResponse(data)) {
+if (isPayload(data)) {
   console.log(data.name); // safely typed
 }
 ```

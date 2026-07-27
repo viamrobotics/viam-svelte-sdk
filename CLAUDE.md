@@ -38,10 +38,20 @@ Public exports live in `src/lib/index.ts`. Hooks go in `src/lib/hooks/`, compone
 
 Detailed guidance lives in `.claude/rules/`. Path-scoped rules load when Claude reads matching files; rules without `paths` load every session.
 
-| Rule                | Loads when                                          |
-| ------------------- | --------------------------------------------------- |
-| `svelte.md`         | editing `.svelte`, `.svelte.ts`, `.svelte.js`       |
-| `typescript.md`     | editing `.ts`                                       |
-| `testing.md`        | editing frontend test files (`src/**/*.spec.ts`)    |
-| `pr-description.md` | editing files under `.changeset/`                   |
-| `changesets.md`     | editing files under `.changeset/` or `CHANGELOG.md` |
+<!-- claude-config:rules-table start -->
+
+| Rule                    | Loads when                                          |
+| ----------------------- | --------------------------------------------------- |
+| `svelte.md`             | editing `.svelte`, `.svelte.ts`, `.svelte.js`       |
+| `typescript.md`         | editing `.ts`                                       |
+| `testing-frontend.md`   | editing test files (`**/*.spec.ts`)                 |
+| `pr-description.md`     | editing files under `.changeset/`                   |
+| `changesets.md`         | editing files under `.changeset/` or `CHANGELOG.md` |
+| `code-comments.md`      | editing any code file                               |
+| `editing-discipline.md` | every session (edit from current state, in scope)   |
+| `verification.md`       | every session (verify before reporting done)        |
+| `design-system.md`      | every session (design system context)               |
+
+<!-- claude-config:rules-table end -->
+
+Repo-local (unmanaged) rules also live in `.claude/rules/`: `svelte-local.md` (Viam SDK data-fetching hooks) and `pr-description-local.md` (this repo's `src/lib` PR layer table) load via their `paths` frontmatter; `viam-context.md` (verifying against Viam docs and SDK sources) loads every session.

@@ -33,6 +33,8 @@ vite.config.ts.timestamp-*
 # wireit
 .wireit
 
+# >>> claude-config (managed) >>>
 # Claude Code
 .claude/worktrees
 .claude/settings.local.json
+# <<< claude-config (managed) <<<
