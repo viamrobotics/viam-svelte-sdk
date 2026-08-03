@@ -1,5 +1,6 @@
 import { untrack } from 'svelte';
 import {
+  type Client,
   MachineConnectionEvent,
   StreamClient,
   type streamApi,
@@ -12,6 +13,85 @@ import {
 } from '@tanstack/svelte-query';
 import { createQueryLogger } from '$lib/logger';
 import { useEnabledQueries } from './use-enabled-queries.svelte';
+
+type StreamSubscriber = (
+  mediaStream: MediaStream | null,
+  error: Error | undefined
+) => void;
+
+interface SharedStreamEntry {
+  refCount: number;
+  robotClient: Client;
+  streamClient: StreamClient;
+  mediaStream: MediaStream | null;
+  error: Error | undefined;
+  listeners: Set<StreamSubscriber>;
+  fetchPromise: Promise<void> | null;
+}
+
+const sharedStreams = new Map<string, SharedStreamEntry>();
+
+const acquireSharedStream = (
+  partID: string,
+  resourceName: string,
+  robotClient: Client,
+  subscriber: StreamSubscriber
+): (() => void) => {
+  const key = `${partID}:${resourceName}`;
+  let entry = sharedStreams.get(key);
+
+  // Reconnect: previous connection is dead, drop the entry without remove().
+  if (entry && entry.robotClient !== robotClient) {
+    sharedStreams.delete(key);
+    entry = undefined;
+  }
+
+  if (!entry) {
+    entry = {
+      refCount: 0,
+      robotClient,
+      streamClient: new StreamClient(robotClient),
+      mediaStream: null,
+      error: undefined,
+      listeners: new Set(),
+      fetchPromise: null,
+    };
+    sharedStreams.set(key, entry);
+  }
+
+  const activeEntry = entry;
+  activeEntry.refCount++;
+  activeEntry.listeners.add(subscriber);
+
+  if (activeEntry.mediaStream || activeEntry.error) {
+    subscriber(activeEntry.mediaStream, activeEntry.error);
+  } else if (!activeEntry.fetchPromise) {
+    activeEntry.fetchPromise = (async () => {
+      try {
+        const stream = await activeEntry.streamClient.getStream(resourceName);
+        activeEntry.mediaStream = stream ?? null;
+        activeEntry.error = undefined;
+      } catch (nextError) {
+        activeEntry.mediaStream = null;
+        activeEntry.error = nextError as Error;
+      }
+      for (const listener of activeEntry.listeners) {
+        listener(activeEntry.mediaStream, activeEntry.error);
+      }
+    })();
+  }
+
+  return () => {
+    activeEntry.listeners.delete(subscriber);
+    activeEntry.refCount--;
+    if (activeEntry.refCount === 0) {
+      if (sharedStreams.get(key) === activeEntry) {
+        sharedStreams.delete(key);
+      }
+      void activeEntry.streamClient.remove(resourceName).catch(() => {});
+    }
+  };
+};
 
 export const createStreamClient = (
   partID: () => string,
@@ -33,43 +113,26 @@ export const createStreamClient = (
   );
 
   $effect(() => {
-    const abortController = new AbortController();
-    const currentClient = streamClient;
+    const currentClient = client.current;
     const currentName = name;
+    const currentPartID = partID();
 
-    const attemptGetStream = async () => {
-      if (abortController.signal.aborted) {
-        return;
+    if (
+      connectionStatus.current !== MachineConnectionEvent.CONNECTED ||
+      !currentClient
+    ) {
+      return;
+    }
+
+    return acquireSharedStream(
+      currentPartID,
+      currentName,
+      currentClient,
+      (nextStream, nextError) => {
+        mediaStream = nextStream;
+        error = nextError;
       }
-
-      try {
-        const stream = await currentClient?.getStream(currentName);
-
-        if (!abortController.signal.aborted) {
-          mediaStream = stream ?? null;
-          error = undefined;
-        }
-      } catch (nextError) {
-        // Don't retry after teardown, or the loop outlives the component.
-        if (abortController.signal.aborted) {
-          return;
-        }
-
-        error = nextError as Error;
-
-        // Retry if a timeout occurs
-        attemptGetStream();
-      }
-    };
-
-    attemptGetStream();
-
-    return () => {
-      abortController.abort();
-
-      // Remove the stream server-side so a later remount can re-add it.
-      void currentClient?.remove(currentName).catch(() => {});
-    };
+    );
   });
 
   const queryOptions = $derived(
