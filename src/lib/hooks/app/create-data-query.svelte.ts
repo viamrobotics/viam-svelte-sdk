@@ -51,7 +51,6 @@ export const createDataQuery = <T extends DataClient, K extends keyof T>(
         methodName,
         ...(_args ? [_args] : []),
       ],
-      enabled,
       queryFn: async () => {
         if (!dataClient) {
           throw new Error('dataClient is undefined');
@@ -82,6 +81,9 @@ export const createDataQuery = <T extends DataClient, K extends keyof T>(
         }
       },
       ..._options,
+      // Pinned after the spread: the computed guard already folds in
+      // `_options?.enabled`, and a caller's `enabled: true` must not bypass it.
+      enabled,
       refetchInterval: false,
     })
   );

@@ -65,7 +65,6 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
   const queryOptions = $derived(
     createQueryOptions({
       queryKey,
-      enabled,
       retry: false,
       queryFn: async () => {
         const clientFunc = client.current?.[method];
@@ -93,6 +92,9 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
         }
       },
       ..._options,
+      // Pinned after the spread: the computed guard already folds in
+      // `_options?.enabled`, and a caller's `enabled: true` must not bypass it.
+      enabled,
       refetchInterval: false,
     })
   );

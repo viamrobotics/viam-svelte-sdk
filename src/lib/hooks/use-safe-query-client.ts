@@ -1,4 +1,5 @@
 import { QueryClient, useQueryClient } from '@tanstack/svelte-query';
+import { logger } from '$lib/logger';
 
 let fallbackQueryClient: QueryClient | undefined;
 
@@ -13,7 +14,12 @@ export const useSafeQueryClient = (): QueryClient => {
   try {
     return useQueryClient();
   } catch {
-    fallbackQueryClient ??= new QueryClient();
+    if (!fallbackQueryClient) {
+      fallbackQueryClient = new QueryClient();
+      logger.warn(
+        'Viam hooks mounted without a ViamProvider/ViamAppProvider ancestor. Queries will not be made.'
+      );
+    }
     return fallbackQueryClient;
   }
 };

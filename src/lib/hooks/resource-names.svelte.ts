@@ -92,7 +92,6 @@ export const useResourceNames = (
   const query = createRobotQuery(client, 'resourceNames', () => ({
     enabled:
       enabled &&
-      client !== undefined &&
       machineStatus?.data?.state === MachineState.Running &&
       enabledQueries.resourceNames,
     refetchOnMount: false,

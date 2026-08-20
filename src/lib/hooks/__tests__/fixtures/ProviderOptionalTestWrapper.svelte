@@ -17,6 +17,7 @@ interface Props {
     connectionStatus: ReturnType<typeof useConnectionStatus>;
     robotConnection: ReturnType<typeof useRobotConnection>;
     robotQuery: ReturnType<typeof createRobotQuery>;
+    robotQueryForceEnabled: ReturnType<typeof createRobotQuery>;
     resourceNames: ReturnType<typeof useResourceNames>;
     appQuery: ReturnType<typeof createAppQuery>;
   }) => void;
@@ -35,6 +36,9 @@ onhooks({
   connectionStatus: useConnectionStatus(partID),
   robotConnection: useRobotConnection(partID),
   robotQuery: createRobotQuery(client, 'resourceNames'),
+  robotQueryForceEnabled: createRobotQuery(client, 'resourceNames', () => ({
+    enabled: true,
+  })),
   resourceNames: useResourceNames(partID),
   appQuery: createAppQuery<AppClient, 'getRobotPart'>('getRobotPart'),
 });

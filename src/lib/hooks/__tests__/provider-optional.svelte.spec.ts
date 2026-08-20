@@ -47,6 +47,9 @@ describe('hooks without providers', () => {
 
     expect(hooks.robotQuery.fetchStatus).toBe('idle');
     expect(hooks.robotQuery.data).toBeUndefined();
+    // An explicit `enabled: true` must not bypass the connection guard.
+    expect(hooks.robotQueryForceEnabled.fetchStatus).toBe('idle');
+    expect(hooks.robotQueryForceEnabled.isError).toBe(false);
     expect(hooks.resourceNames.current).toEqual([]);
     expect(hooks.appQuery.fetchStatus).toBe('idle');
     expect(hooks.appQuery.data).toBeUndefined();

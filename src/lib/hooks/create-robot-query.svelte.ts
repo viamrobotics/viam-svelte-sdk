@@ -59,7 +59,6 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
         methodName,
         ...(_args ? [_args] : []),
       ],
-      enabled,
       retry: false,
       queryFn: async () => {
         const clientFunc = client.current?.[method];
@@ -87,6 +86,9 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
         }
       },
       ..._options,
+      // Pinned after the spread: the computed guard already folds in
+      // `_options?.enabled`, and a caller's `enabled: true` must not bypass it.
+      enabled,
       refetchInterval: false,
     })
   );
