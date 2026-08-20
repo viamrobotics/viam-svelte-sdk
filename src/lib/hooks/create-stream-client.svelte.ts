@@ -13,6 +13,7 @@ import {
 } from '@tanstack/svelte-query';
 import { createQueryLogger } from '$lib/logger';
 import { useEnabledQueries } from './use-enabled-queries.svelte';
+import { useSafeQueryClient } from './use-safe-query-client';
 
 type StreamSubscriber = (
   mediaStream: MediaStream | null,
@@ -99,6 +100,7 @@ export const createStreamClient = (
 ) => {
   const name = $derived(resourceName());
   const enabledQueries = useEnabledQueries();
+  const queryClient = useSafeQueryClient();
 
   let mediaStream = $state.raw<MediaStream | null>(null);
   let error = $state.raw<Error>();
@@ -171,7 +173,10 @@ export const createStreamClient = (
       },
     })
   );
-  const query = createQuery(() => queryOptions);
+  const query = createQuery(
+    () => queryOptions,
+    () => queryClient
+  );
   const resolutions = $derived(query.data);
 
   const mutationOptions = $derived({
@@ -216,7 +221,10 @@ export const createStreamClient = (
       }
     },
   });
-  const mutation = createMutation(() => mutationOptions);
+  const mutation = createMutation(
+    () => mutationOptions,
+    () => queryClient
+  );
 
   return {
     get current() {

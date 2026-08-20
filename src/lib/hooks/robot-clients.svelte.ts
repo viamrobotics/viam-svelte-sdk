@@ -5,10 +5,10 @@ import {
   RobotClient,
 } from '@viamrobotics/sdk';
 import { getContext, onMount, setContext } from 'svelte';
-import { useQueryClient } from '@tanstack/svelte-query';
 import type { PartID } from '../part';
 import { logger } from '$lib/logger';
 import { comparePartIds, isJsonEqual } from '../compare';
+import { useSafeQueryClient } from './use-safe-query-client';
 
 const robotConnectionsKey = Symbol('robot-connections-context');
 const clientKey = Symbol('clients-context');
@@ -62,6 +62,19 @@ export interface RobotClientsOptions {
   resetQueriesOnDisconnect?: boolean;
 }
 
+const inertClients: ClientContext = { current: {}, errors: {} };
+const inertConnectionStatuses: ConnectionStatusContext = { current: {} };
+const inertRobotConnections: RobotConnectionsContext = {
+  current: {},
+  errors: {},
+  connect: async (partID: PartID) => {
+    logger
+      .withMetadata({ partID })
+      .warn('connect() called without a ViamProvider ancestor');
+  },
+  disconnect: async () => {},
+};
+
 /**
  * @deprecated `dialConfigs` is deprecated and may be removed in a future release. Users can now explicilty connect and disconnect from robots using the `useRobotClient` and `useRobotClients` hooks.
  */
@@ -69,7 +82,7 @@ export const provideRobotClientsContext = (
   dialConfigs?: () => Record<PartID, DialConf>,
   options?: () => RobotClientsOptions | undefined
 ) => {
-  const queryClient = useQueryClient();
+  const queryClient = useSafeQueryClient();
   const robotClients = $state<Record<PartID, RobotConnection | undefined>>({});
   const errors = $state<Record<PartID, Error | undefined>>({});
   let lastConfigs: Record<PartID, DialConf | undefined> = {};
@@ -312,8 +325,19 @@ export const provideRobotClientsContext = (
   });
 };
 
+/**
+ * Whether a `ViamProvider` ancestor is providing the machine contexts. Lets
+ * consumers distinguish "no provider mounted" (hooks are permanently inert)
+ * from "provider present with no connections".
+ */
+export const useHasViamProvider = (): boolean => {
+  return getContext<ClientContext>(clientKey) !== undefined;
+};
+
 export const useConnectionStatus = (partID: () => PartID) => {
-  const context = getContext<ConnectionStatusContext>(connectionKey);
+  const context =
+    getContext<ConnectionStatusContext>(connectionKey) ??
+    inertConnectionStatuses;
   const status = $derived(context.current[partID()]);
   return {
     get current() {
@@ -323,7 +347,7 @@ export const useConnectionStatus = (partID: () => PartID) => {
 };
 
 export const useRobotClient = (partID: () => PartID) => {
-  const context = getContext<ClientContext>(clientKey);
+  const context = getContext<ClientContext>(clientKey) ?? inertClients;
   const client = $derived(context.current[partID()]);
   return {
     get current() {
@@ -335,7 +359,9 @@ export const useRobotClient = (partID: () => PartID) => {
 export const useRobotConnection = (
   partID: () => PartID
 ): RobotConnectionContext => {
-  const context = getContext<RobotConnectionsContext>(robotConnectionsKey);
+  const context =
+    getContext<RobotConnectionsContext>(robotConnectionsKey) ??
+    inertRobotConnections;
   const client = $derived(context.current[partID()]?.client);
   const error = $derived(context.errors[partID()]);
   const connectionStatus = $derived(

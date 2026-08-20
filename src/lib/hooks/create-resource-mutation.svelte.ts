@@ -2,12 +2,12 @@ import {
   createMutation,
   type MutationOptions,
   type QueryKey,
-  useQueryClient,
 } from '@tanstack/svelte-query';
 import type { Resource } from '@viamrobotics/sdk';
 
 import type { ArgumentsType, ResolvedReturnType } from './queries';
 import { createQueryLogger } from '$lib/logger';
+import { useSafeQueryClient } from './use-safe-query-client';
 
 export const createResourceMutation = <T extends Resource, K extends keyof T>(
   client: { current: T | undefined },
@@ -17,7 +17,7 @@ export const createResourceMutation = <T extends Resource, K extends keyof T>(
   type MutArgs = ArgumentsType<T[K]>;
   type MutReturn = ResolvedReturnType<T[K]>;
 
-  const queryClient = useQueryClient();
+  const queryClient = useSafeQueryClient();
   const name = $derived(client.current?.name);
   const methodName = $derived(String(method));
   const key = $derived(queryKey?.());
@@ -82,5 +82,8 @@ export const createResourceMutation = <T extends Resource, K extends keyof T>(
     },
   } satisfies MutationOptions<MutReturn, Error, MutArgs>);
 
-  return createMutation(() => mutationOptions);
+  return createMutation(
+    () => mutationOptions,
+    () => queryClient
+  );
 };

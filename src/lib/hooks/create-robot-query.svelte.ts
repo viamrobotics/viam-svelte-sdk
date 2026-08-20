@@ -9,6 +9,7 @@ import { usePolling } from './use-polling.svelte';
 import { createQueryLogger } from '$lib/logger';
 import { useEnabledQueries } from './use-enabled-queries.svelte';
 import { useConnectionStatus } from './robot-clients.svelte';
+import { useSafeQueryClient } from './use-safe-query-client';
 import type {
   ArgumentsType,
   ResolvedReturnType,
@@ -28,6 +29,7 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
   const partID = $derived((client.current as T & { partID: string })?.partID);
   const connectionStatus = useConnectionStatus(() => partID);
   const enabledQueries = useEnabledQueries();
+  const queryClient = useSafeQueryClient();
   let [args, options] = additional;
 
   if (options === undefined && args !== undefined) {
@@ -57,7 +59,6 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
         methodName,
         ...(_args ? [_args] : []),
       ],
-      enabled,
       retry: false,
       queryFn: async () => {
         const clientFunc = client.current?.[method];
@@ -85,6 +86,9 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
         }
       },
       ..._options,
+      // Pinned after the spread: the computed guard already folds in
+      // `_options?.enabled`, and a caller's `enabled: true` must not bypass it.
+      enabled,
       refetchInterval: false,
     })
   );
@@ -94,5 +98,8 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
     () => enabled && (_options?.refetchInterval ?? false)
   );
 
-  return createQuery(() => queryOptions);
+  return createQuery(
+    () => queryOptions,
+    () => queryClient
+  );
 };

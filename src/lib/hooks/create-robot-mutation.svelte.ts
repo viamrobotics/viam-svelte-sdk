@@ -3,6 +3,7 @@ import type { RobotClient } from '@viamrobotics/sdk';
 
 import type { ArgumentsType, ResolvedReturnType } from './queries';
 import { createQueryLogger } from '$lib/logger';
+import { useSafeQueryClient } from './use-safe-query-client';
 
 export const createRobotMutation = <T extends RobotClient, K extends keyof T>(
   client: { current: T | undefined },
@@ -11,6 +12,7 @@ export const createRobotMutation = <T extends RobotClient, K extends keyof T>(
   type MutArgs = ArgumentsType<T[K]>;
   type MutReturn = ResolvedReturnType<T[K]>;
 
+  const queryClient = useSafeQueryClient();
   const methodName = $derived(String(method));
 
   const mutationOptions = $derived({
@@ -48,5 +50,8 @@ export const createRobotMutation = <T extends RobotClient, K extends keyof T>(
     },
   } satisfies MutationOptions<MutReturn, Error, MutArgs>);
 
-  return createMutation(() => mutationOptions);
+  return createMutation(
+    () => mutationOptions,
+    () => queryClient
+  );
 };

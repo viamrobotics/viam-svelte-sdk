@@ -1,4 +1,4 @@
-import { useQueryClient } from '@tanstack/svelte-query';
+import { useSafeQueryClient } from './use-safe-query-client';
 
 /**
  * Polls a query at an interval while waiting for
@@ -15,7 +15,7 @@ export function usePolling(
   queryKey: () => unknown[],
   interval: () => number | false
 ) {
-  const queryClient = useQueryClient();
+  const queryClient = useSafeQueryClient();
 
   $effect(() => {
     const abortController = new AbortController();

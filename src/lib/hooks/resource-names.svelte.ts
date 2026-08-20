@@ -20,6 +20,10 @@ interface QueryContext {
   query: Query | undefined;
 }
 
+export interface ResourceNamesOptions {
+  enabled?: boolean;
+}
+
 const revisions = new Map<string, string>();
 
 const areResourceNamesEqual = (
@@ -69,17 +73,25 @@ const sortResourceNames = (resourceNames: ResourceName[]) => {
 
 export const useResourceNames = (
   partID: () => PartID,
-  resourceSubtype?: string | (() => string)
+  resourceSubtype?: string | (() => string),
+  options?: (() => ResourceNamesOptions) | ResourceNamesOptions
 ): QueryContext => {
   const enabledQueries = useEnabledQueries();
   const client = useRobotClient(partID);
-  const machineStatus = createRobotQuery(client, 'getMachineStatus', {
+
+  const _options = $derived(
+    typeof options === 'function' ? options() : options
+  );
+  const enabled = $derived(_options?.enabled !== false);
+
+  const machineStatus = createRobotQuery(client, 'getMachineStatus', () => ({
     refetchInterval: 1000,
-  });
+    enabled,
+  }));
 
   const query = createRobotQuery(client, 'resourceNames', () => ({
     enabled:
-      client !== undefined &&
+      enabled &&
       machineStatus?.data?.state === MachineState.Running &&
       enabledQueries.resourceNames,
     refetchOnMount: false,
