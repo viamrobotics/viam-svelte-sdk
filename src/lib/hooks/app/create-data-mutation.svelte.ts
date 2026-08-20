@@ -4,6 +4,7 @@ import type { DataClient } from '@viamrobotics/sdk';
 import type { ArgumentsType, ResolvedReturnType } from '../queries';
 import { createQueryLogger } from '$lib/logger';
 import { useViamClient } from './use-app-client.svelte';
+import { useSafeQueryClient } from '../use-safe-query-client';
 
 export const createDataMutation = <T extends DataClient, K extends keyof T>(
   method: K
@@ -13,6 +14,7 @@ export const createDataMutation = <T extends DataClient, K extends keyof T>(
 
   const viamClient = useViamClient();
   const dataClient = $derived(viamClient.current?.dataClient as T);
+  const queryClient = useSafeQueryClient();
 
   const methodName = $derived(String(method));
 
@@ -45,5 +47,8 @@ export const createDataMutation = <T extends DataClient, K extends keyof T>(
     },
   } satisfies MutationOptions<MutReturn, Error, MutArgs>);
 
-  return createMutation(() => mutationOptions);
+  return createMutation(
+    () => mutationOptions,
+    () => queryClient
+  );
 };

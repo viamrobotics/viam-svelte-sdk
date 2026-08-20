@@ -60,8 +60,17 @@ export const provideViamClient = (
   });
 };
 
+/**
+ * Returned when no `ViamAppProvider` ancestor exists, so app hooks can mount
+ * without a provider and stay inert.
+ */
+const inertViamClient: Context = {
+  current: undefined,
+  connectionError: undefined,
+};
+
 export const useViamClient = (): {
   current: ViamClient | undefined;
 } => {
-  return getContext<Context>(key);
+  return getContext<Context>(key) ?? inertViamClient;
 };

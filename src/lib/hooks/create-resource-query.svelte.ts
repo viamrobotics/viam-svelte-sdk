@@ -8,6 +8,7 @@ import { usePolling } from './use-polling.svelte';
 import { createQueryLogger } from '$lib/logger';
 import { useEnabledQueries } from './use-enabled-queries.svelte';
 import { useConnectionStatus } from './robot-clients.svelte';
+import { useSafeQueryClient } from './use-safe-query-client';
 import type {
   ArgumentsType,
   ResolvedReturnType,
@@ -27,6 +28,7 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
   queryKey: typeof queryKey;
 } => {
   const enabledQueries = useEnabledQueries();
+  const queryClient = useSafeQueryClient();
 
   let [args, options] = additional;
 
@@ -100,9 +102,12 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
     () => enabled && (_options?.refetchInterval ?? false)
   );
 
-  const query = createQuery(() => queryOptions) as QueryObserverResult<
-    ResolvedReturnType<T[K]>
-  > & { queryKey: typeof queryKey };
+  const query = createQuery(
+    () => queryOptions,
+    () => queryClient
+  ) as QueryObserverResult<ResolvedReturnType<T[K]>> & {
+    queryKey: typeof queryKey;
+  };
   Object.defineProperty(query, 'queryKey', {
     get: () => queryKey,
     set: () => {

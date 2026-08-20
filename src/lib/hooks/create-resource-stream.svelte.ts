@@ -8,6 +8,7 @@ import { MachineConnectionEvent, type Resource } from '@viamrobotics/sdk';
 import { createQueryLogger } from '$lib/logger';
 import { useEnabledQueries } from './use-enabled-queries.svelte';
 import { useConnectionStatus } from './robot-clients.svelte';
+import { useSafeQueryClient } from './use-safe-query-client';
 import type {
   ArgumentsType,
   StreamItemType,
@@ -42,6 +43,7 @@ export const createResourceStream = <T extends Resource, K extends keyof T>(
     | [options?: (() => QueryOptions) | QueryOptions]
 ): QueryResult<StreamItemType<T[K]>> => {
   const enabledQueries = useEnabledQueries();
+  const queryClient = useSafeQueryClient();
 
   let [args, options] = additional;
 
@@ -103,5 +105,8 @@ export const createResourceStream = <T extends Resource, K extends keyof T>(
     })
   );
 
-  return createQuery(() => queryOptions);
+  return createQuery(
+    () => queryOptions,
+    () => queryClient
+  );
 };

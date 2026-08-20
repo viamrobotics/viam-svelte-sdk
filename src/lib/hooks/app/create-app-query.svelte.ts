@@ -7,6 +7,7 @@ import type { AppClient } from '@viamrobotics/sdk';
 import { usePolling } from '../use-polling.svelte';
 import { createQueryLogger } from '$lib/logger';
 import { useViamClient } from './use-app-client.svelte';
+import { useSafeQueryClient } from '../use-safe-query-client';
 import type {
   ArgumentsType,
   ResolvedReturnType,
@@ -24,6 +25,7 @@ export const createAppQuery = <T extends AppClient, K extends keyof T>(
 ): QueryObserverResult<ResolvedReturnType<T[K]>> => {
   const viamClient = useViamClient();
   const appClient = $derived(viamClient.current?.appClient as T);
+  const queryClient = useSafeQueryClient();
 
   let [args, options] = additional;
 
@@ -89,5 +91,8 @@ export const createAppQuery = <T extends AppClient, K extends keyof T>(
     () => enabled && (_options?.refetchInterval ?? false)
   );
 
-  return createQuery(() => queryOptions);
+  return createQuery(
+    () => queryOptions,
+    () => queryClient
+  );
 };

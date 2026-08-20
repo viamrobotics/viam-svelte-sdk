@@ -10,6 +10,7 @@ export {
   useRobotConnection,
   useConnectionStatus,
   useRobotClient,
+  useHasViamProvider,
 } from './hooks/robot-clients.svelte';
 
 export { createRobotQuery } from './hooks/create-robot-query.svelte';
@@ -27,7 +28,10 @@ export {
   useMachineStatus,
   type ResourceStatus,
 } from './hooks/machine-status.svelte';
-export { useResourceNames } from './hooks/resource-names.svelte';
+export {
+  useResourceNames,
+  type ResourceNamesOptions,
+} from './hooks/resource-names.svelte';
 
 export { usePolling } from './hooks/use-polling.svelte';
 

@@ -33,6 +33,8 @@ vi.mock('@tanstack/svelte-query', () => ({
   createQuery: () => ({ data: undefined }),
   createMutation: () => ({ mutate: vi.fn() }),
   queryOptions: (opts: unknown) => opts,
+  useQueryClient: () => ({ fakeQueryClient: true }),
+  QueryClient: vi.fn(),
 }));
 
 vi.mock('$lib/logger', () => ({
