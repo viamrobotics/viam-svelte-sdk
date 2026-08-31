@@ -8,6 +8,7 @@ import { usePolling } from './use-polling.svelte';
 import { createQueryLogger } from '$lib/logger';
 import { useEnabledQueries } from './use-enabled-queries.svelte';
 import { useConnectionStatus } from './robot-clients.svelte';
+import type { ResourceClientContext } from './create-resource-client.svelte';
 import type {
   ArgumentsType,
   ResolvedReturnType,
@@ -15,7 +16,7 @@ import type {
 } from './queries';
 
 export const createResourceQuery = <T extends Resource, K extends keyof T>(
-  client: { current: T | undefined },
+  client: ResourceClientContext<T>,
   method: K,
   ...additional:
     | [options?: (() => QueryOptions) | QueryOptions]
@@ -39,9 +40,9 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
     typeof options === 'function' ? options() : options
   );
   const _args = $derived(typeof args === 'function' ? args() : args);
-  const name = $derived(client.current?.name);
+  const name = $derived(client.name);
   const methodName = $derived(String(method));
-  const partID = $derived((client.current as T & { partID: string })?.partID);
+  const partID = $derived(client.partID);
   const connectionStatus = useConnectionStatus(() => partID);
   const enabled = $derived(
     connectionStatus.current === MachineConnectionEvent.CONNECTED &&

@@ -10,11 +10,15 @@ export {
   useRobotConnection,
   useConnectionStatus,
   useRobotClient,
+  type RobotClientContext,
 } from './hooks/robot-clients.svelte';
 
 export { createRobotQuery } from './hooks/create-robot-query.svelte';
 export { createRobotMutation } from './hooks/create-robot-mutation.svelte';
-export { createResourceClient } from './hooks/create-resource-client.svelte';
+export {
+  createResourceClient,
+  type ResourceClientContext,
+} from './hooks/create-resource-client.svelte';
 export { createResourceQuery } from './hooks/create-resource-query.svelte';
 export { createResourceMutation } from './hooks/create-resource-mutation.svelte';
 export {

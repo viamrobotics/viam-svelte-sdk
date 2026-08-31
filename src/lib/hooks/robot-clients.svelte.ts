@@ -58,6 +58,15 @@ interface RobotConnectionContext {
   connect: (config: DialConf) => Promise<void>;
 }
 
+export interface RobotClientContext {
+  readonly current: RobotClient | undefined;
+  /**
+   * The part addressed, defined even while disconnected. Query keys use this, so
+   * a dropped client cannot re-key a query onto an empty cache entry.
+   */
+  readonly partID: PartID;
+}
+
 export interface RobotClientsOptions {
   resetQueriesOnDisconnect?: boolean;
 }
@@ -322,12 +331,15 @@ export const useConnectionStatus = (partID: () => PartID) => {
   };
 };
 
-export const useRobotClient = (partID: () => PartID) => {
+export const useRobotClient = (partID: () => PartID): RobotClientContext => {
   const context = getContext<ClientContext>(clientKey);
   const client = $derived(context.current[partID()]);
   return {
     get current() {
       return client;
+    },
+    get partID() {
+      return partID();
     },
   };
 };

@@ -3,21 +3,23 @@ import type { RobotClient } from '@viamrobotics/sdk';
 
 import type { ArgumentsType, ResolvedReturnType } from './queries';
 import { createQueryLogger } from '$lib/logger';
+import type { PartID } from '$lib/part';
 
 export const createRobotMutation = <T extends RobotClient, K extends keyof T>(
-  client: { current: T | undefined },
+  client: { current: T | undefined; partID: PartID },
   method: K
 ) => {
   type MutArgs = ArgumentsType<T[K]>;
   type MutReturn = ResolvedReturnType<T[K]>;
 
   const methodName = $derived(String(method));
+  const partID = $derived(client.partID);
 
   const mutationOptions = $derived({
     mutationKey: [
       'viam-svelte-sdk',
       'partID',
-      (client.current as T & { partID: string })?.partID,
+      partID,
       'robotClient',
       methodName,
     ],

@@ -8,9 +8,10 @@ import type { Resource } from '@viamrobotics/sdk';
 
 import type { ArgumentsType, ResolvedReturnType } from './queries';
 import { createQueryLogger } from '$lib/logger';
+import type { ResourceClientContext } from './create-resource-client.svelte';
 
 export const createResourceMutation = <T extends Resource, K extends keyof T>(
-  client: { current: T | undefined },
+  client: ResourceClientContext<T>,
   method: K,
   queryKey?: () => QueryKey
 ) => {
@@ -18,14 +19,15 @@ export const createResourceMutation = <T extends Resource, K extends keyof T>(
   type MutReturn = ResolvedReturnType<T[K]>;
 
   const queryClient = useQueryClient();
-  const name = $derived(client.current?.name);
+  const name = $derived(client.name);
+  const partID = $derived(client.partID);
   const methodName = $derived(String(method));
   const key = $derived(queryKey?.());
   const mutationOptions = $derived({
     mutationKey: [
       'viam-svelte-sdk',
       'partID',
-      (client.current as T & { partID: string })?.partID,
+      partID,
       'resource',
       name,
       methodName,

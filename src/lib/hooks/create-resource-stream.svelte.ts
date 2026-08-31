@@ -13,6 +13,7 @@ import type {
   StreamItemType,
   StreamQueryOptions as QueryOptions,
 } from './queries';
+import type { ResourceClientContext } from './create-resource-client.svelte';
 
 type QueryResult<U> = QueryObserverResult<U[], Error>;
 
@@ -32,7 +33,7 @@ export const streamQueryKey = (
 ];
 
 export const createResourceStream = <T extends Resource, K extends keyof T>(
-  client: { current: T | undefined },
+  client: ResourceClientContext<T>,
   method: K,
   ...additional:
     | [
@@ -55,10 +56,10 @@ export const createResourceStream = <T extends Resource, K extends keyof T>(
   );
 
   const _args = $derived(typeof args === 'function' ? args() : args);
-  const name = $derived(client.current?.name);
+  const name = $derived(client.name);
   const methodName = $derived(String(method));
   const refetchMode = $derived(_options?.refetchMode ?? 'reset');
-  const partID = $derived((client.current as T & { partID: string })?.partID);
+  const partID = $derived(client.partID);
   const connectionStatus = useConnectionStatus(() => partID);
   const queryKey = $derived(streamQueryKey(partID, name, methodName, _args));
 

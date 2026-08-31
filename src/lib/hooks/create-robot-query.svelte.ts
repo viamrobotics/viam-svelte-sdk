@@ -14,9 +14,10 @@ import type {
   ResolvedReturnType,
   QueryOptions,
 } from './queries';
+import type { PartID } from '$lib/part';
 
 export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
-  client: { current: T | undefined },
+  client: { current: T | undefined; partID: PartID },
   method: K,
   ...additional:
     | [options?: (() => QueryOptions) | QueryOptions | undefined]
@@ -25,7 +26,7 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
         options?: (() => QueryOptions) | QueryOptions,
       ]
 ): QueryObserverResult<ResolvedReturnType<T[K]>> => {
-  const partID = $derived((client.current as T & { partID: string })?.partID);
+  const partID = $derived(client.partID);
   const connectionStatus = useConnectionStatus(() => partID);
   const enabledQueries = useEnabledQueries();
   let [args, options] = additional;
