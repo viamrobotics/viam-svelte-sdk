@@ -3,7 +3,7 @@ import type { Snippet } from 'svelte';
 import type { DialConf } from '@viamrobotics/sdk';
 import {
   provideRobotClientsContext,
-  useConnectedPartIDs,
+  usePartIDs,
   type RobotClientsOptions,
 } from '$lib/hooks/robot-clients.svelte';
 import { provideResourceGenerations } from '$lib/hooks/resource-generation.svelte';
@@ -23,10 +23,10 @@ provideRobotClientsContext(
 );
 provideResourceGenerations();
 
-const connectedPartIDs = useConnectedPartIDs();
+const partIDs = usePartIDs();
 </script>
 
-{#each connectedPartIDs.current as partID (partID)}
+{#each partIDs.current as partID (partID)}
   <MachineWatcher {partID} />
 {/each}
 
