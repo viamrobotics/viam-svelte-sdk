@@ -19,8 +19,6 @@ export const createResourceMutation = <T extends Resource, K extends keyof T>(
   type MutReturn = ResolvedReturnType<T[K]>;
 
   const queryClient = useQueryClient();
-  // Addressed, not read off `current`: a disconnect nulls the client, and a key
-  // derived from it would no longer match this mutation's own state.
   const name = $derived(client.name);
   const partID = $derived(client.partID);
   const methodName = $derived(String(method));
