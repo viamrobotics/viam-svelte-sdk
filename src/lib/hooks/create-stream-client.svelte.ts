@@ -13,6 +13,7 @@ import {
 } from '@tanstack/svelte-query';
 import { createQueryLogger } from '$lib/logger';
 import { useEnabledQueries } from './use-enabled-queries.svelte';
+import { resourceQueryKeyPrefix } from './resource-query-key';
 
 type StreamSubscriber = (
   mediaStream: MediaStream | null,
@@ -33,6 +34,9 @@ interface SharedStreamEntry {
 
 const sharedStreams = new Map<string, SharedStreamEntry>();
 
+const sharedStreamKey = (partID: string, resourceName: string) =>
+  `${partID}:${resourceName}`;
+
 /**
  * Re-acquires the track after the resource behind a name is rebuilt.
  *
@@ -46,7 +50,7 @@ export const refreshSharedStream = async (
   resourceName: string,
   generation: string
 ) => {
-  const entry = sharedStreams.get(`${partID}:${resourceName}`);
+  const entry = sharedStreams.get(sharedStreamKey(partID, resourceName));
 
   // Every subscriber sees the same change, so the first one through claims it.
   if (!entry || entry.generation === generation) {
@@ -79,7 +83,7 @@ const acquireSharedStream = (
   robotClient: Client,
   subscriber: StreamSubscriber
 ): (() => void) => {
-  const key = `${partID}:${resourceName}`;
+  const key = sharedStreamKey(partID, resourceName);
   let entry = sharedStreams.get(key);
 
   // Reconnect: previous connection is dead, drop the entry without remove().
@@ -181,11 +185,7 @@ export const createStreamClient = (
   const queryOptions = $derived(
     createQueryOptions({
       queryKey: [
-        'viam-svelte-sdk',
-        'partID',
-        partID(),
-        'resource',
-        name,
+        ...resourceQueryKeyPrefix(partID(), name),
         'stream',
         'getOptions',
       ],

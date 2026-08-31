@@ -157,6 +157,31 @@ describe('MachineWatcher', () => {
     });
   });
 
+  it('invalidates a rebuild that happened while the part was disconnected', async () => {
+    mount();
+    await poll([status('camera-1', 100n)]);
+
+    // A disconnect resets queries under the part prefix, which includes the
+    // machine status, so the watcher sees no resources at all for a while.
+    await poll([]);
+    expect(invalidateQueries).not.toHaveBeenCalled();
+
+    await poll([status('camera-1', 200n)]);
+
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: resourceKey('camera-1'),
+    });
+  });
+
+  it('does not invalidate when a part reconnects unchanged', async () => {
+    mount();
+    await poll([status('camera-1', 100n)]);
+    await poll([]);
+    await poll([status('camera-1', 100n)]);
+
+    expect(invalidateQueries).not.toHaveBeenCalled();
+  });
+
   it('withdraws its part on unmount', async () => {
     const { unmount } = mount();
     await poll([status('camera-1', 100n)]);

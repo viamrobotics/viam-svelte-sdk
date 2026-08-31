@@ -1,6 +1,7 @@
 import { cleanup, render } from '@testing-library/svelte';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import CreateResourceQueryTestWrapper from './fixtures/CreateResourceQueryTestWrapper.svelte';
+import { resourceQueryKeyPrefix } from '../resource-query-key';
 
 const { fakeResourceClient } = vi.hoisted(() => ({
   fakeResourceClient: { name: 'arm-1', partID: 'part-1' },
@@ -57,6 +58,23 @@ describe('createResourceQuery', () => {
       'arm-1',
       'getEndPosition',
     ]);
+  });
+
+  it('keys under the prefix a rebuild invalidates', () => {
+    const { getByTestId } = render(CreateResourceQueryTestWrapper, {
+      props: {
+        current: fakeResourceClient as never,
+        partID: 'part-1',
+        resourceName: 'arm-1',
+      },
+    });
+
+    const key = JSON.parse(getByTestId('query-key').textContent ?? '');
+    const prefix = resourceQueryKeyPrefix('part-1', 'arm-1');
+
+    // A prefix that drifts from this key would make rebuild invalidation match
+    // nothing, which looks exactly like the bug it fixes.
+    expect(key.slice(0, prefix.length)).toEqual(prefix);
   });
 
   it('holds its key when the client is torn down by a disconnect', async () => {
