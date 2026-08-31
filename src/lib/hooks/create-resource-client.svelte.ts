@@ -8,11 +8,21 @@ import { useConnectionStatus, useRobotClient } from './robot-clients.svelte';
 
 type Client<T> = new (part: RobotClient, name: string) => T;
 
+export interface ResourceClientContext<T> {
+  readonly current: T | undefined;
+  /**
+   * The part and resource addressed, defined even while disconnected. Query keys
+   * use these, so a dropped client cannot re-key a query onto an empty entry.
+   */
+  readonly partID: string;
+  readonly name: string;
+}
+
 export const createResourceClient = <T extends Resource>(
   client: Client<T>,
   partID: () => string,
   resourceName: () => string
-): { current: T | undefined } => {
+): ResourceClientContext<T> => {
   const robotClient = useRobotClient(partID);
   const connectionStatus = useConnectionStatus(partID);
 
@@ -36,6 +46,12 @@ export const createResourceClient = <T extends Resource>(
   return {
     get current() {
       return resourceClient;
+    },
+    get partID() {
+      return partID();
+    },
+    get name() {
+      return resourceName();
     },
   };
 };
