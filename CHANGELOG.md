@@ -1,5 +1,23 @@
 # @viamrobotics/svelte-sdk
 
+## 1.3.0
+
+### Minor Changes
+
+- 0598554: Key queries, streams, and mutations on the addressed part and resource instead
+  of on the live client, so a disconnect no longer re-keys them onto empty cache
+  entries and blanks their data.
+
+### Patch Changes
+
+- 75c5e6f: Fix CameraStream teardown so it can be remounted. The stream client now calls
+  `StreamClient.remove()` when its effect is destroyed, and stops its getStream
+  retry loop once aborted. Previously, unmounting a `CameraStream` left the stream
+  registered on the peer connection, so a later remount hit "stream already
+  active", never received a track, and looped on the 5s getStream timeout —
+  producing a blank video and a flood of AddStream requests.
+- cb77666: Share MediaStream across stream subscribers
+
 ## 1.2.3
 
 ### Patch Changes
