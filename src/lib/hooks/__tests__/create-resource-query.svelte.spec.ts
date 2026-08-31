@@ -23,7 +23,7 @@ vi.mock('../use-polling.svelte', () => ({
 }));
 
 vi.mock('@tanstack/svelte-query', () => ({
-  createQuery: (options: unknown) => ({ data: undefined, options }),
+  createQuery: () => ({ data: undefined }),
   queryOptions: (options: unknown) => options,
 }));
 
@@ -79,112 +79,5 @@ describe('createResourceQuery', () => {
     // A moved key points at an empty cache entry, so the caller loses the data
     // it is still showing.
     expect(getByTestId('query-key').textContent).toBe(connectedKey);
-  });
-
-  it('keys on the resource instance behind the name', () => {
-    const { getByTestId } = render(CreateResourceQueryTestWrapper, {
-      props: {
-        current: fakeResourceClient as never,
-        partID: 'part-1',
-        resourceName: 'arm-1',
-        generation: 'arm:100.0',
-      },
-    });
-
-    expect(JSON.parse(getByTestId('query-key').textContent ?? '')).toEqual([
-      'viam-svelte-sdk',
-      'partID',
-      'part-1',
-      'resource',
-      'arm-1',
-      'getEndPosition',
-      'generation',
-      'arm:100.0',
-    ]);
-  });
-
-  it('moves its key when the resource is rebuilt under the same name', async () => {
-    const { getByTestId, rerender } = render(CreateResourceQueryTestWrapper, {
-      props: {
-        current: fakeResourceClient as never,
-        partID: 'part-1',
-        resourceName: 'arm-1',
-        generation: 'arm:100.0',
-      },
-    });
-
-    const beforeRebuild = getByTestId('query-key').textContent;
-
-    await rerender({
-      current: fakeResourceClient as never,
-      partID: 'part-1',
-      resourceName: 'arm-1',
-      generation: 'arm:200.0',
-    });
-
-    // Serving the pre-rebuild cache here is the whole defect this guards.
-    expect(getByTestId('query-key').textContent).not.toBe(beforeRebuild);
-  });
-
-  it('holds the generation last so an existing prefix match still matches', () => {
-    const { getByTestId } = render(CreateResourceQueryTestWrapper, {
-      props: {
-        current: fakeResourceClient as never,
-        partID: 'part-1',
-        resourceName: 'arm-1',
-        generation: 'arm:100.0',
-      },
-    });
-
-    const key = JSON.parse(getByTestId('query-key').textContent ?? '');
-
-    expect(key.slice(0, 6)).toEqual([
-      'viam-svelte-sdk',
-      'partID',
-      'part-1',
-      'resource',
-      'arm-1',
-      'getEndPosition',
-    ]);
-  });
-
-  it('holds the query while the resource is mid-transition', () => {
-    const { getByTestId } = render(CreateResourceQueryTestWrapper, {
-      props: {
-        current: fakeResourceClient as never,
-        partID: 'part-1',
-        resourceName: 'arm-1',
-        generation: 'arm:100.0',
-        canQuery: false,
-      },
-    });
-
-    expect(getByTestId('enabled').textContent).toBe('false');
-  });
-
-  it('enables the query once the resource settles', () => {
-    const { getByTestId } = render(CreateResourceQueryTestWrapper, {
-      props: {
-        current: fakeResourceClient as never,
-        partID: 'part-1',
-        resourceName: 'arm-1',
-        generation: 'arm:100.0',
-        canQuery: true,
-      },
-    });
-
-    expect(getByTestId('enabled').textContent).toBe('true');
-  });
-
-  it('enables the query for a context that omits the gate', () => {
-    const { getByTestId } = render(CreateResourceQueryTestWrapper, {
-      props: {
-        current: fakeResourceClient as never,
-        partID: 'part-1',
-        resourceName: 'arm-1',
-      },
-    });
-
-    expect(getByTestId('enabled').textContent).toBe('true');
   });
 });

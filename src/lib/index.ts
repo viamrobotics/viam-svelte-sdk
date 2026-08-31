@@ -34,6 +34,7 @@ export {
 export { useResourceNames } from './hooks/resource-names.svelte';
 export {
   useResourceGeneration,
+  type ResourceGeneration,
   type ResourceGenerationContext,
 } from './hooks/resource-generation.svelte';
 

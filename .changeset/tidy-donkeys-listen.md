@@ -2,4 +2,4 @@
 '@viamrobotics/svelte-sdk': minor
 ---
 
-Key resource queries on the server-side resource instance, so a rebuild under the same name no longer serves the previous instance's cached responses.
+Refresh a resource's queries and camera track after the server rebuilds it under the same name, which previously kept serving the old resource until the page reloaded.

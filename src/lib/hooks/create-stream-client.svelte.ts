@@ -27,9 +27,51 @@ interface SharedStreamEntry {
   error: Error | undefined;
   listeners: Set<StreamSubscriber>;
   fetchPromise: Promise<void> | null;
+  /** The instance the current track came from. See {@link refreshSharedStream}. */
+  generation: string;
 }
 
 const sharedStreams = new Map<string, SharedStreamEntry>();
+
+/**
+ * Re-acquires the track after the resource behind a name is rebuilt.
+ *
+ * The rebuilt resource has no idea it owes anyone a stream, so the old track
+ * goes silent with no error and nothing to reconnect to. Subscribers are left
+ * in place and handed the new track, since the subscription itself is still
+ * valid: only the server-side instance changed.
+ */
+export const refreshSharedStream = async (
+  partID: string,
+  resourceName: string,
+  generation: string
+) => {
+  const entry = sharedStreams.get(`${partID}:${resourceName}`);
+
+  // Every subscriber sees the same change, so the first one through claims it.
+  if (!entry || entry.generation === generation) {
+    return;
+  }
+
+  entry.generation = generation;
+
+  // The previous instance is already gone, so a failure here means there was
+  // nothing left to release.
+  await entry.streamClient.remove(resourceName).catch(() => {});
+
+  try {
+    const stream = await entry.streamClient.getStream(resourceName);
+    entry.mediaStream = stream ?? null;
+    entry.error = undefined;
+  } catch (nextError) {
+    entry.mediaStream = null;
+    entry.error = nextError as Error;
+  }
+
+  for (const listener of entry.listeners) {
+    listener(entry.mediaStream, entry.error);
+  }
+};
 
 const acquireSharedStream = (
   partID: string,
@@ -55,6 +97,7 @@ const acquireSharedStream = (
       error: undefined,
       listeners: new Set(),
       fetchPromise: null,
+      generation: '',
     };
     sharedStreams.set(key, entry);
   }

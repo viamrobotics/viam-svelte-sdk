@@ -321,6 +321,23 @@ export const provideRobotClientsContext = (
   });
 };
 
+/** The parts currently connected, for per-part work the provider drives. */
+export const useConnectedPartIDs = () => {
+  const context = getContext<ConnectionStatusContext>(connectionKey);
+
+  const current = $derived(
+    Object.entries(context.current)
+      .filter(([, status]) => status === MachineConnectionEvent.CONNECTED)
+      .map(([partID]) => partID)
+  );
+
+  return {
+    get current() {
+      return current;
+    },
+  };
+};
+
 export const useConnectionStatus = (partID: () => PartID) => {
   const context = getContext<ConnectionStatusContext>(connectionKey);
   const status = $derived(context.current[partID()]);

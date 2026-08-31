@@ -23,17 +23,9 @@ export interface ResourceClientContext<T> {
    * Identifies the server-side instance behind `name`, completing the identity
    * the pair above cannot express on its own. See {@link useResourceGeneration}.
    *
-   * Optional so a hand-built context still satisfies the interface. A context
-   * omitting it opts out of instance tracking, and its queries keep serving a
-   * replaced instance's cached responses.
+   * Optional so a hand-built context still satisfies the interface.
    */
   readonly generation?: string | undefined;
-
-  /**
-   * Whether a request to the resource is worth making. Optional, as above.
-   * See {@link useResourceGeneration}.
-   */
-  readonly canQuery?: boolean | undefined;
 }
 
 export const createResourceClient = <T extends Resource>(
@@ -69,9 +61,6 @@ export const createResourceClient = <T extends Resource>(
     },
     get generation() {
       return generation.current;
-    },
-    get canQuery() {
-      return generation.canQuery;
     },
   };
 };

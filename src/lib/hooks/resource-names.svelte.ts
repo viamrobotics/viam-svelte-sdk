@@ -5,7 +5,7 @@ import type { PartID } from '../part';
 import { useDebounce } from 'runed';
 import { useEnabledQueries } from './use-enabled-queries.svelte';
 import { createRobotQuery } from './create-robot-query.svelte';
-import { usePolledMachineStatus } from './polled-machine-status.svelte';
+import { useMachineStatus } from './machine-status.svelte';
 
 type Query = QueryObserverResult<ResourceName[], Error>;
 
@@ -72,7 +72,7 @@ export const useResourceNames = (
 ): QueryContext => {
   const enabledQueries = useEnabledQueries();
   const client = useRobotClient(partID);
-  const machineStatus = usePolledMachineStatus(partID);
+  const { query: machineStatus } = useMachineStatus(partID);
 
   const query = createRobotQuery(client, 'resourceNames', () => ({
     enabled:

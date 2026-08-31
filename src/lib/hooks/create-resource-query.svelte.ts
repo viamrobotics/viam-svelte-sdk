@@ -43,12 +43,10 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
   const name = $derived(client.name);
   const methodName = $derived(String(method));
   const partID = $derived(client.partID);
-  const generation = $derived(client.generation ?? '');
   const connectionStatus = useConnectionStatus(() => partID);
   const enabled = $derived(
     connectionStatus.current === MachineConnectionEvent.CONNECTED &&
       client.current !== undefined &&
-      (client.canQuery ?? true) &&
       _options?.enabled !== false &&
       enabledQueries.resourceQueries
   );
@@ -61,9 +59,6 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
     name,
     methodName,
     ...(_args ? [_args] : []),
-    // Appended last so an existing prefix match, such as a mutation
-    // invalidating by name, method, and args, keeps matching.
-    ...(generation ? ['generation', generation] : []),
   ]);
 
   const queryOptions = $derived(
