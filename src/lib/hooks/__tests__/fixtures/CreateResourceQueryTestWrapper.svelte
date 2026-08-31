@@ -8,9 +8,12 @@ interface Props {
   current: ArmClient | undefined;
   partID: string;
   resourceName: string;
+  /** Omitted to stand in for a context that opts out of instance tracking. */
+  generation?: string;
+  isReady?: boolean;
 }
 
-let { current, partID, resourceName }: Props = $props();
+let { current, partID, resourceName, generation, isReady }: Props = $props();
 
 const client = {
   get current() {
@@ -22,9 +25,22 @@ const client = {
   get name() {
     return resourceName;
   },
+  get generation() {
+    return generation;
+  },
+  get isReady() {
+    return isReady;
+  },
 };
 
 const query = createResourceQuery(client, 'getEndPosition');
+
+// The `@tanstack/svelte-query` mock hands back the options thunk it was given,
+// so the readiness gate is observable without a real query cache.
+const options = $derived(
+  (query as unknown as { options: () => { enabled: boolean } }).options()
+);
 </script>
 
 <div data-testid="query-key">{JSON.stringify(query.queryKey)}</div>
+<div data-testid="enabled">{String(options.enabled)}</div>

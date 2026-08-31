@@ -5,6 +5,7 @@ import type { PartID } from '../part';
 import { useDebounce } from 'runed';
 import { useEnabledQueries } from './use-enabled-queries.svelte';
 import { createRobotQuery } from './create-robot-query.svelte';
+import { usePolledMachineStatus } from './polled-machine-status.svelte';
 
 type Query = QueryObserverResult<ResourceName[], Error>;
 
@@ -19,8 +20,6 @@ interface QueryContext {
   current: ResourceName[];
   query: Query | undefined;
 }
-
-const revisions = new Map<string, string>();
 
 const areResourceNamesEqual = (
   a: ResourceName[],
@@ -73,14 +72,12 @@ export const useResourceNames = (
 ): QueryContext => {
   const enabledQueries = useEnabledQueries();
   const client = useRobotClient(partID);
-  const machineStatus = createRobotQuery(client, 'getMachineStatus', {
-    refetchInterval: 1000,
-  });
+  const machineStatus = usePolledMachineStatus(partID);
 
   const query = createRobotQuery(client, 'resourceNames', () => ({
     enabled:
       client !== undefined &&
-      machineStatus?.data?.state === MachineState.Running &&
+      machineStatus.data?.state === MachineState.Running &&
       enabledQueries.resourceNames,
     refetchOnMount: false,
     staleTime: Infinity,
@@ -88,13 +85,15 @@ export const useResourceNames = (
 
   const debouncedRefetch = useDebounce(() => query.refetch(), 500);
 
+  let lastRevision: string | undefined;
+
   $effect(() => {
-    const revision = machineStatus?.data?.config?.revision ?? '';
-    const lastRevision = revisions.get(partID());
+    const revision = machineStatus.data?.config?.revision ?? '';
+    const previousRevision = lastRevision;
 
-    revisions.set(partID(), revision);
+    lastRevision = revision;
 
-    if (lastRevision && revision !== lastRevision) {
+    if (previousRevision && revision !== previousRevision) {
       debouncedRefetch();
     }
   });
