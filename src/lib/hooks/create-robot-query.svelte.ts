@@ -15,6 +15,7 @@ import type {
   QueryOptions,
 } from './queries';
 import type { PartID } from '$lib/part';
+import { robotQueryKey } from './robot-query-key';
 
 export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
   client: { current: T | undefined; partID: PartID },
@@ -51,11 +52,7 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
   const queryOptions = $derived(
     createQueryOptions({
       queryKey: [
-        'viam-svelte-sdk',
-        'partID',
-        partID,
-        'robotClient',
-        methodName,
+        ...robotQueryKey(partID, methodName),
         ...(_args ? [_args] : []),
       ],
       enabled,
