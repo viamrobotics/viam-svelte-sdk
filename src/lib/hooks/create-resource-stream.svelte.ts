@@ -56,8 +56,6 @@ export const createResourceStream = <T extends Resource, K extends keyof T>(
   );
 
   const _args = $derived(typeof args === 'function' ? args() : args);
-  // Addressed, not read off `current`: a disconnect nulls the client, and a key
-  // derived from it would discard the accumulated stream.
   const name = $derived(client.name);
   const methodName = $derived(String(method));
   const refetchMode = $derived(_options?.refetchMode ?? 'reset');

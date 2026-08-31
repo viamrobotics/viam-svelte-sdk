@@ -26,8 +26,6 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
         options?: (() => QueryOptions) | QueryOptions,
       ]
 ): QueryObserverResult<ResolvedReturnType<T[K]>> => {
-  // Addressed, not read off `current`: a disconnect nulls the client, and a key
-  // derived from it would move the query to an empty entry.
   const partID = $derived(client.partID);
   const connectionStatus = useConnectionStatus(() => partID);
   const enabledQueries = useEnabledQueries();

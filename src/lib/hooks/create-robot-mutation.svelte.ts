@@ -13,8 +13,6 @@ export const createRobotMutation = <T extends RobotClient, K extends keyof T>(
   type MutReturn = ResolvedReturnType<T[K]>;
 
   const methodName = $derived(String(method));
-  // Addressed, not read off `current`: a disconnect nulls the client, and a key
-  // derived from it would no longer match this mutation's own state.
   const partID = $derived(client.partID);
 
   const mutationOptions = $derived({

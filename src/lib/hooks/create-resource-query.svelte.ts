@@ -40,8 +40,6 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
     typeof options === 'function' ? options() : options
   );
   const _args = $derived(typeof args === 'function' ? args() : args);
-  // Addressed, not read off `current`: a disconnect nulls the client, and a key
-  // derived from it would move the query to an empty entry.
   const name = $derived(client.name);
   const methodName = $derived(String(method));
   const partID = $derived(client.partID);
