@@ -35,12 +35,7 @@ export const createResourceClient = <T extends Resource>(
       return;
     }
 
-    const nextClient = new client(robotClient.current, resourceName());
-
-    // PartIDs are used to invalidate queries for this client
-    (nextClient as T & { partID: string }).partID = partID();
-
-    return nextClient;
+    return new client(robotClient.current, resourceName());
   });
 
   return {
