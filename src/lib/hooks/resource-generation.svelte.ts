@@ -1,4 +1,4 @@
-import { getContext, setContext } from 'svelte';
+import { getContext, setContext, untrack } from 'svelte';
 
 import type { PartID } from '../part';
 
@@ -44,8 +44,37 @@ export const provideResourceGenerations = () => {
     get current() {
       return generations;
     },
+    // The status query hands back a fresh object every poll, so an unchanged
+    // machine still republishes. Writing that through would wake every consumer
+    // once a second, so unchanged entries keep the identity they already had.
     publish: (partID, next) => {
-      generations[partID] = next;
+      untrack(() => {
+        const existing = generations[partID];
+        const merged: Record<string, ResourceGeneration> = {};
+
+        let changed =
+          existing === undefined ||
+          Object.keys(existing).length !== Object.keys(next).length;
+
+        for (const [name, value] of Object.entries(next)) {
+          const prior = existing?.[name];
+
+          if (
+            prior &&
+            prior.generation === value.generation &&
+            prior.canQuery === value.canQuery
+          ) {
+            merged[name] = prior;
+          } else {
+            merged[name] = value;
+            changed = true;
+          }
+        }
+
+        if (changed) {
+          generations[partID] = merged;
+        }
+      });
     },
     withdraw: (partID) => {
       delete generations[partID];
