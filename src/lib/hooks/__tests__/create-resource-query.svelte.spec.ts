@@ -148,35 +148,35 @@ describe('createResourceQuery', () => {
     ]);
   });
 
-  it('holds the query while the resource is not ready', () => {
+  it('holds the query while the resource is mid-transition', () => {
     const { getByTestId } = render(CreateResourceQueryTestWrapper, {
       props: {
         current: fakeResourceClient as never,
         partID: 'part-1',
         resourceName: 'arm-1',
         generation: 'arm:100.0',
-        isReady: false,
+        canQuery: false,
       },
     });
 
     expect(getByTestId('enabled').textContent).toBe('false');
   });
 
-  it('enables the query once the resource reports ready', () => {
+  it('enables the query once the resource settles', () => {
     const { getByTestId } = render(CreateResourceQueryTestWrapper, {
       props: {
         current: fakeResourceClient as never,
         partID: 'part-1',
         resourceName: 'arm-1',
         generation: 'arm:100.0',
-        isReady: true,
+        canQuery: true,
       },
     });
 
     expect(getByTestId('enabled').textContent).toBe('true');
   });
 
-  it('enables the query for a context that omits readiness', () => {
+  it('enables the query for a context that omits the gate', () => {
     const { getByTestId } = render(CreateResourceQueryTestWrapper, {
       props: {
         current: fakeResourceClient as never,

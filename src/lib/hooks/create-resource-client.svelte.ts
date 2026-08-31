@@ -29,8 +29,11 @@ export interface ResourceClientContext<T> {
    */
   readonly generation?: string | undefined;
 
-  /** Whether the server reports the resource as ready. Optional, as above. */
-  readonly isReady?: boolean | undefined;
+  /**
+   * Whether a request to the resource is worth making. Optional, as above.
+   * See {@link useResourceGeneration}.
+   */
+  readonly canQuery?: boolean | undefined;
 }
 
 export const createResourceClient = <T extends Resource>(
@@ -67,8 +70,8 @@ export const createResourceClient = <T extends Resource>(
     get generation() {
       return generation.current;
     },
-    get isReady() {
-      return generation.isReady;
+    get canQuery() {
+      return generation.canQuery;
     },
   };
 };

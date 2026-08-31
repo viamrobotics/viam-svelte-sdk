@@ -10,10 +10,10 @@ interface Props {
   resourceName: string;
   /** Omitted to stand in for a context that opts out of instance tracking. */
   generation?: string;
-  isReady?: boolean;
+  canQuery?: boolean;
 }
 
-let { current, partID, resourceName, generation, isReady }: Props = $props();
+let { current, partID, resourceName, generation, canQuery }: Props = $props();
 
 const client = {
   get current() {
@@ -28,8 +28,8 @@ const client = {
   get generation() {
     return generation;
   },
-  get isReady() {
-    return isReady;
+  get canQuery() {
+    return canQuery;
   },
 };
 

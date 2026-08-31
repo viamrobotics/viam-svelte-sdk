@@ -14,4 +14,4 @@ const generation = useResourceGeneration(
 </script>
 
 <div data-testid="generation">{generation.current}</div>
-<div data-testid="is-ready">{String(generation.isReady)}</div>
+<div data-testid="can-query">{String(generation.canQuery)}</div>

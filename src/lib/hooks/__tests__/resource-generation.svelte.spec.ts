@@ -2,8 +2,10 @@ import { cleanup, render } from '@testing-library/svelte';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import ResourceGenerationTestWrapper from './fixtures/ResourceGenerationTestWrapper.svelte';
 
+const STATE_UNCONFIGURED = 1;
 const STATE_CONFIGURING = 2;
 const STATE_READY = 3;
+const STATE_REMOVING = 4;
 const STATE_UNHEALTHY = 5;
 
 const { machineStatus } = vi.hoisted(() => ({
@@ -43,7 +45,7 @@ const generationOf = (resourceName: string) => {
   });
   return {
     generation: getByTestId('generation').textContent,
-    isReady: getByTestId('is-ready').textContent,
+    canQuery: getByTestId('can-query').textContent,
   };
 };
 
@@ -152,23 +154,41 @@ describe('useResourceGeneration', () => {
     expect(generationOf('store-1').generation).toBe(before);
   });
 
-  it('reports not ready while the resource is being rebuilt', () => {
+  it('holds queries while the resource is being rebuilt', () => {
     machineStatus.data = {
       resources: [status({ name: 'store-1', state: STATE_CONFIGURING })],
     };
 
-    expect(generationOf('store-1').isReady).toBe('false');
+    expect(generationOf('store-1').canQuery).toBe('false');
   });
 
-  it('reports not ready when the resource is unhealthy', () => {
+  it('holds queries while the resource has never been configured', () => {
+    machineStatus.data = {
+      resources: [status({ name: 'store-1', state: STATE_UNCONFIGURED })],
+    };
+
+    expect(generationOf('store-1').canQuery).toBe('false');
+  });
+
+  it('holds queries while the resource is being removed', () => {
+    machineStatus.data = {
+      resources: [status({ name: 'store-1', state: STATE_REMOVING })],
+    };
+
+    expect(generationOf('store-1').canQuery).toBe('false');
+  });
+
+  it('allows queries when the resource is unhealthy', () => {
+    // A resource can stay unhealthy indefinitely, and the server answers with a
+    // real error. Holding the query would report loading forever instead.
     machineStatus.data = {
       resources: [status({ name: 'store-1', state: STATE_UNHEALTHY })],
     };
 
-    expect(generationOf('store-1').isReady).toBe('false');
+    expect(generationOf('store-1').canQuery).toBe('true');
   });
 
-  it('reports not ready when any subtype sharing the name is not ready', () => {
+  it('holds queries when any subtype sharing the name is mid-transition', () => {
     machineStatus.data = {
       resources: [
         status({ name: 'store-1', subtype: 'world_state_store' }),
@@ -180,23 +200,23 @@ describe('useResourceGeneration', () => {
       ],
     };
 
-    expect(generationOf('store-1').isReady).toBe('false');
+    expect(generationOf('store-1').canQuery).toBe('false');
   });
 
-  it('reports ready with an empty generation before any status arrives', () => {
+  it('allows queries with an empty generation before any status arrives', () => {
     // Absence of information must not gate the first fetch, which would
     // otherwise wait a getMachineStatus round trip.
-    const { generation, isReady } = generationOf('store-1');
+    const { generation, canQuery } = generationOf('store-1');
 
     expect(generation).toBe('');
-    expect(isReady).toBe('true');
+    expect(canQuery).toBe('true');
   });
 
-  it('reports ready with an empty generation for an unknown resource', () => {
+  it('allows queries with an empty generation for an unknown resource', () => {
     machineStatus.data = { resources: [status({ name: 'store-2' })] };
-    const { generation, isReady } = generationOf('store-1');
+    const { generation, canQuery } = generationOf('store-1');
 
     expect(generation).toBe('');
-    expect(isReady).toBe('true');
+    expect(canQuery).toBe('true');
   });
 });

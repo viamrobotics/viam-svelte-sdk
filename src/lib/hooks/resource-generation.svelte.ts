@@ -5,9 +5,25 @@ import type { PartID } from '../part';
 
 /**
  * @todo(mp) Expose `ResourceStatus_State` in the ts-sdk and remove.
- * Mirrors `viam.robot.v1.ResourceStatus.State.STATE_READY`.
+ * Mirrors `viam.robot.v1.ResourceStatus.State`.
  */
-const STATE_READY = 3;
+const STATE_UNCONFIGURED = 1;
+const STATE_CONFIGURING = 2;
+const STATE_REMOVING = 4;
+
+/**
+ * States the resource leaves on its own, either by becoming ready or by going
+ * away. `STATE_UNHEALTHY` is deliberately absent: an unhealthy resource cannot
+ * serve a request either, since `GraphNode.Resource` returns its error instead
+ * of the instance, but it can stay that way indefinitely. Holding a query for
+ * it would report loading forever, where letting it run surfaces the server's
+ * actual error.
+ */
+const TRANSIENT_STATES = new Set([
+  STATE_UNCONFIGURED,
+  STATE_CONFIGURING,
+  STATE_REMOVING,
+]);
 
 export interface ResourceGenerationContext {
   /**
@@ -21,13 +37,21 @@ export interface ResourceGenerationContext {
   readonly current: string;
 
   /**
-   * Whether the server reports every resource matching the name as ready.
-   * False while one is being configured, removed, or is unhealthy.
+   * Whether a request to the resource is worth making.
+   *
+   * False only while a matching resource sits in a state it leaves on its own:
+   * unconfigured, configuring, or being removed. A rebuild passes through
+   * `CONFIGURING`, which moves the generation before the resource can answer,
+   * so a caller that fetches on a generation change needs this to avoid a
+   * request that is guaranteed to fail.
+   *
+   * True when unhealthy, which the resource can stay indefinitely. The server
+   * returns a real error for it, and that beats reporting loading forever.
    *
    * True while no status has been observed, so a caller gating on this does
    * not wait a `getMachineStatus` round trip before its first fetch.
    */
-  readonly isReady: boolean;
+  readonly canQuery: boolean;
 }
 
 /**
@@ -65,16 +89,16 @@ export const useResourceGeneration = (
   );
 
   const current = $derived(matching.length > 0 ? foldGeneration(matching) : '');
-  const isReady = $derived(
-    matching.every((status) => status.state === STATE_READY)
+  const canQuery = $derived(
+    !matching.some((status) => TRANSIENT_STATES.has(status.state))
   );
 
   return {
     get current() {
       return current;
     },
-    get isReady() {
-      return isReady;
+    get canQuery() {
+      return canQuery;
     },
   };
 };

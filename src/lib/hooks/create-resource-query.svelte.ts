@@ -48,7 +48,7 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
   const enabled = $derived(
     connectionStatus.current === MachineConnectionEvent.CONNECTED &&
       client.current !== undefined &&
-      (client.isReady ?? true) &&
+      (client.canQuery ?? true) &&
       _options?.enabled !== false &&
       enabledQueries.resourceQueries
   );
