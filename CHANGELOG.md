@@ -1,5 +1,13 @@
 # @viamrobotics/svelte-sdk
 
+## 1.4.0
+
+### Minor Changes
+
+- b0b778d: The provider now polls `getMachineStatus` once a second for every part it knows about, taking over the poll `useResourceNames` previously owned.
+- d183204: Refetch `resourceNames` when a resource registers or disappears, so a remote or module that comes up after the machine reports running no longer stays invisible until the page reloads.
+- b73af4b: Refresh a resource's queries and camera track after the server rebuilds it under the same name, which previously kept serving the old resource until the page reloaded.
+
 ## 1.3.0
 
 ### Minor Changes
