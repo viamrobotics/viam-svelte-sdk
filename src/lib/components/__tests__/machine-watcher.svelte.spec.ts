@@ -9,8 +9,10 @@ import { machineStatusStub } from './fixtures/machine-status-stub.svelte';
 import { resourceQueryKeyPrefix } from '$lib/hooks/resource-query-key';
 import { robotQueryKey } from '$lib/hooks/robot-query-key';
 
+const STATE_UNCONFIGURED = 1;
 const STATE_CONFIGURING = 2;
 const STATE_READY = 3;
+const STATE_REMOVING = 4;
 const STATE_UNHEALTHY = 5;
 
 const PART = 'part-1';
@@ -32,11 +34,13 @@ vi.mock('$lib/hooks/create-stream-client.svelte', () => ({
 const status = (
   name: string,
   seconds: bigint,
-  state = STATE_READY
+  state = STATE_READY,
+  error = ''
 ): robotApi.ResourceStatus =>
   ({
     name: { namespace: 'rdk', type: 'component', subtype: 'camera', name },
     state,
+    error,
     revision: 'rev-1',
     lastUpdated: { seconds, nanos: 0 },
   }) as unknown as robotApi.ResourceStatus;
@@ -209,6 +213,56 @@ describe('MachineWatcher', () => {
     await poll([status('camera-1', 100n)]);
 
     expect(isStale(resourceQuery('camera-1'))).toBe(false);
+  });
+
+  it('refetches resourceNames when a resource finishes configuring', async () => {
+    mount();
+
+    // The node is in the machine status from the moment it is created, so only
+    // its readiness distinguishes it from one `resourceNames` already lists.
+    await poll([status('camera-1', 100n, STATE_UNCONFIGURED)]);
+    queryClient.setQueryData(resourceNamesQuery, []);
+
+    await poll([status('camera-1', 100n)]);
+
+    expect(isStale(resourceNamesQuery)).toBe(true);
+  });
+
+  it('refetches resourceNames when a resource goes unhealthy', async () => {
+    mount();
+    await poll([status('camera-1', 100n)]);
+
+    queryClient.setQueryData(resourceNamesQuery, ['camera-1']);
+
+    // `ResourceNames` filters on `HasResource`, so an errored resource drops
+    // out of the list entirely.
+    await poll([status('camera-1', 100n, STATE_UNHEALTHY, 'boom')]);
+
+    expect(isStale(resourceNamesQuery)).toBe(true);
+  });
+
+  it('refetches resourceNames when a resource starts being removed', async () => {
+    mount();
+    await poll([status('camera-1', 100n)]);
+
+    queryClient.setQueryData(resourceNamesQuery, ['camera-1']);
+
+    await poll([status('camera-1', 100n, STATE_REMOVING)]);
+
+    expect(isStale(resourceNamesQuery)).toBe(true);
+  });
+
+  it('does not refetch resourceNames for a resource merely reconfiguring', async () => {
+    mount();
+    await poll([status('camera-1', 100n)]);
+
+    queryClient.setQueryData(resourceNamesQuery, ['camera-1']);
+
+    // A reconfiguring node keeps its old instance and no error, so it stays in
+    // `resourceNames` throughout.
+    await poll([status('camera-1', 200n, STATE_CONFIGURING)]);
+
+    expect(isStale(resourceNamesQuery)).toBe(false);
   });
 
   it('refetches resourceNames when a resource registers late', async () => {

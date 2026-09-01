@@ -1,14 +1,11 @@
 import type { robotApi } from '@viamrobotics/sdk';
 
 import type { ResourceGeneration } from './resource-generation.svelte';
-
-/**
- * @todo(mp) Expose `ResourceStatus_State` in the ts-sdk and remove.
- * Mirrors `viam.robot.v1.ResourceStatus.State`.
- */
-const STATE_UNCONFIGURED = 1;
-const STATE_CONFIGURING = 2;
-const STATE_REMOVING = 4;
+import {
+  STATE_CONFIGURING,
+  STATE_REMOVING,
+  STATE_UNCONFIGURED,
+} from './resource-status-state';
 
 /**
  * States the resource leaves on its own, either by becoming ready or by going
