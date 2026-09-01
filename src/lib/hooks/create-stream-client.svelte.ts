@@ -13,6 +13,7 @@ import {
 } from '@tanstack/svelte-query';
 import { createQueryLogger } from '$lib/logger';
 import { useEnabledQueries } from './use-enabled-queries.svelte';
+import { resourceQueryKeyPrefix } from './resource-query-key';
 
 type StreamSubscriber = (
   mediaStream: MediaStream | null,
@@ -27,9 +28,54 @@ interface SharedStreamEntry {
   error: Error | undefined;
   listeners: Set<StreamSubscriber>;
   fetchPromise: Promise<void> | null;
+  /** The instance the current track came from. See {@link refreshSharedStream}. */
+  generation: string;
 }
 
 const sharedStreams = new Map<string, SharedStreamEntry>();
+
+const sharedStreamKey = (partID: string, resourceName: string) =>
+  `${partID}:${resourceName}`;
+
+/**
+ * Re-acquires the track after the resource behind a name is rebuilt.
+ *
+ * The rebuilt resource has no idea it owes anyone a stream, so the old track
+ * goes silent with no error and nothing to reconnect to. Subscribers are left
+ * in place and handed the new track, since the subscription itself is still
+ * valid: only the server-side instance changed.
+ */
+export const refreshSharedStream = async (
+  partID: string,
+  resourceName: string,
+  generation: string
+) => {
+  const entry = sharedStreams.get(sharedStreamKey(partID, resourceName));
+
+  // Every subscriber sees the same change, so the first one through claims it.
+  if (!entry || entry.generation === generation) {
+    return;
+  }
+
+  entry.generation = generation;
+
+  // The previous instance is already gone, so a failure here means there was
+  // nothing left to release.
+  await entry.streamClient.remove(resourceName).catch(() => {});
+
+  try {
+    const stream = await entry.streamClient.getStream(resourceName);
+    entry.mediaStream = stream ?? null;
+    entry.error = undefined;
+  } catch (nextError) {
+    entry.mediaStream = null;
+    entry.error = nextError as Error;
+  }
+
+  for (const listener of entry.listeners) {
+    listener(entry.mediaStream, entry.error);
+  }
+};
 
 const acquireSharedStream = (
   partID: string,
@@ -37,7 +83,7 @@ const acquireSharedStream = (
   robotClient: Client,
   subscriber: StreamSubscriber
 ): (() => void) => {
-  const key = `${partID}:${resourceName}`;
+  const key = sharedStreamKey(partID, resourceName);
   let entry = sharedStreams.get(key);
 
   // Reconnect: previous connection is dead, drop the entry without remove().
@@ -55,6 +101,7 @@ const acquireSharedStream = (
       error: undefined,
       listeners: new Set(),
       fetchPromise: null,
+      generation: '',
     };
     sharedStreams.set(key, entry);
   }
@@ -138,11 +185,7 @@ export const createStreamClient = (
   const queryOptions = $derived(
     createQueryOptions({
       queryKey: [
-        'viam-svelte-sdk',
-        'partID',
-        partID(),
-        'resource',
-        name,
+        ...resourceQueryKeyPrefix(partID(), name),
         'stream',
         'getOptions',
       ],

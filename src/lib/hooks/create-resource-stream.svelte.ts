@@ -14,6 +14,7 @@ import type {
   StreamQueryOptions as QueryOptions,
 } from './queries';
 import type { ResourceClientContext } from './create-resource-client.svelte';
+import { resourceQueryKeyPrefix } from './resource-query-key';
 
 type QueryResult<U> = QueryObserverResult<U[], Error>;
 
@@ -23,11 +24,7 @@ export const streamQueryKey = (
   methodName: string,
   args?: QueryOptions | unknown
 ) => [
-  'viam-svelte-sdk',
-  'partID',
-  partID,
-  'resource',
-  name,
+  ...resourceQueryKeyPrefix(partID, name),
   methodName,
   ...(args ? [args] : []),
 ];

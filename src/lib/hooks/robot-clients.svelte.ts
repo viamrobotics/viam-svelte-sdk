@@ -321,6 +321,24 @@ export const provideRobotClientsContext = (
   });
 };
 
+/**
+ * Every part the provider knows about, connected or not, for per-part work it
+ * drives. Deliberately unfiltered: a watcher that unmounts on a disconnect
+ * loses the state it needs to notice a rebuild that happened during the blip,
+ * and the per-part queries are already gated on the connection.
+ */
+export const usePartIDs = () => {
+  const context = getContext<ConnectionStatusContext>(connectionKey);
+
+  const current = $derived(Object.keys(context.current));
+
+  return {
+    get current() {
+      return current;
+    },
+  };
+};
+
 export const useConnectionStatus = (partID: () => PartID) => {
   const context = getContext<ConnectionStatusContext>(connectionKey);
   const status = $derived(context.current[partID()]);

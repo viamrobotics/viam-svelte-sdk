@@ -2,9 +2,9 @@ import type { QueryObserverResult } from '@tanstack/svelte-query';
 import type { ResourceName } from '@viamrobotics/sdk';
 import { useRobotClient } from './robot-clients.svelte';
 import type { PartID } from '../part';
-import { useDebounce } from 'runed';
 import { useEnabledQueries } from './use-enabled-queries.svelte';
 import { createRobotQuery } from './create-robot-query.svelte';
+import { useMachineStatus } from './machine-status.svelte';
 
 type Query = QueryObserverResult<ResourceName[], Error>;
 
@@ -19,8 +19,6 @@ interface QueryContext {
   current: ResourceName[];
   query: Query | undefined;
 }
-
-const revisions = new Map<string, string>();
 
 const areResourceNamesEqual = (
   a: ResourceName[],
@@ -73,31 +71,19 @@ export const useResourceNames = (
 ): QueryContext => {
   const enabledQueries = useEnabledQueries();
   const client = useRobotClient(partID);
-  const machineStatus = createRobotQuery(client, 'getMachineStatus', {
-    refetchInterval: 1000,
-  });
+  const { query: machineStatus } = useMachineStatus(partID);
 
+  // Never refetches on its own. The machine watcher invalidates it whenever the
+  // set of resources the machine lists changes, which is the only thing that can
+  // change this response.
   const query = createRobotQuery(client, 'resourceNames', () => ({
     enabled:
-      client !== undefined &&
-      machineStatus?.data?.state === MachineState.Running &&
+      client.current !== undefined &&
+      machineStatus.data?.state === MachineState.Running &&
       enabledQueries.resourceNames,
     refetchOnMount: false,
     staleTime: Infinity,
   }));
-
-  const debouncedRefetch = useDebounce(() => query.refetch(), 500);
-
-  $effect(() => {
-    const revision = machineStatus?.data?.config?.revision ?? '';
-    const lastRevision = revisions.get(partID());
-
-    revisions.set(partID(), revision);
-
-    if (lastRevision && revision !== lastRevision) {
-      debouncedRefetch();
-    }
-  });
 
   const data = $derived(sortResourceNames(query.data ?? []));
 

@@ -32,6 +32,10 @@ export {
   type ResourceStatus,
 } from './hooks/machine-status.svelte';
 export { useResourceNames } from './hooks/resource-names.svelte';
+export {
+  useResourceGeneration,
+  type ResourceGenerationContext,
+} from './hooks/resource-generation.svelte';
 
 export { usePolling } from './hooks/use-polling.svelte';
 

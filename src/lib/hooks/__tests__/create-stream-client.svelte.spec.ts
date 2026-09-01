@@ -1,6 +1,7 @@
 import { render, cleanup } from '@testing-library/svelte';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import CreateStreamClientTestWrapper from './fixtures/CreateStreamClientTestWrapper.svelte';
+import { refreshSharedStream } from '../create-stream-client.svelte';
 
 const { mockStreamClient, fakeRobotClient } = vi.hoisted(() => ({
   mockStreamClient: {
@@ -74,5 +75,54 @@ describe('createStreamClient', () => {
     await flushMicrotasks();
 
     expect(mockStreamClient.getStream).toHaveBeenCalledTimes(1);
+  });
+
+  it('re-acquires the track when the camera is rebuilt', async () => {
+    const before = { id: 'before' } as unknown as MediaStream;
+    const after = { id: 'after' } as unknown as MediaStream;
+    mockStreamClient.getStream.mockResolvedValueOnce(before);
+
+    const { getByTestId } = render(CreateStreamClientTestWrapper, {
+      props: { partID: 'part-1', resourceName: 'camera-2' },
+    });
+
+    await flushMicrotasks();
+    expect(getByTestId('stream-wrapper').textContent).toContain('has-stream');
+
+    mockStreamClient.getStream.mockResolvedValueOnce(after);
+    await refreshSharedStream('part-1', 'camera-2', 'camera:200.0');
+    await flushMicrotasks();
+
+    // The rebuilt resource does not know it owes anyone a stream, so the old
+    // track goes silent with no error to reconnect from.
+    expect(mockStreamClient.remove).toHaveBeenCalledWith('camera-2');
+    expect(mockStreamClient.getStream).toHaveBeenCalledTimes(2);
+  });
+
+  it('re-acquires once for every subscriber to the rebuilt camera', async () => {
+    mockStreamClient.getStream.mockResolvedValue({} as MediaStream);
+
+    render(CreateStreamClientTestWrapper, {
+      props: { partID: 'part-1', resourceName: 'camera-3' },
+    });
+    render(CreateStreamClientTestWrapper, {
+      props: { partID: 'part-1', resourceName: 'camera-3' },
+    });
+
+    await flushMicrotasks();
+    expect(mockStreamClient.getStream).toHaveBeenCalledTimes(1);
+
+    await refreshSharedStream('part-1', 'camera-3', 'camera:200.0');
+    await refreshSharedStream('part-1', 'camera-3', 'camera:200.0');
+    await flushMicrotasks();
+
+    expect(mockStreamClient.getStream).toHaveBeenCalledTimes(2);
+  });
+
+  it('ignores a refresh for a camera nothing is watching', async () => {
+    await refreshSharedStream('part-1', 'camera-absent', 'camera:200.0');
+
+    expect(mockStreamClient.getStream).not.toHaveBeenCalled();
+    expect(mockStreamClient.remove).not.toHaveBeenCalled();
   });
 });

@@ -9,6 +9,7 @@ import { createQueryLogger } from '$lib/logger';
 import { useEnabledQueries } from './use-enabled-queries.svelte';
 import { useConnectionStatus } from './robot-clients.svelte';
 import type { ResourceClientContext } from './create-resource-client.svelte';
+import { resourceQueryKeyPrefix } from './resource-query-key';
 import type {
   ArgumentsType,
   ResolvedReturnType,
@@ -52,11 +53,7 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
   );
 
   const queryKey = $derived([
-    'viam-svelte-sdk',
-    'partID',
-    partID,
-    'resource',
-    name,
+    ...resourceQueryKeyPrefix(partID, name),
     methodName,
     ...(_args ? [_args] : []),
   ]);

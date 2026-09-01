@@ -5,17 +5,27 @@ import {
 } from '@viamrobotics/sdk';
 
 import { useConnectionStatus, useRobotClient } from './robot-clients.svelte';
+import { useResourceGeneration } from './resource-generation.svelte';
 
 type Client<T> = new (part: RobotClient, name: string) => T;
 
 export interface ResourceClientContext<T> {
   readonly current: T | undefined;
+
   /**
    * The part and resource addressed, defined even while disconnected. Query keys
    * use these, so a dropped client cannot re-key a query onto an empty entry.
    */
   readonly partID: string;
+
   readonly name: string;
+  /**
+   * Identifies the server-side instance behind `name`, completing the identity
+   * the pair above cannot express on its own. See {@link useResourceGeneration}.
+   *
+   * Optional so a hand-built context still satisfies the interface.
+   */
+  readonly generation?: string | undefined;
 }
 
 export const createResourceClient = <T extends Resource>(
@@ -25,6 +35,7 @@ export const createResourceClient = <T extends Resource>(
 ): ResourceClientContext<T> => {
   const robotClient = useRobotClient(partID);
   const connectionStatus = useConnectionStatus(partID);
+  const generation = useResourceGeneration(partID, resourceName);
 
   const resourceClient = $derived.by<T | undefined>(() => {
     if (!robotClient.current) {
@@ -47,6 +58,9 @@ export const createResourceClient = <T extends Resource>(
     },
     get name() {
       return resourceName();
+    },
+    get generation() {
+      return generation.current;
     },
   };
 };
