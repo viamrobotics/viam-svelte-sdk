@@ -86,6 +86,18 @@ describe('configuredResources', () => {
     expect(names(configuredResources(resources))).toEqual(['camera-1']);
   });
 
+  it('treats an empty subtype as no filter, as useResourceNames does', () => {
+    const resources = [
+      status({ name: 'camera-1' }),
+      status({ name: 'vision-1', subtype: 'vision', type: 'service' }),
+    ];
+
+    expect(names(configuredResources(resources, ''))).toEqual([
+      'camera-1',
+      'vision-1',
+    ]);
+  });
+
   it('restricts to one subtype when asked', () => {
     const resources = [
       status({ name: 'camera-1' }),

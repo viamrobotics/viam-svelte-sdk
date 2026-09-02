@@ -257,6 +257,37 @@ $inspect(resources.query.fetching);
 </script>
 ```
 
+### useResourceStatuses
+
+Lists a part's configured resources with the state and error the machine reports for each, filtered by subtype like `useResourceNames`.
+
+Prefer this to `useResourceNames` for anything that renders or tracks a set of resources. `resourceNames` lists only what the server can currently serve, so a resource leaves it when it goes unhealthy and returns when it recovers, which makes anything derived from it churn. This reports a resource whatever its state, so it can be shown as unhealthy rather than vanishing.
+
+Interpret `state` with `ResourceStatus_State` from `@viamrobotics/sdk`.
+
+```svelte
+<script lang="ts">
+import { useResourceStatuses } from '@viamrobotics/svelte-sdk';
+import { robotApi } from '@viamrobotics/sdk';
+
+interface Props {
+  partID: string;
+}
+
+let { partID }: Props = $props();
+
+const cameras = useResourceStatuses(() => partID, 'camera');
+
+const unhealthy = $derived(
+  cameras.current.filter(
+    (camera) => camera.state === robotApi.ResourceStatus_State.UNHEALTHY
+  )
+);
+
+$inspect(unhealthy);
+</script>
+```
+
 ## Components
 
 ### `<CameraImage>`

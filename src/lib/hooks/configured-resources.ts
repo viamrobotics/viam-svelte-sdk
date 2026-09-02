@@ -16,6 +16,9 @@ const REMOTE_TYPE = 'remote';
  * Narrows a machine status to the resources a caller configured, optionally to
  * one subtype. The machine status reports everything the resource graph holds,
  * including entries rdk itself does not count as configured resources.
+ *
+ * An empty `subtype` means no filter, matching `useResourceNames`, so callers
+ * moving between the two get the same list from the same argument.
  */
 export const configuredResources = (
   resources: ResourceStatus[],
@@ -26,5 +29,5 @@ export const configuredResources = (
       name !== undefined &&
       name.namespace !== INTERNAL_NAMESPACE &&
       name.type !== REMOTE_TYPE &&
-      (subtype === undefined || name.subtype === subtype)
+      (!subtype || name.subtype === subtype)
   );
