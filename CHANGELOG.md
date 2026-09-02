@@ -1,5 +1,11 @@
 # @viamrobotics/svelte-sdk
 
+## 1.5.0
+
+### Minor Changes
+
+- 9112b8e: Adds `useResourceStatuses`, listing a part's configured resources with the state and error the machine reports for each.
+
 ## 1.4.0
 
 ### Minor Changes
