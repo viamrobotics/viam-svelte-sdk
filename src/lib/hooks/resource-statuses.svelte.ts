@@ -23,6 +23,10 @@ const areEqual = (a: ResourceStatus[], b: ResourceStatus[]): boolean => {
   });
 };
 
+export interface ResourceStatusesContext {
+  readonly current: ResourceStatus[];
+}
+
 /**
  * Every configured resource on a part, with the state and error the machine
  * reports for each.
@@ -45,7 +49,7 @@ const areEqual = (a: ResourceStatus[], b: ResourceStatus[]): boolean => {
 export const useResourceStatuses = (
   partID: () => PartID,
   resourceSubtype?: string | (() => string)
-) => {
+): ResourceStatusesContext => {
   const machineStatus = useMachineStatus(partID);
 
   const subtype = $derived(
