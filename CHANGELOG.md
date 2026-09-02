@@ -1,5 +1,11 @@
 # @viamrobotics/svelte-sdk
 
+## 1.5.1
+
+### Patch Changes
+
+- 7f75edf: Ship types for `useResourceStatuses`, which 1.5.0 exported untyped.
+
 ## 1.5.0
 
 ### Minor Changes
