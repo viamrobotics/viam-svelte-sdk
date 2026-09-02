@@ -13,6 +13,7 @@
     "prepare": "svelte-kit sync || echo ''",
     "prepack": "wireit",
     "check": "wireit",
+    "check:declarations": "wireit",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "format": "prettier --write . && eslint . --fix",
     "lint": "wireit",
@@ -99,10 +100,28 @@
         "package"
       ]
     },
+    "check:declarations": {
+      "//": "svelte-package drops a file whose declaration cannot be emitted, and publint still passes, so an untyped export ships silently. svelte-check does not report TS2883.",
+      "command": "tsc --noEmit --declaration -p tsconfig.json",
+      "dependencies": [
+        "svelte-sync"
+      ],
+      "files": [
+        "src/**",
+        "tsconfig.json",
+        "svelte.config.js",
+        "package.json"
+      ],
+      "output": [],
+      "packageLocks": [
+        "pnpm-lock.yaml"
+      ]
+    },
     "check": {
       "command": "svelte-check --tsconfig ./tsconfig.json",
       "dependencies": [
-        "svelte-sync"
+        "svelte-sync",
+        "check:declarations"
       ],
       "files": [
         "src/**",
