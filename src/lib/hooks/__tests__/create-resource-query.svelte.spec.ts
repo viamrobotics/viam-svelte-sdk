@@ -3,8 +3,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import CreateResourceQueryTestWrapper from './fixtures/CreateResourceQueryTestWrapper.svelte';
 import { resourceQueryKeyPrefix } from '../resource-query-key';
 
-const { fakeResourceClient } = vi.hoisted(() => ({
+const { fakeResourceClient, builtOptions } = vi.hoisted(() => ({
   fakeResourceClient: { name: 'arm-1', partID: 'part-1' },
+  /** The options handed to Tanstack, which the wrapper does not otherwise expose. */
+  builtOptions: { current: undefined as Record<string, unknown> | undefined },
 }));
 
 vi.mock('@viamrobotics/sdk', () => ({
@@ -24,7 +26,10 @@ vi.mock('../use-polling.svelte', () => ({
 }));
 
 vi.mock('@tanstack/svelte-query', () => ({
-  createQuery: () => ({ data: undefined }),
+  createQuery: (options: () => Record<string, unknown>) => {
+    builtOptions.current = options();
+    return { data: undefined };
+  },
   queryOptions: (options: unknown) => options,
 }));
 
@@ -58,6 +63,32 @@ describe('createResourceQuery', () => {
       'arm-1',
       'getEndPosition',
     ]);
+  });
+
+  it('fetches without consulting the browser online state', () => {
+    render(CreateResourceQueryTestWrapper, {
+      props: {
+        current: fakeResourceClient as never,
+        partID: 'part-1',
+        resourceName: 'arm-1',
+      },
+    });
+
+    // A machine on a local network or its own access point is reachable while
+    // the browser reports offline, and `online` would pause the call.
+    expect(builtOptions.current?.networkMode).toBe('always');
+  });
+
+  it('still refetches on reconnect, which `always` would otherwise turn off', () => {
+    render(CreateResourceQueryTestWrapper, {
+      props: {
+        current: fakeResourceClient as never,
+        partID: 'part-1',
+        resourceName: 'arm-1',
+      },
+    });
+
+    expect(builtOptions.current?.refetchOnReconnect).toBe(true);
   });
 
   it('keys under the prefix a rebuild invalidates', () => {

@@ -3,18 +3,27 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import UsePollingTestWrapper from './fixtures/UsePollingTestWrapper.svelte';
 
 const mockRefetchQueries = vi.fn();
+const mockIsFocused = vi.fn(() => true);
 
 vi.mock('@tanstack/svelte-query', () => ({
   useQueryClient: () => ({
     refetchQueries: mockRefetchQueries,
   }),
+  focusManager: {
+    isFocused: () => mockIsFocused(),
+  },
 }));
+
+/** Stands in for the tab being hidden, which is what `isFocused` reports on. */
+const hide = () => mockIsFocused.mockReturnValue(false);
+const show = () => mockIsFocused.mockReturnValue(true);
 
 describe('usePolling', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     mockRefetchQueries.mockReset();
     mockRefetchQueries.mockResolvedValue(undefined);
+    show();
   });
 
   afterEach(() => {
@@ -319,6 +328,48 @@ describe('usePolling', () => {
 
     // Only one live poller should fire
     expect(mockRefetchQueries.mock.calls.length - callsBefore).toBe(1);
+  });
+
+  it('does not fetch while the document is hidden', async () => {
+    hide();
+
+    render(UsePollingTestWrapper, {
+      props: { queryKey: ['test'], interval: 1000 },
+    });
+
+    await vi.advanceTimersByTimeAsync(5000);
+
+    expect(mockRefetchQueries).not.toHaveBeenCalled();
+  });
+
+  it('fetches on the first tick after the document is shown again', async () => {
+    hide();
+
+    render(UsePollingTestWrapper, {
+      props: { queryKey: ['test'], interval: 1000 },
+    });
+
+    await vi.advanceTimersByTimeAsync(3000);
+    expect(mockRefetchQueries).not.toHaveBeenCalled();
+
+    show();
+    await vi.advanceTimersByTimeAsync(1000);
+
+    // The timer kept running while hidden, so returning costs one tick rather
+    // than a fresh interval.
+    expect(mockRefetchQueries).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps fetching while hidden when told to poll in the background', async () => {
+    hide();
+
+    render(UsePollingTestWrapper, {
+      props: { queryKey: ['test'], interval: 1000, inBackground: true },
+    });
+
+    await vi.advanceTimersByTimeAsync(2000);
+
+    expect(mockRefetchQueries).toHaveBeenCalledTimes(2);
   });
 
   it('handles slow requests without stacking when request takes longer than interval', async () => {

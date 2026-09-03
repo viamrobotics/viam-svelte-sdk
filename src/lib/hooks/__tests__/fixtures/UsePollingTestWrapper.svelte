@@ -9,13 +9,15 @@ import { usePolling } from '../../use-polling.svelte';
 interface Props {
   queryKey: unknown[];
   interval: number | false;
+  inBackground?: boolean;
 }
 
-let { queryKey, interval }: Props = $props();
+let { queryKey, interval, inBackground }: Props = $props();
 
 usePolling(
   () => queryKey,
-  () => interval
+  () => interval,
+  () => inBackground
 );
 </script>
 
