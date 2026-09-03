@@ -5,7 +5,7 @@ import { useMachineStatus } from '$lib/hooks/machine-status.svelte';
 import { useResourceGenerationsPublisher } from '$lib/hooks/resource-generation.svelte';
 import { resourceGenerationsFromStatus } from '$lib/hooks/resource-generations-from-status';
 import { resourceQueryKeyPrefix } from '$lib/hooks/resource-query-key';
-import { robotQueryKey } from '$lib/hooks/robot-query-key';
+import { robotQueryKey, robotQueryKeyPrefix } from '$lib/hooks/robot-query-key';
 import {
   STATE_REMOVING,
   STATE_UNCONFIGURED,
@@ -73,6 +73,27 @@ $effect(() => {
 
   queryClient.invalidateQueries({
     queryKey: robotQueryKey(partID, 'resourceNames'),
+  });
+});
+
+const configRevision = $derived(query.data?.config?.revision);
+
+let lastRevision: string | undefined;
+
+// A moved config revision means the machine was reconfigured. Robot queries
+// are keyed by the part rather than by a resource, so a resource generation
+// never marks them stale.
+$effect(() => {
+  if (!configRevision || configRevision === lastRevision) {
+    return;
+  }
+
+  lastRevision = configRevision;
+
+  // Fires on the first revision too, deliberately. A robot query may have
+  // answered before this watcher had a revision to compare against.
+  queryClient.invalidateQueries({
+    queryKey: robotQueryKeyPrefix(partID),
   });
 });
 

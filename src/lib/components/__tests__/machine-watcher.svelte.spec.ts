@@ -53,14 +53,18 @@ const resourceQuery = (name: string) => [
 ];
 
 const resourceNamesQuery = robotQueryKey(PART, 'resourceNames');
+const frameSystemQuery = robotQueryKey(PART, 'frameSystemConfig');
 
 const mount = (watch = 'camera-1') =>
   render(MachineWatcherHarness, {
     props: { client: queryClient, partID: PART, watch },
   });
 
-const poll = async (resources: robotApi.ResourceStatus[]) => {
-  machineStatusStub.poll(resources);
+const poll = async (
+  resources: robotApi.ResourceStatus[],
+  configRevision?: string
+) => {
+  machineStatusStub.poll(resources, configRevision);
   await tick();
 };
 
@@ -81,6 +85,7 @@ beforeEach(() => {
   queryClient.setQueryData(resourceQuery('camera-1'), 'first-instance');
   queryClient.setQueryData(resourceQuery('camera-2'), 'first-instance');
   queryClient.setQueryData(resourceNamesQuery, ['camera-1']);
+  queryClient.setQueryData(frameSystemQuery, 'first-config');
 });
 
 afterEach(() => {
@@ -320,5 +325,85 @@ describe('MachineWatcher', () => {
     await loseStatus();
 
     expect(isStale(resourceNamesQuery)).toBe(false);
+  });
+
+  it('invalidates robot queries when the config revision moves', async () => {
+    mount();
+    await poll([status('camera-1', 100n)], 'rev-1');
+
+    queryClient.setQueryData(frameSystemQuery, 'first-config');
+
+    await poll([status('camera-1', 100n)], 'rev-2');
+
+    expect(isStale(frameSystemQuery)).toBe(true);
+  });
+
+  it('invalidates robot queries on the first config revision it sees', async () => {
+    mount();
+
+    // A robot query may already have answered against an earlier configuration,
+    // and the watcher cannot tell which one from here.
+    await poll([status('camera-1', 100n)], 'rev-1');
+
+    expect(isStale(frameSystemQuery)).toBe(true);
+  });
+
+  it('does not invalidate robot queries while the config revision holds', async () => {
+    mount();
+    await poll([status('camera-1', 100n)], 'rev-1');
+
+    queryClient.setQueryData(frameSystemQuery, 'first-config');
+
+    await poll([status('camera-1', 200n)], 'rev-1');
+    await poll([status('camera-1', 300n)], 'rev-1');
+
+    expect(isStale(frameSystemQuery)).toBe(false);
+  });
+
+  it('invalidates a config change that happened while the part was disconnected', async () => {
+    mount();
+    await poll([status('camera-1', 100n)], 'rev-1');
+
+    queryClient.setQueryData(frameSystemQuery, 'first-config');
+
+    await loseStatus();
+    expect(isStale(frameSystemQuery)).toBe(false);
+
+    await poll([status('camera-1', 100n)], 'rev-2');
+
+    expect(isStale(frameSystemQuery)).toBe(true);
+  });
+
+  it('does not invalidate robot queries when a part reconnects unchanged', async () => {
+    mount();
+    await poll([status('camera-1', 100n)], 'rev-1');
+
+    queryClient.setQueryData(frameSystemQuery, 'first-config');
+
+    await loseStatus();
+    await poll([status('camera-1', 100n)], 'rev-1');
+
+    expect(isStale(frameSystemQuery)).toBe(false);
+  });
+
+  it('leaves resource queries alone when only the config revision moves', async () => {
+    mount();
+    await poll([status('camera-1', 100n)], 'rev-1');
+    await poll([status('camera-1', 100n)], 'rev-2');
+
+    // A resource that was not rebuilt can still answer, so re-fetching every
+    // camera on any config edit would be wasted work.
+    expect(isStale(resourceQuery('camera-1'))).toBe(false);
+  });
+
+  it('keeps the previous robot response while the refreshed one is in flight', async () => {
+    mount();
+    await poll([status('camera-1', 100n)], 'rev-1');
+
+    queryClient.setQueryData(frameSystemQuery, 'first-config');
+
+    await poll([status('camera-1', 100n)], 'rev-2');
+
+    expect(queryClient.getQueryData(frameSystemQuery)).toBe('first-config');
   });
 });
