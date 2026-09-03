@@ -5,7 +5,7 @@ import { useMachineStatus } from '$lib/hooks/machine-status.svelte';
 import { useResourceGenerationsPublisher } from '$lib/hooks/resource-generation.svelte';
 import { resourceGenerationsFromStatus } from '$lib/hooks/resource-generations-from-status';
 import { resourceQueryKeyPrefix } from '$lib/hooks/resource-query-key';
-import { robotQueryKey } from '$lib/hooks/robot-query-key';
+import { robotQueryKey, robotQueryKeyPrefix } from '$lib/hooks/robot-query-key';
 import {
   STATE_REMOVING,
   STATE_UNCONFIGURED,
@@ -73,6 +73,29 @@ $effect(() => {
 
   queryClient.invalidateQueries({
     queryKey: robotQueryKey(partID, 'resourceNames'),
+  });
+});
+
+const configRevision = $derived(query.data?.config?.revision);
+
+let lastRevision: string | undefined;
+
+// A resource generation only reaches queries keyed by that resource. A robot
+// query is keyed by the part, so nothing above notices when the machine's own
+// configuration moves, and `frameSystemConfig` is derived from all of it.
+//
+// The first revision counts as a change for the same reason `resourceNames`
+// refetches on its first status: a robot query may already have answered
+// against an earlier configuration, and there is no way to tell from here.
+$effect(() => {
+  if (!configRevision || configRevision === lastRevision) {
+    return;
+  }
+
+  lastRevision = configRevision;
+
+  queryClient.invalidateQueries({
+    queryKey: robotQueryKeyPrefix(partID),
   });
 });
 
