@@ -1,5 +1,11 @@
 # @viamrobotics/svelte-sdk
 
+## 1.5.2
+
+### Patch Changes
+
+- 8ae2111: Fix robot queries serving an answer from a previous machine configuration
+
 ## 1.5.1
 
 ### Patch Changes
