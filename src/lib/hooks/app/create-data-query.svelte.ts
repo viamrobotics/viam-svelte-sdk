@@ -86,7 +86,8 @@ export const createDataQuery = <T extends DataClient, K extends keyof T>(
 
   usePolling(
     () => queryOptions.queryKey,
-    () => enabled && (_options?.refetchInterval ?? false)
+    () => enabled && (_options?.refetchInterval ?? false),
+    () => _options?.refetchIntervalInBackground
   );
 
   return createQuery(() => queryOptions);

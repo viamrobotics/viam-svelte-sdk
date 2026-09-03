@@ -57,6 +57,15 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
       ],
       enabled,
       retry: false,
+      // A robot is reached over its own dialed connection, which the browser's
+      // online state says nothing about. A machine on a local network or its own
+      // access point is reachable while the browser reports offline, and the
+      // default `online` mode would pause every call. Reachability is already
+      // tracked by the connection status this query is enabled on.
+      networkMode: 'always',
+      // Pinned, because Tanstack derives this from `networkMode` and 'always'
+      // would otherwise turn it off.
+      refetchOnReconnect: true,
       queryFn: async () => {
         const clientFunc = client.current?.[method];
 
@@ -89,7 +98,8 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
 
   usePolling(
     () => queryOptions.queryKey,
-    () => enabled && (_options?.refetchInterval ?? false)
+    () => enabled && (_options?.refetchInterval ?? false),
+    () => _options?.refetchIntervalInBackground
   );
 
   return createQuery(() => queryOptions);
