@@ -1,5 +1,12 @@
 # @viamrobotics/svelte-sdk
 
+## 1.5.3
+
+### Patch Changes
+
+- 33f8020: Stop polling while the document is hidden, honouring `refetchIntervalInBackground`
+- 33f8020: Fix robot and resource queries pausing when the browser reports itself offline
+
 ## 1.5.2
 
 ### Patch Changes
