@@ -80,13 +80,9 @@ const configRevision = $derived(query.data?.config?.revision);
 
 let lastRevision: string | undefined;
 
-// A resource generation only reaches queries keyed by that resource. A robot
-// query is keyed by the part, so nothing above notices when the machine's own
-// configuration moves, and `frameSystemConfig` is derived from all of it.
-//
-// The first revision counts as a change for the same reason `resourceNames`
-// refetches on its first status: a robot query may already have answered
-// against an earlier configuration, and there is no way to tell from here.
+// A moved config revision means the machine was reconfigured. Robot queries
+// are keyed by the part rather than by a resource, so a resource generation
+// never marks them stale.
 $effect(() => {
   if (!configRevision || configRevision === lastRevision) {
     return;
@@ -94,6 +90,8 @@ $effect(() => {
 
   lastRevision = configRevision;
 
+  // Fires on the first revision too, deliberately. A robot query may have
+  // answered before this watcher had a revision to compare against.
   queryClient.invalidateQueries({
     queryKey: robotQueryKeyPrefix(partID),
   });
