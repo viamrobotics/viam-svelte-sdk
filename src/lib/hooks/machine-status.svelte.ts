@@ -3,6 +3,7 @@ import type { PartID } from '$lib/part';
 import type { PlainMessage, robotApi } from '@viamrobotics/sdk';
 import { createRobotQuery } from './create-robot-query.svelte';
 import type { QueryOptions } from './queries';
+import { uniqueResourceStatuses } from './unique-resource-statuses';
 
 type MachineStatus = PlainMessage<robotApi.GetMachineStatusResponse>;
 
@@ -65,6 +66,18 @@ const sortResourceStatuses = (machineStatus: MachineStatus) => {
   };
 };
 
+/**
+ * Polls a part's machine status.
+ *
+ * `current` is the response with its resources sorted and reduced to one entry
+ * per name. The machine reports every node in its resource graph, so a remote
+ * resource hidden behind a local one of the same name arrives as a duplicate
+ * that nothing can address. `query.data` is the response as the machine sent
+ * it.
+ *
+ * @param partID The part to poll.
+ * @param options Query options, such as `refetchInterval`.
+ */
 export const useMachineStatus = (
   partID: () => PartID,
   options?: (() => QueryOptions) | QueryOptions
@@ -73,7 +86,12 @@ export const useMachineStatus = (
   const query = createRobotQuery(client, 'getMachineStatus', options);
 
   const current = $derived(
-    query.data ? sortResourceStatuses(query.data) : undefined
+    query.data
+      ? sortResourceStatuses({
+          ...query.data,
+          resources: uniqueResourceStatuses(query.data.resources),
+        })
+      : undefined
   );
 
   return {
