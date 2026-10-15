@@ -39,9 +39,9 @@ export interface ResourceStatusesContext {
  * over that state so a caller can show it as unhealthy rather than having it
  * silently disappear.
  *
- * `useMachineStatus` is the unfiltered view. This one drops what rdk does not
- * count as a configured resource, and holds its array identity while nothing
- * changes.
+ * `useMachineStatus` is the wider view, with one entry per name but nothing
+ * else dropped. This one also drops what rdk does not count as a configured
+ * resource, and holds its array identity while nothing changes.
  *
  * @param partID The part to list.
  * @param resourceSubtype Restricts the list to one subtype, such as `camera`.

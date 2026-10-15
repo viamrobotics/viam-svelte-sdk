@@ -4,7 +4,7 @@ import type { ResourceStatus } from './machine-status.svelte';
  * viam-server's own plumbing, such as the cloud and web services. rdk excludes
  * this namespace wherever it reports configured resources.
  */
-const INTERNAL_NAMESPACE = 'rdk-internal';
+export const INTERNAL_NAMESPACE = 'rdk-internal';
 
 /**
  * An entry standing for a whole remote machine rather than a resource on it.
