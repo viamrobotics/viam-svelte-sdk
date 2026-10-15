@@ -1,5 +1,11 @@
 # @viamrobotics/svelte-sdk
 
+## 1.5.4
+
+### Patch Changes
+
+- 083d6db: Fix `useMachineStatus` and `useResourceStatuses` reporting a resource twice when a remote shares its name with a local resource
+
 ## 1.5.3
 
 ### Patch Changes
