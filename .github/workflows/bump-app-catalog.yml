@@ -54,6 +54,21 @@ jobs:
           cache: 'pnpm'
           cache-dependency-path: app/pnpm-lock.yaml
 
+      # The registry can take a few minutes to serve a freshly published
+      # version, so wait for it before pnpm tries to resolve it.
+      - name: Wait for @viamrobotics/svelte-sdk@${{ env.VERSION }} on npm
+        run: |
+          for attempt in $(seq 1 20); do
+            if npm view "@viamrobotics/svelte-sdk@${VERSION}" version --prefer-online 2>/dev/null | grep -qx "${VERSION}"; then
+              echo "Found @viamrobotics/svelte-sdk@${VERSION} on npm"
+              exit 0
+            fi
+            echo "Attempt ${attempt}: ${VERSION} not available yet, retrying in 30s"
+            sleep 30
+          done
+          echo "::error::@viamrobotics/svelte-sdk@${VERSION} did not appear on npm after 10 minutes"
+          exit 1
+
       - name: Bump @viamrobotics/svelte-sdk in pnpm-workspace.yaml
         working-directory: app
         run: |
