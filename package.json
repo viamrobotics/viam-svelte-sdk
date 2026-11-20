@@ -228,7 +228,7 @@
     "@changesets/cli": "^2.31.0",
     "@eslint/compat": "^2.0.5",
     "@eslint/js": "^10.0.1",
-    "@playwright/test": "^1.59.1",
+    "@playwright/test": "^1.65.1",
     "@sveltejs/adapter-static": "^3.0.10",
     "@sveltejs/kit": "^2.59.1",
     "@sveltejs/package": "^2.5.7",
