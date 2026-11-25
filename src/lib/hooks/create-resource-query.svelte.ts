@@ -58,8 +58,13 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
     ...(_args ? [_args] : []),
   ]);
 
-  const queryOptions = $derived(
-    createQueryOptions({
+  const queryOptions = $derived.by(() => {
+    // Read once, so the fetch uses the same arguments as the key. Tanstack keeps one query per
+    // key and runs whichever `queryFn` last configured it, so a `queryFn` reading the live args
+    // would answer this key with another key's arguments after they change.
+    const queryArgs = _args;
+
+    return createQueryOptions({
       queryKey,
       enabled,
       retry: false,
@@ -82,12 +87,12 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
         }
 
         const logger = createQueryLogger(name ?? 'unknown', methodName);
-        logger.request(_args);
+        logger.request(queryArgs);
 
         try {
           const response = (await clientFunc?.apply(
             client.current,
-            _args
+            queryArgs
           )) as Promise<ResolvedReturnType<T[K]>>;
 
           logger.response(response);
@@ -99,8 +104,8 @@ export const createResourceQuery = <T extends Resource, K extends keyof T>(
       },
       ..._options,
       refetchInterval: false,
-    })
-  );
+    });
+  });
 
   usePolling(
     () => queryOptions.queryKey,
