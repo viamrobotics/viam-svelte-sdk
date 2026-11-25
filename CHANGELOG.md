@@ -1,5 +1,11 @@
 # @viamrobotics/svelte-sdk
 
+## 1.5.5
+
+### Patch Changes
+
+- 68d777a: Queries and streams fetch with the arguments of their own key, so a query whose arguments change no longer corrupts another query sharing its old key.
+
 ## 1.5.4
 
 ### Patch Changes
