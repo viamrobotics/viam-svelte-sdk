@@ -60,7 +60,7 @@ export const createResourceStream = <T extends Resource, K extends keyof T>(
   const connectionStatus = useConnectionStatus(() => partID);
   const queryKey = $derived(streamQueryKey(partID, name, methodName, _args));
 
-  function processStream() {
+  function processStream(streamArgs: typeof _args) {
     const clientFunc = client.current?.[method];
 
     if (typeof clientFunc !== 'function') {
@@ -70,12 +70,12 @@ export const createResourceStream = <T extends Resource, K extends keyof T>(
     }
 
     const logger = createQueryLogger(name ?? 'unknown', methodName);
-    logger.request(_args);
+    logger.request(streamArgs);
 
     try {
       const response = clientFunc?.apply(
         client.current,
-        _args
+        streamArgs
       ) as AsyncGenerator<StreamItemType<T[K]>>;
 
       logger.response(response);
@@ -86,8 +86,13 @@ export const createResourceStream = <T extends Resource, K extends keyof T>(
     }
   }
 
-  const queryOptions = $derived(
-    createQueryOptions({
+  const queryOptions = $derived.by(() => {
+    // Read once, so the stream opens with the same arguments as the key. Tanstack keeps one query
+    // per key and runs whichever `queryFn` last configured it, so a `queryFn` reading the live args
+    // would answer this key with another key's arguments after they change.
+    const streamArgs = _args;
+
+    return createQueryOptions({
       queryKey,
       enabled:
         connectionStatus.current === MachineConnectionEvent.CONNECTED &&
@@ -95,11 +100,11 @@ export const createResourceStream = <T extends Resource, K extends keyof T>(
         _options?.enabled !== false &&
         enabledQueries.resourceQueries,
       queryFn: streamedQuery<StreamItemType<T[K]>>({
-        streamFn: processStream,
+        streamFn: () => processStream(streamArgs),
         refetchMode,
       }),
-    })
-  );
+    });
+  });
 
   return createQuery(() => queryOptions);
 };

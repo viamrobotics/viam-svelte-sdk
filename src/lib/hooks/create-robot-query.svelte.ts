@@ -49,11 +49,16 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
       enabledQueries.robotQueries
   );
 
-  const queryOptions = $derived(
-    createQueryOptions({
+  const queryOptions = $derived.by(() => {
+    // Read once, so the fetch uses the same arguments as the key. Tanstack keeps one query per
+    // key and runs whichever `queryFn` last configured it, so a `queryFn` reading the live args
+    // would answer this key with another key's arguments after they change.
+    const queryArgs = _args;
+
+    return createQueryOptions({
       queryKey: [
         ...robotQueryKey(partID, methodName),
-        ...(_args ? [_args] : []),
+        ...(queryArgs ? [queryArgs] : []),
       ],
       enabled,
       retry: false,
@@ -76,12 +81,12 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
         }
 
         const logger = createQueryLogger('robot', methodName);
-        logger.request(_args);
+        logger.request(queryArgs);
 
         try {
           const response = (await clientFunc?.apply(
             client.current,
-            _args
+            queryArgs
           )) as Promise<ResolvedReturnType<T[K]>>;
 
           logger.response(response);
@@ -93,8 +98,8 @@ export const createRobotQuery = <T extends RobotClient, K extends keyof T>(
       },
       ..._options,
       refetchInterval: false,
-    })
-  );
+    });
+  });
 
   usePolling(
     () => queryOptions.queryKey,
